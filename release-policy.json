@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "androidPackage": "fr.remid.depenseslocales",
+  "databaseName": "clair-depenses.db",
+  "migrations": [
+    {
+      "entry": {
+        "idx": 0,
+        "version": "6",
+        "when": 1792015200000,
+        "tag": "0000_initial",
+        "breakpoints": true
+      },
+      "sha256": "8d6b86e61e084367cbb9115caf6f6155fa00fdfd6b7e78a7b087180e90b04b5a"
+    },
+    {
+      "entry": {
+        "idx": 1,
+        "version": "6",
+        "when": 1792142854931,
+        "tag": "0001_monthly_budgets",
+        "breakpoints": true
+      },
+      "sha256": "34c39be30e62187f02d63ef08bad66ddf81fe457feee8e06638237c665073425"
+    },
+    {
+      "entry": {
+        "idx": 2,
+        "version": "6",
+        "when": 1792144457811,
+        "tag": "0002_zero_budgets",
+        "breakpoints": true
+      },
+      "sha256": "4995e8052427f0003321d5c60c5d343ffc90fc8ebdef5337be65546d7c8880b1"
+    },
+    {
+      "entry": {
+        "idx": 3,
+        "version": "6",
+        "when": 1792145678007,
+        "tag": "0003_recurring_and_payday",
+        "breakpoints": true
+      },
+      "sha256": "9fc13e8b8cfb219688e4058413b42d8988115832466f8322353c9c547683cacc"
+    }
+  ]
+}

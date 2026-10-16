@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Mon Budget",
+    "slug": "mybudget",
+    "version": "0.1.0",
+    "scheme": "clairdepenses",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "platforms": [
+      "android",
+      "web"
+    ],
+    "backgroundColor": "#FAF8F1",
+    "android": {
+      "package": "fr.remid.depenseslocales",
+      "versionCode": 1,
+      "allowBackup": false,
+      "softwareKeyboardLayoutMode": "resize",
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "updates": {
+      "enabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "name": "Mon Budget"
+    }
+  }
+}
