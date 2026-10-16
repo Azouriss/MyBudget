@@ -1,5 +1,27 @@
 # Tooling version history
 
+## 0.1.2.0 — 2026-10-16
+
+- Rename the workflow to 🔎 Tag Version and run it on every push to main.
+- Derive the tag from the pushed tip commit's platform and four-part version,
+  checking its platform history. Include documentation and tooling commits.
+- Retain the three newest version tags across platforms by target commit date;
+  delete older matching tags after validating the current tag and cleanup plan.
+
+**Threat impact:** The existing contents-write token now deletes old version
+  references as requested. Other tag names are excluded; target changes and
+  incomplete metadata stop cleanup. Existing tags are never moved. Repository
+  protection may block deletion; commits and releases are never deleted.
+
+**Sovereignty impact:** No new service, secret, build, artifact or cache storage.
+  Automation remains on the standard public-repository GitHub runner.
+
+**Validation:** Local tests cover commit/history matching, all platforms,
+  retention, reruns, annotations, conflicting targets and cleanup failures.
+  Live GitHub execution is not established by local tests.
+
+**Status:** `verification-pending` — no release or APK publication.
+
 ## 0.1.1.0 — 2026-10-16
 
 - Automatically create a frontend version tag when its history changes on main,

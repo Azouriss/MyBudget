@@ -1,16 +1,16 @@
-name: Tag frontend version
+name: 🔎 Tag Version
 
 on:
   push:
     branches: [main]
-    paths: [versions/frontend/VERSION.md]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: frontend-version-tag
+  group: version-tags
+  queue: max
   cancel-in-progress: false
 
 jobs:
@@ -36,4 +36,4 @@ jobs:
       - name: Create version tag
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 .github/scripts/tag_frontend.py
+        run: python3 .github/scripts/tag_version.py
