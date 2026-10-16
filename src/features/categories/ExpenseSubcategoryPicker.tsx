@@ -25,7 +25,8 @@ export function ExpenseSubcategoryPicker({ categories, categoryId, value, onChan
   const selected = getExpenseSubcategory(value);
   const expenseCategories = categories.filter((category) => category.kind === 'expense');
   const labels = new Map(expenseCategories.map((category) => [category.id, category.label]));
-  const results = searchExpenseSubcategories(query, categoryId, expenseCategories);
+  const searching = query.trim().length > 0;
+  const results = searching ? searchExpenseSubcategories(query, categoryId, expenseCategories) : [];
   const visible = expanded ? results : results.slice(0, 5);
 
   return <View style={styles.field}>
@@ -43,10 +44,10 @@ export function ExpenseSubcategoryPicker({ categories, categoryId, value, onChan
       <IconButton icon={X} label={`Retirer la sous-catégorie ${selected.label}`} disabled={disabled}
         onPress={() => onChange(categoryId, null)} />
     </View> : null}
-    <Text accessibilityLiveRegion="polite" style={styles.help}>{query.trim()
-      ? `${results.length} résultat${results.length === 1 ? '' : 's'}`
-      : `Suggestions · ${labels.get(categoryId) ?? 'Sous-catégories'}`}</Text>
-    {results.length ? <View accessibilityRole="radiogroup" accessibilityLabel="Sous-catégorie" style={styles.results}>
+    {searching ? <Text accessibilityLiveRegion="polite" style={styles.help}>
+      {results.length} résultat{results.length === 1 ? '' : 's'}
+    </Text> : null}
+    {searching && results.length ? <View accessibilityRole="radiogroup" accessibilityLabel="Sous-catégorie" style={styles.results}>
       {visible.map((subcategory) => <Pressable cssInterop={false} key={subcategory.id}
         accessibilityRole="radio" accessibilityLabel={`${subcategory.label}, ${labels.get(subcategory.categoryId)}`}
         aria-checked={value === subcategory.id}
@@ -67,7 +68,7 @@ export function ExpenseSubcategoryPicker({ categories, categoryId, value, onChan
         </View>
         {value === subcategory.id ? <Check size={theme.size.icon.small} color={theme.colors.primaryDark} {...decorativeIconProps} /> : null}
       </Pressable>)}
-    </View> : <Text style={styles.help}>Aucune sous-catégorie trouvée. Essayez un autre mot ou gardez uniquement la catégorie principale.</Text>}
+    </View> : searching ? <Text style={styles.help}>Aucune sous-catégorie trouvée. Essayez un autre mot ou gardez uniquement la catégorie principale.</Text> : null}
     {results.length > 5 ? <Button variant="secondary" disabled={disabled}
       title={expanded ? 'Réduire la liste' : `Afficher les ${results.length - 5} autres résultats`}
       onPress={() => setExpanded(!expanded)} /> : null}

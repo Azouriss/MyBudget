@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { usePreventRemove } from 'expo-router/react-navigation';
 import { Keyboard, Pressable, ScrollView, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
 import { router, useNavigation } from 'expo-router';
-import { ArrowLeft, CalendarDays, Check, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Check, Trash2 } from 'lucide-react-native';
 import { useDatabase } from '../../db/DatabaseProvider';
 import { createRecurringRepository } from '../recurring/repository';
 import { frequencies, type Frequency } from '../recurring/schedule';
@@ -13,6 +13,7 @@ import type { Category } from '../../db/schema';
 import { Button } from '../../components/Button';
 import { CategoryIcon } from '../../components/CategoryIcon';
 import { FormField } from '../../components/FormField';
+import { DateField } from '../../components/DateField';
 import { IconButton } from '../../components/IconButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { decorativeIconProps } from '../../components/decorativeIconProps';
@@ -182,8 +183,8 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
           } /> : null}
         </View>
         <Controller control={control} name="date" render={({ field: { ref, value, onChange, onBlur } }) =>
-          <FormField ref={ref} label="Date · JJ/MM/AAAA" leadingIcon={CalendarDays} placeholder="JJ/MM/AAAA" value={value}
-            onChangeText={onChange} onBlur={onBlur} maxLength={10} editable={!saving} error={errors.date?.message} />
+          <DateField ref={ref} label="Date · JJ/MM/AAAA" value={value}
+            onChangeText={onChange} onBlur={onBlur} editable={!saving} error={errors.date?.message} />
         } />
         <Controller control={control} name="label" render={({ field: { ref, value, onChange, onBlur } }) =>
           <FormField ref={ref} label="Libellé" placeholder={kind === 'expense' ? 'Ex. Courses de la semaine' : 'Ex. Salaire'}

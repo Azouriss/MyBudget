@@ -1,5 +1,42 @@
 # Frontend version history
 
+## 0.3.0.0 — 2026-10-16
+
+- Open a French calendar when tapping the transaction date, with Monday-first
+  weeks, previous/next month navigation, the current selection and Today.
+- Keep explicit keyboard entry in `DD/MM/YYYY`, including existing validation.
+  Opening or cancelling the calendar preserves typed input; choosing a day
+  updates the same date field used by expense creation and editing.
+- Keep day and month-navigation targets at least 48 dp. Small screens can
+  scroll the calendar horizontally and the dialog vertically.
+- Hide subcategory suggestions and result counts when the search is empty,
+  including after choosing a main section or subcategory. Keep the selected
+  subcategory visible and allow another search at any time.
+
+**Threat impact:** Local form presentation only. Existing civil-date range
+  checks, Zod validation, integer cents, confirmations, database schema and
+  Android identity remain unchanged. Calendar arithmetic uses UTC to avoid
+  daylight-saving or time-zone shifts when generating civil dates.
+
+**Sovereignty impact:** Calendar, formatting and search reuse bundled code
+  and libraries. No dependency, network service, account, telemetry, data
+  export or remote build is introduced.
+
+**Validation:** `npm run check` passed in the working directory: TypeScript,
+  149 application tests (including five calendar cases) and 23 release-tool
+  tests. After the final presentation adjustment, `npm run typecheck`,
+  `node scripts/check-release.cjs`, `git diff --check` and the scoped
+  `detect-secrets-hook --no-verify --json` scan passed. Isolated Chrome
+  acceptance with synthetic data passed calendar selection, month/year
+  navigation, cancellation, keyboard validation, leap day, Today,
+  save/reload/edit and hiding results after category selection. Renders at
+  320, 390 and 1280 px were inspected; day targets meet 48 dp, with no page
+  overflow at 320 px. Native Android phone and packaged APK acceptance
+  remain pending.
+
+**Status:** `verification-pending` — local source change. Android phone and
+  packaged APK acceptance remain pending; no APK, push, tag or publication.
+
 ## 0.2.2.0 — 2026-10-16
 
 - Restore native transaction filter styles and equal-width touch targets by
