@@ -1,5 +1,35 @@
 # Frontend version history
 
+## 0.2.1.0 — 2026-10-16
+
+- Centralize result messages in `NoticePopup`, displayed at the top safe area
+  away from form submission buttons, including payday, budget and transaction saves.
+- Dismiss messages after three seconds by default and show a shrinking countdown
+  arc around the close button. Retain manual dismissal and 48 dp touch targets.
+- Restart the lifetime for repeated messages and prevent old expiry callbacks
+  from closing newer messages. Respect Android accessibility timeouts and
+  reduced motion, with a working fallback if accessibility APIs fail.
+
+**Threat impact:** Presentation and temporary UI state only. Existing explicit
+  destructive confirmations, financial calculations, database schema and
+  migration safeguards are unchanged by this change.
+
+**Sovereignty impact:** The popup and countdown use existing bundled libraries.
+  No dependency, network request, telemetry, account, synchronization or remote
+  build is added.
+
+**Validation:** `npm run release:check` passed in the shared working directory:
+  TypeScript, 129 application tests including three notice replacement regressions,
+  and 23 release-tool tests. Six isolated `jest-expo/android` checks passed for
+  timing, safe-area placement, manual closure and accessibility; native views are
+  mocked. Nine isolated Chrome cases passed actual payday saving, animated SVG
+  countdown, dismissal, repetition, reduced motion and 320/360/412 px layouts with
+  normal and doubled text. No JavaScript console errors were observed. Android
+  phone acceptance remains pending.
+
+**Status:** `verification-pending` — source and web verified locally; no push,
+  tag or publication. Device acceptance remains separate.
+
 ## 0.2.0.0 — 2026-10-16
 
 - Keep the six main expense sections and add an optional search below them
