@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { ClipboardList, Ellipsis, House, Wallet } from 'lucide-react-native';
+import { CalendarClock, ClipboardList, Ellipsis, House, Wallet } from 'lucide-react-native';
 import { Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../src/theme';
@@ -26,6 +26,7 @@ export default function TabsLayout() {
       { name: 'index', title: 'Accueil', Icon: House },
       { name: 'history', title: 'Dépenses', Icon: ClipboardList },
       { name: 'budgets', title: 'Budget', Icon: Wallet },
+      { name: 'forecast', title: 'Prévoir', Icon: CalendarClock },
       { name: 'settings', title: 'Plus', Icon: Ellipsis },
     ].map(({ name, title, Icon }) => <Tabs.Screen key={name} name={name} options={{ title,
       tabBarIcon: ({ color, focused }) => <View style={{ paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.xs,

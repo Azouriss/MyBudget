@@ -36,6 +36,13 @@
       "when": 1792161772302,
       "tag": "0004_expense_subcategories",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1792165216244,
+      "tag": "0005_provision_goals",
+      "breakpoints": true
     }
   ]
 }

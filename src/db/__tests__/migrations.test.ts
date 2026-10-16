@@ -63,10 +63,14 @@ function seed(sqlite: DatabaseSync, count: number) {
     sqlite.prepare('UPDATE transactions SET subcategory_id = ? WHERE id = ?').run('food-groceries', 'expense');
     sqlite.prepare('UPDATE recurring_expenses SET subcategory_id = ? WHERE id = ?').run('food-meal-kits', 'subscription');
   }
+  if (count >= 6) {
+    sqlite.prepare('INSERT INTO provision_goals VALUES (?, ?, ?, ?, ?, ?, ?)').run('annual', 'Assurance', 60000, '2027-04-15', 20, 13, 14);
+    sqlite.prepare('INSERT INTO provision_movements VALUES (?, ?, ?, ?)').run('reserved', 'annual', 15000, 15);
+  }
 }
 
 function snapshot(sqlite: DatabaseSync) {
-  const tables = ['categories', 'transactions', 'monthly_budgets', 'category_budgets', 'recurring_expenses', 'payday_settings', '__drizzle_migrations'];
+  const tables = ['categories', 'transactions', 'monthly_budgets', 'category_budgets', 'recurring_expenses', 'payday_settings', 'provision_goals', 'provision_movements', '__drizzle_migrations'];
   return Object.fromEntries(tables.filter((table) => sqlite.prepare('SELECT name FROM sqlite_master WHERE name = ?').get(table))
     .map((table) => [table, sqlite.prepare(`SELECT * FROM "${table}" ORDER BY rowid`).all()]));
 }

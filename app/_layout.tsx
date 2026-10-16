@@ -64,6 +64,7 @@ function Navigation() {
           <Stack.Screen name="recurring" />
           <Stack.Screen name="recurring-expense" options={{ presentation: 'modal', gestureEnabled: false }} />
           <Stack.Screen name="budget" options={{ presentation: 'modal', gestureEnabled: false }} />
+          <Stack.Screen name="provision" options={{ presentation: 'modal', gestureEnabled: false }} />
         </Stack>
         <FinanceRuntime />
         <NoticeHost />

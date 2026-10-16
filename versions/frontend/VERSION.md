@@ -1,5 +1,53 @@
 # Frontend version history
 
+## 0.4.0.0 — 2026-10-16
+
+- Add the Prévoir tab with a current-month margin after recorded expenses
+  and known recurring charges, a transparent breakdown, category overrun
+  notices and an optional purchase/precaution simulation without writes.
+- Add a 7/30-day expense agenda with monthly subtotals, recorded/planned
+  labels and links to the original expense or recurrence. Keep monthly
+  limits separate from rolling date ranges and bank balances.
+- Add local provision goals with a target, due date, monthly contribution
+  day and an append-only reserve movement history. Validate additions and
+  releases against the goal balance and confirm releases/deletion. Reserves
+  do not create transactions or automatically reduce the monthly margin.
+- Add and protect migration `0005_provision_goals`, its schema snapshot,
+  journal and bundled import. Preserve prior migration SQL and hashes.
+
+**Threat impact:** Forecast reads respect recurrence cursors, stopped rules
+  and original occurrence identities, including dates moved outside the
+  selected month. Block optimistic totals while due expenses need catch-up.
+  Provisions use Zod, integer cents, civil dates, parameterized statements
+  and transactional balance checks. The additive migration preserves existing
+  records and the app/database identities. Synthetic fixtures only were used.
+
+**Sovereignty impact:** All four features run locally with existing bundled
+  libraries. This change adds no dependency, account, telemetry, network
+  service, financial-data export, synchronization or remote build.
+
+**Validation:** `npm run release:check` passed through Windows npm in the
+  shared working directory: TypeScript, 179 application tests and 23 release
+  tool tests. New cases exercise projection immutability, catch-up gating,
+  deduplication, stopped/deleted occurrences, calendar boundaries, reserve
+  balance checks and provision persistence. Migration tests also verify
+  reopening, rollback and preservation of provision records. Reviewed the
+  SQL and ran `npm run release:lock-migrations`; previous snapshot table
+  definitions and protected migration hashes are unchanged.
+  Isolated Chromium acceptance with synthetic data passed empty-state setup,
+  recorded/recurring charges, purchase and precaution simulations, invalid
+  input, agenda navigation, provision creation, reserve additions/releases,
+  rejection of excess reserves, reload persistence and deletion confirmations.
+  Inspected renders; the agenda and five-tab navigation passed overflow and
+  48 px control checks at 320/390/1100 px, with no runtime exceptions.
+  `git diff --check` passed. The scoped secret scan reported only the six
+  reviewed migration SHA-256 fields in `release-policy.json`.
+
+**Status:** `verification-pending` — local source checks completed. Android
+  phone and packaged APK acceptance remain pending; no APK, push, tag or
+  publication is included.
+
+
 ## 0.3.1.0 — 2026-10-16
 
 - Show active recurring expense forecasts when viewing future months in the

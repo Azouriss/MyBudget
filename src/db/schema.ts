@@ -70,6 +70,31 @@ export const transactions = sqliteTable('transactions', {
 
 export type Category = typeof categories.$inferSelect;
 
+export const provisionGoals = sqliteTable('provision_goals', {
+  id: text('id').primaryKey(),
+  label: text('label').notNull(),
+  targetCents: integer('target_cents').notNull(),
+  dueOn: text('due_on').notNull(),
+  contributionDay: integer('contribution_day').notNull(),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+}, (table) => [
+  check('provision_goals_label_check', sql`length(trim(${table.label})) BETWEEN 1 AND 80`),
+  check('provision_goals_target_check', sql`typeof(${table.targetCents}) = 'integer' AND ${table.targetCents} BETWEEN 1 AND 999999999`),
+  check('provision_goals_day_check', sql`typeof(${table.contributionDay}) = 'integer' AND ${table.contributionDay} BETWEEN 1 AND 31`),
+  check('provision_goals_date_check', sql`${table.dueOn} GLOB '[12][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]' AND substr(${table.dueOn}, 1, 4) BETWEEN '1900' AND '2099' AND date(${table.dueOn}, '+0 days') IS NOT NULL AND date(${table.dueOn}, '+0 days') = ${table.dueOn}`),
+]);
+
+export const provisionMovements = sqliteTable('provision_movements', {
+  id: text('id').primaryKey(),
+  goalId: text('goal_id').notNull().references(() => provisionGoals.id, { onDelete: 'cascade' }),
+  amountCents: integer('amount_cents').notNull(),
+  createdAt: integer('created_at').notNull(),
+}, (table) => [
+  index('provision_movements_goal_index').on(table.goalId),
+  check('provision_movements_amount_check', sql`typeof(${table.amountCents}) = 'integer' AND ${table.amountCents} BETWEEN -999999999 AND 999999999 AND ${table.amountCents} != 0`),
+]);
+
 export const monthlyBudgets = sqliteTable('monthly_budgets', {
   month: text('month').primaryKey(),
   amountCents: integer('amount_cents').notNull(),

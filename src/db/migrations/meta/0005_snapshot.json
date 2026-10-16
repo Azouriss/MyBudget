@@ -1,0 +1,694 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "1967177d-a972-4f61-9666-c5ad0a04cfd4",
+  "prevId": "94617c6e-a930-42da-8d7a-b4e1542d8c89",
+  "tables": {
+    "categories": {
+      "name": "categories",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "color": {
+          "name": "color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "icon": {
+          "name": "icon",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "categories_id_kind_unique": {
+          "name": "categories_id_kind_unique",
+          "columns": [
+            "id",
+            "kind"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "categories_kind_check": {
+          "name": "categories_kind_check",
+          "value": "\"categories\".\"kind\" IN ('expense', 'income')"
+        }
+      }
+    },
+    "category_budgets": {
+      "name": "category_budgets",
+      "columns": {
+        "month": {
+          "name": "month",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "category_kind": {
+          "name": "category_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'expense'"
+        },
+        "amount_cents": {
+          "name": "amount_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "category_budgets_category_id_category_kind_categories_id_kind_fk": {
+          "name": "category_budgets_category_id_category_kind_categories_id_kind_fk",
+          "tableFrom": "category_budgets",
+          "tableTo": "categories",
+          "columnsFrom": [
+            "category_id",
+            "category_kind"
+          ],
+          "columnsTo": [
+            "id",
+            "kind"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "category_budgets_month_category_id_pk": {
+          "columns": [
+            "month",
+            "category_id"
+          ],
+          "name": "category_budgets_month_category_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "category_budgets_kind_check": {
+          "name": "category_budgets_kind_check",
+          "value": "\"category_budgets\".\"category_kind\" = 'expense'"
+        },
+        "category_budgets_amount_check": {
+          "name": "category_budgets_amount_check",
+          "value": "typeof(\"category_budgets\".\"amount_cents\") = 'integer' AND \"category_budgets\".\"amount_cents\" BETWEEN 0 AND 999999999"
+        },
+        "category_budgets_month_check": {
+          "name": "category_budgets_month_check",
+          "value": "\"category_budgets\".\"month\" GLOB '[12][0-9][0-9][0-9]-[01][0-9]' AND substr(\"category_budgets\".\"month\", 1, 4) BETWEEN '1900' AND '2099' AND substr(\"category_budgets\".\"month\", 6, 2) BETWEEN '01' AND '12'"
+        }
+      }
+    },
+    "monthly_budgets": {
+      "name": "monthly_budgets",
+      "columns": {
+        "month": {
+          "name": "month",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "amount_cents": {
+          "name": "amount_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "monthly_budgets_amount_check": {
+          "name": "monthly_budgets_amount_check",
+          "value": "typeof(\"monthly_budgets\".\"amount_cents\") = 'integer' AND \"monthly_budgets\".\"amount_cents\" BETWEEN 0 AND 999999999"
+        },
+        "monthly_budgets_month_check": {
+          "name": "monthly_budgets_month_check",
+          "value": "\"monthly_budgets\".\"month\" GLOB '[12][0-9][0-9][0-9]-[01][0-9]' AND substr(\"monthly_budgets\".\"month\", 1, 4) BETWEEN '1900' AND '2099' AND substr(\"monthly_budgets\".\"month\", 6, 2) BETWEEN '01' AND '12'"
+        }
+      }
+    },
+    "payday_settings": {
+      "name": "payday_settings",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "day": {
+          "name": "day",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notifications_enabled": {
+          "name": "notifications_enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "payday_settings_id_check": {
+          "name": "payday_settings_id_check",
+          "value": "\"payday_settings\".\"id\" = 1"
+        },
+        "payday_settings_day_check": {
+          "name": "payday_settings_day_check",
+          "value": "typeof(\"payday_settings\".\"day\") = 'integer' AND \"payday_settings\".\"day\" BETWEEN 1 AND 31"
+        },
+        "payday_settings_notifications_check": {
+          "name": "payday_settings_notifications_check",
+          "value": "\"payday_settings\".\"notifications_enabled\" IN (0, 1)"
+        }
+      }
+    },
+    "provision_goals": {
+      "name": "provision_goals",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_cents": {
+          "name": "target_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "due_on": {
+          "name": "due_on",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "contribution_day": {
+          "name": "contribution_day",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "provision_goals_label_check": {
+          "name": "provision_goals_label_check",
+          "value": "length(trim(\"provision_goals\".\"label\")) BETWEEN 1 AND 80"
+        },
+        "provision_goals_target_check": {
+          "name": "provision_goals_target_check",
+          "value": "typeof(\"provision_goals\".\"target_cents\") = 'integer' AND \"provision_goals\".\"target_cents\" BETWEEN 1 AND 999999999"
+        },
+        "provision_goals_day_check": {
+          "name": "provision_goals_day_check",
+          "value": "typeof(\"provision_goals\".\"contribution_day\") = 'integer' AND \"provision_goals\".\"contribution_day\" BETWEEN 1 AND 31"
+        },
+        "provision_goals_date_check": {
+          "name": "provision_goals_date_check",
+          "value": "\"provision_goals\".\"due_on\" GLOB '[12][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]' AND substr(\"provision_goals\".\"due_on\", 1, 4) BETWEEN '1900' AND '2099' AND date(\"provision_goals\".\"due_on\", '+0 days') IS NOT NULL AND date(\"provision_goals\".\"due_on\", '+0 days') = \"provision_goals\".\"due_on\""
+        }
+      }
+    },
+    "provision_movements": {
+      "name": "provision_movements",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "goal_id": {
+          "name": "goal_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "amount_cents": {
+          "name": "amount_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "provision_movements_goal_index": {
+          "name": "provision_movements_goal_index",
+          "columns": [
+            "goal_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "provision_movements_goal_id_provision_goals_id_fk": {
+          "name": "provision_movements_goal_id_provision_goals_id_fk",
+          "tableFrom": "provision_movements",
+          "tableTo": "provision_goals",
+          "columnsFrom": [
+            "goal_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "provision_movements_amount_check": {
+          "name": "provision_movements_amount_check",
+          "value": "typeof(\"provision_movements\".\"amount_cents\") = 'integer' AND \"provision_movements\".\"amount_cents\" BETWEEN -999999999 AND 999999999 AND \"provision_movements\".\"amount_cents\" != 0"
+        }
+      }
+    },
+    "recurring_expenses": {
+      "name": "recurring_expenses",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "amount_cents": {
+          "name": "amount_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "subcategory_id": {
+          "name": "subcategory_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "category_kind": {
+          "name": "category_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'expense'"
+        },
+        "frequency": {
+          "name": "frequency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "start_on": {
+          "name": "start_on",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "next_index": {
+          "name": "next_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "active": {
+          "name": "active",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "recurring_expenses_category_id_category_kind_categories_id_kind_fk": {
+          "name": "recurring_expenses_category_id_category_kind_categories_id_kind_fk",
+          "tableFrom": "recurring_expenses",
+          "tableTo": "categories",
+          "columnsFrom": [
+            "category_id",
+            "category_kind"
+          ],
+          "columnsTo": [
+            "id",
+            "kind"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "recurring_expenses_kind_check": {
+          "name": "recurring_expenses_kind_check",
+          "value": "\"recurring_expenses\".\"category_kind\" = 'expense'"
+        },
+        "recurring_expenses_amount_check": {
+          "name": "recurring_expenses_amount_check",
+          "value": "typeof(\"recurring_expenses\".\"amount_cents\") = 'integer' AND \"recurring_expenses\".\"amount_cents\" BETWEEN 1 AND 999999999"
+        },
+        "recurring_expenses_label_check": {
+          "name": "recurring_expenses_label_check",
+          "value": "length(trim(\"recurring_expenses\".\"label\")) BETWEEN 1 AND 80"
+        },
+        "recurring_expenses_frequency_check": {
+          "name": "recurring_expenses_frequency_check",
+          "value": "\"recurring_expenses\".\"frequency\" IN ('weekly', 'monthly', 'yearly')"
+        },
+        "recurring_expenses_index_check": {
+          "name": "recurring_expenses_index_check",
+          "value": "typeof(\"recurring_expenses\".\"next_index\") = 'integer' AND \"recurring_expenses\".\"next_index\" >= 0"
+        },
+        "recurring_expenses_active_check": {
+          "name": "recurring_expenses_active_check",
+          "value": "\"recurring_expenses\".\"active\" IN (0, 1)"
+        }
+      }
+    },
+    "transactions": {
+      "name": "transactions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "amount_cents": {
+          "name": "amount_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "subcategory_id": {
+          "name": "subcategory_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "occurred_on": {
+          "name": "occurred_on",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "recurring_expense_id": {
+          "name": "recurring_expense_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "recurring_occurrence_on": {
+          "name": "recurring_occurrence_on",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "transactions_recurring_occurrence_unique": {
+          "name": "transactions_recurring_occurrence_unique",
+          "columns": [
+            "recurring_expense_id",
+            "recurring_occurrence_on"
+          ],
+          "isUnique": true
+        },
+        "transactions_date_index": {
+          "name": "transactions_date_index",
+          "columns": [
+            "occurred_on"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "transactions_category_id_categories_id_fk": {
+          "name": "transactions_category_id_categories_id_fk",
+          "tableFrom": "transactions",
+          "tableTo": "categories",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "transactions_recurring_expense_id_recurring_expenses_id_fk": {
+          "name": "transactions_recurring_expense_id_recurring_expenses_id_fk",
+          "tableFrom": "transactions",
+          "tableTo": "recurring_expenses",
+          "columnsFrom": [
+            "recurring_expense_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "transactions_recurring_check": {
+          "name": "transactions_recurring_check",
+          "value": "(\"transactions\".\"recurring_expense_id\" IS NULL AND \"transactions\".\"recurring_occurrence_on\" IS NULL) OR (\"transactions\".\"recurring_expense_id\" IS NOT NULL AND \"transactions\".\"recurring_occurrence_on\" IS NOT NULL AND \"transactions\".\"kind\" = 'expense')"
+        },
+        "transactions_amount_check": {
+          "name": "transactions_amount_check",
+          "value": "typeof(\"transactions\".\"amount_cents\") = 'integer' AND \"transactions\".\"amount_cents\" BETWEEN 1 AND 999999999"
+        },
+        "transactions_kind_check": {
+          "name": "transactions_kind_check",
+          "value": "\"transactions\".\"kind\" IN ('expense', 'income')"
+        },
+        "transactions_label_check": {
+          "name": "transactions_label_check",
+          "value": "length(trim(\"transactions\".\"label\")) BETWEEN 1 AND 80"
+        },
+        "transactions_date_check": {
+          "name": "transactions_date_check",
+          "value": "length(\"transactions\".\"occurred_on\") = 10 AND \"transactions\".\"occurred_on\" GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
