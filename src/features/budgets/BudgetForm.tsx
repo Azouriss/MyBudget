@@ -16,15 +16,16 @@ import { theme } from '../../theme';
 import { useBudgetRepository } from './hooks';
 import { parseBudgetAmount } from './validation';
 
-export function BudgetForm({ month, categoryId, label, existingAmount }: {
-  month: string; categoryId?: string; label: string; existingAmount?: number;
+export function BudgetForm({ month, categoryId, label, existingAmount, defaultAmount }: {
+  month: string; categoryId?: string; label: string; existingAmount?: number; defaultAmount?: number;
 }) {
   const repository = useBudgetRepository();
   const navigation = useNavigation();
   const confirm = useConfirmation();
   const invalidate = useAppStore((state) => state.invalidate);
   const showNotice = useAppStore((state) => state.showNotice);
-  const initial = existingAmount === undefined ? '' : centsToInput(existingAmount);
+  const initialAmount = existingAmount ?? defaultAmount;
+  const initial = initialAmount === undefined ? '' : centsToInput(initialAmount);
   const [amount, setAmount] = useState(initial);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -77,7 +78,7 @@ export function BudgetForm({ month, categoryId, label, existingAmount }: {
     if (busy.current) return;
     const accepted = await confirm({ title: 'Supprimer cette limite ?',
       message: categoryId ? 'Vos transactions et le budget global seront conservés.'
-        : 'Vos transactions et les limites par catégorie seront conservées.', confirmLabel: 'Supprimer', destructive: true });
+        : 'Vos transactions et les limites par catégorie seront conservées. Le salaire net saisi pour ce mois sera utilisé par défaut, s’il est renseigné.', confirmLabel: 'Supprimer', destructive: true });
     if (!accepted || busy.current) return;
     busy.current = true;
     setSaving(true);
@@ -104,6 +105,7 @@ export function BudgetForm({ month, categoryId, label, existingAmount }: {
         value={amount} onChangeText={(value) => { setAmount(value); setError(''); }} error={error} editable={!saving}
         onSubmitEditing={() => { void save(); }} returnKeyType="done" />
       <Text style={styles.note}>Un budget de 0 € signifie « Aucun montant autorisé ». Retirer une limite conserve vos dépenses.</Text>
+      {!categoryId ? <Text style={styles.note}>Sans budget global défini, le salaire net saisi pour ce mois est utilisé par défaut.</Text> : null}
       <Text style={styles.note}>Cette limite s’applique uniquement à {monthLabel(month)}. Elle ne modifie aucune transaction.</Text>
       {existingAmount !== undefined ? <Button title="Supprimer cette limite" variant="danger" icon={Trash2}
         onPress={() => { void remove(); }} disabled={saving} /> : null}

@@ -1,5 +1,44 @@
 # Frontend version history
 
+## 0.4.1.0 — 2026-10-16
+
+- Use the net salary recorded for the selected month as the default global
+  budget when no explicit monthly limit exists. Identify the salary default
+  on the dashboard and budget overview, including spending progress and
+  remaining amounts. Explicit limits, including zero, take precedence.
+- Prefill the global budget editor from the salary without treating it as a
+  saved limit. Removing an explicit limit restores the salary default; salary
+  edits, moves and deletions update that default. Category limits stay intact.
+- Label salary amount inputs `Salaire NET en euros` in both the payday and
+  general income forms, with a reminder to enter the amount actually received.
+
+**Threat impact:** The fallback is derived through the existing local salary
+  query without creating a budget or modifying transactions. Integer cents,
+  Zod validation, civil months, parameterized queries, destructive confirmations
+  and explicit zero budgets remain in use. This change requires no migration
+  or change to database identity, Android identity or signing material. All
+  acceptance data is synthetic.
+
+**Sovereignty impact:** Existing bundled code and local SQLite storage are
+  reused. No dependency, account, telemetry, network service, synchronization,
+  financial-data export or remote build is introduced.
+
+**Validation:** `npm run check` passed through Windows npm in the shared
+  working directory: TypeScript, 179 application tests and 23 release-tool
+  tests. Five new SQLite regression cases exercise the salary fallback,
+  read-only behavior, envelope warnings, month/income isolation, explicit
+  zero limits, and salary corrections, moves and deletion. The same check
+  passed on an isolated source snapshot excluding concurrent changes:
+  TypeScript, 154 application tests and 23 release-tool tests.
+  `node scripts/check-release.cjs`, `git diff --check` and the scoped
+  `detect-secrets scan --no-verify --all-files` scan passed. Web acceptance
+  remains unverified: a new Metro server failed to start file watching and
+  the existing server served an earlier bundle without the updated labels.
+
+**Status:** `verification-pending` — local source checks only. Web, Android
+  phone and packaged APK acceptance remain pending; no APK, push, tag or
+  publication.
+
 ## 0.4.0.0 — 2026-10-16
 
 - Add the Prévoir tab with a current-month margin after recorded expenses

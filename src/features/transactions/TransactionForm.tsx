@@ -57,6 +57,7 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
   });
   const kind = watch('kind');
   const categoryId = watch('categoryId');
+  const isSalary = kind === 'income' && categoryId === 'salary';
   const { width, fontScale } = useWindowDimensions();
   const columns = width < 360 || fontScale >= theme.layout.stackedFontScale ? 2 : 3;
   const categoryWidth = (Math.min(width, theme.layout.contentMaxWidth) - theme.layout.gutter * 2 - theme.spacing.sm * (columns - 1)) / columns;
@@ -143,9 +144,10 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
       </View>
       <View style={styles.fields}>
         <SegmentedControl label="Type de transaction" options={kinds} value={kind} onChange={changeKind} disabled={saving || !!salaryMonth || !!existing?.recurringExpenseId} />
-        {salaryMonth ? <Text style={styles.label}>Salaire net · {monthLabel(salaryMonth)}. Saisissez le montant réellement reçu.</Text> : null}
+        {salaryMonth ? <Text style={styles.label}>Salaire NET · {monthLabel(salaryMonth)}. Saisissez le montant réellement reçu.</Text>
+          : isSalary ? <Text style={styles.help}>Saisissez le salaire NET réellement reçu.</Text> : null}
         <Controller control={control} name="amount" render={({ field: { ref, value, onChange, onBlur } }) =>
-          <FormField ref={ref} label="Montant en euros" value={value} onChangeText={onChange} onBlur={onBlur}
+          <FormField ref={ref} label={isSalary ? 'Salaire NET en euros' : 'Montant en euros'} value={value} onChangeText={onChange} onBlur={onBlur}
             amount suffix="€" placeholder="0,00" keyboardType="decimal-pad" editable={!saving} error={errors.amount?.message} />
         } />
         <View style={styles.categoryField}>

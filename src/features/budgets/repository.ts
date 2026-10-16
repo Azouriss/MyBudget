@@ -2,6 +2,7 @@ import { and, eq } from 'drizzle-orm';
 import type { AppDatabase } from '../../db/client';
 import { categories, categoryBudgets, monthlyBudgets } from '../../db/schema';
 import { budgetDraftSchema, budgetMonthSchema } from './validation';
+import { createPaydayRepository } from '../payday/repository';
 
 export function createBudgetRepository(db: AppDatabase) {
   function expenseCategory(categoryId: string) {
@@ -11,8 +12,12 @@ export function createBudgetRepository(db: AppDatabase) {
   return {
     forMonth(input: string) {
       const month = budgetMonthSchema.parse(input);
+      const monthly = db.select().from(monthlyBudgets).where(eq(monthlyBudgets.month, month)).get();
+      const salary = monthly ? undefined : createPaydayRepository(db).salaryForMonth(month);
       return {
-        monthly: db.select().from(monthlyBudgets).where(eq(monthlyBudgets.month, month)).get(),
+        // The salary is a read-only default, never a saved monthly limit.
+        monthly: monthly ?? (salary ? { month, amountCents: salary.amountCents } : undefined),
+        monthlySource: monthly ? 'budget' as const : salary ? 'salary' as const : undefined,
         categories: db.select().from(categoryBudgets).where(eq(categoryBudgets.month, month)).all(),
       };
     },

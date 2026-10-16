@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { drizzle } from 'drizzle-orm/expo-sqlite/driver';
 import * as schema from '../schema';
 import { createBudgetRepository } from '../../features/budgets/repository';
+import { budgetEnvelopeExcess, budgetProgress } from '../../lib/budgets';
 
 describe('migration et dépôt des budgets sur une vraie base SQLite', () => {
   let sqlite: DatabaseSync;
@@ -18,6 +19,8 @@ describe('migration et dépôt des budgets sur une vraie base SQLite', () => {
       .run('preserved', 'expense', 29, 'Transaction existante', 'food', '2026-10-16', 1, 1);
     sqlite.exec(readFileSync(join(__dirname, '../migrations/0001_monthly_budgets.sql'), 'utf8'));
     sqlite.exec(readFileSync(join(__dirname, '../migrations/0002_zero_budgets.sql'), 'utf8'));
+    sqlite.exec(readFileSync(join(__dirname, '../migrations/0003_recurring_and_payday.sql'), 'utf8'));
+    sqlite.exec(readFileSync(join(__dirname, '../migrations/0004_expense_subcategories.sql'), 'utf8'));
     // Adapt the actual Node SQLite driver to the two synchronous methods used by Drizzle's Expo adapter.
     const client = {
       prepareSync(sql: string) {
@@ -37,7 +40,51 @@ describe('migration et dépôt des budgets sur une vraie base SQLite', () => {
 
   it('conserve les données existantes lors de la migration', () => {
     expect(sqlite.prepare('SELECT amount_cents FROM transactions WHERE id = ?').get('preserved')?.amount_cents).toBe(29);
-    expect(repository.forMonth('2026-10')).toEqual({ monthly: undefined, categories: [] });
+    expect(repository.forMonth('2026-10')).toEqual({ monthly: undefined, monthlySource: undefined, categories: [] });
+  });
+  function salary(id = 'salary-october', date = '2026-10-28', amountCents = 250_000) {
+    sqlite.prepare('INSERT INTO transactions (id, kind, amount_cents, label, category_id, occurred_on, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(id, 'income', amountCents, 'Salaire net fictif', 'salary', date, 2, 2);
+  }
+  it('utilise le salaire net du mois sans enregistrer de limite ni modifier les transactions', () => {
+    salary();
+    repository.setCategory({ month: '2026-10', amountCents: 25_000 }, 'food');
+    const before = sqlite.prepare('SELECT * FROM transactions ORDER BY id').all();
+    const budgets = repository.forMonth('2026-10');
+    expect(budgets).toMatchObject({ monthly: { month: '2026-10', amountCents: 250_000 }, monthlySource: 'salary',
+      categories: [{ categoryId: 'food', amountCents: 25_000 }] });
+    expect(budgetProgress(89_250, budgets.monthly!.amountCents)).toMatchObject({ remainingCents: 160_750, percent: 36 });
+    expect(budgetEnvelopeExcess(budgets, { categoryId: 'food', amountCents: 260_000 })).toBe(10_000);
+    expect(sqlite.prepare('SELECT count(*) AS count FROM monthly_budgets').get()?.count).toBe(0);
+    expect(sqlite.prepare('SELECT * FROM transactions ORDER BY id').all()).toEqual(before);
+  });
+  test.each([120_000, 0])('conserve la priorité du budget explicite de %s centimes sur le salaire', (amountCents) => {
+    salary();
+    repository.setMonthly({ month: '2026-10', amountCents });
+    expect(repository.forMonth('2026-10')).toMatchObject({ monthly: { amountCents }, monthlySource: 'budget' });
+    repository.removeMonthly('2026-10');
+    expect(repository.forMonth('2026-10')).toMatchObject({ monthly: { amountCents: 250_000 }, monthlySource: 'salary' });
+  });
+  it('ne reprend ni le salaire d’un autre mois ni les autres revenus', () => {
+    salary('september', '2026-09-30', 220_000);
+    salary('november', '2026-11-01', 280_000);
+    sqlite.prepare('INSERT INTO categories VALUES (?, ?, ?, ?, ?, ?)').run('other-income', 'Autres revenus', 'income', '#32765B', 'wallet', 2);
+    sqlite.prepare('INSERT INTO transactions (id, kind, amount_cents, label, category_id, occurred_on, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .run('gift', 'income', 100_000, 'Cadeau fictif', 'other-income', '2026-10-15', 3, 3);
+    expect(repository.forMonth('2026-10').monthly).toBeUndefined();
+    expect(repository.forMonth('2026-10').monthlySource).toBeUndefined();
+    expect(repository.forMonth('2026-09').monthly?.amountCents).toBe(220_000);
+    expect(repository.forMonth('2026-11').monthly?.amountCents).toBe(280_000);
+  });
+  it('répercute les corrections, déplacements et suppressions du salaire sur le budget par défaut', () => {
+    salary();
+    sqlite.prepare('UPDATE transactions SET amount_cents = ? WHERE id = ?').run(240_029, 'salary-october');
+    expect(repository.forMonth('2026-10').monthly?.amountCents).toBe(240_029);
+    sqlite.prepare('UPDATE transactions SET occurred_on = ? WHERE id = ?').run('2026-11-01', 'salary-october');
+    expect(repository.forMonth('2026-10').monthly).toBeUndefined();
+    expect(repository.forMonth('2026-11').monthly?.amountCents).toBe(240_029);
+    sqlite.prepare('DELETE FROM transactions WHERE id = ?').run('salary-october');
+    expect(repository.forMonth('2026-11').monthly).toBeUndefined();
   });
   it('crée et modifie une seule limite mensuelle sans toucher au mois voisin', () => {
     repository.setMonthly({ month: '2026-10', amountCents: 120_000 });

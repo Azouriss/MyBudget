@@ -49,6 +49,8 @@ export default function DashboardScreen() {
             </Pressable></View> : <Text style={styles.caption}>{budgets.error ? 'Budget indisponible' : 'Chargement du budget…'}</Text>}
         </View>
         {budgets.monthly && !budgets.error && !budgets.loading ? <BudgetProgress spent={summary.expenseCents} limit={budgets.monthly.amountCents} /> : null}
+        {budgets.monthlySource === 'salary' && !budgets.error && !budgets.loading
+          ? <Text style={styles.caption}>Salaire net utilisé par défaut.</Text> : null}
         <View style={styles.financialDetails}>
           <View style={styles.financialItem}><Text style={styles.caption}>Revenus</Text><Text style={styles.income}>{formatMoney(summary.incomeCents)}</Text></View>
           <View style={styles.financialItem}><Text style={styles.caption}>Solde du mois</Text><Text style={styles.balance}>{formatMoney(summary.netCents)}</Text></View>

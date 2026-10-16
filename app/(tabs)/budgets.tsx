@@ -48,6 +48,7 @@ export default function BudgetsScreen() {
         {hasPlanned ? <Text style={styles.meta}>Les totaux incluent les échéances récurrentes prévues.</Text> : null}
         <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.heading}>Vue d’ensemble</Text>
           <IconButton icon={SlidersHorizontal} label="Modifier le budget global" onPress={() => edit()} /></View>
+        {budgets.monthlySource === 'salary' ? <Text style={styles.meta}>Salaire net utilisé par défaut.</Text> : null}
         {budgets.monthly && progress ? <>
           <View style={[styles.overview, stacked && styles.overviewStacked]}>
             {[

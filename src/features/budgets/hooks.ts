@@ -13,12 +13,12 @@ export function useMonthlyBudgets() {
   const month = useAppStore((state) => state.month);
   const revision = useAppStore((state) => state.revision);
   const [state, setState] = useState<MonthlyBudgets & { month: string; revision: number; loading: boolean; error: boolean }>({
-    month: '', revision: -1, monthly: undefined, categories: [], loading: true, error: false,
+    month: '', revision: -1, monthly: undefined, monthlySource: undefined, categories: [], loading: true, error: false,
   });
   useEffect(() => {
     try { setState({ ...repository.forMonth(month), month, revision, loading: false, error: false }); }
-    catch { setState({ month, revision, monthly: undefined, categories: [], loading: false, error: true }); }
+    catch { setState({ month, revision, monthly: undefined, monthlySource: undefined, categories: [], loading: false, error: true }); }
   }, [repository, month, revision]);
   return state.month === month && state.revision === revision ? state
-    : { monthly: undefined, categories: [], loading: true, error: false };
+    : { monthly: undefined, monthlySource: undefined, categories: [], loading: true, error: false };
 }
