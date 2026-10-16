@@ -1,3 +1,5 @@
+<p align="center">Français · <a href="README.en.md">English</a></p>
+
 <p align="center">
   <img src="assets/readme/banner.svg" alt="Mon Budget — Application pour téléphone Android. Hors ligne, sans compte, distribuée en APK." width="1200" />
 </p>
@@ -94,3 +96,5 @@ ou effacer ses données supprime la base locale.
 
 Voir la [licence MIT](LICENSE).
 Les [polices, icônes et dépendances tierces](THIRD_PARTY_NOTICES.md) conservent leurs licences.
+
+**Sécurité :** pour signaler une vulnérabilité en privé, consulter [SECURITY.fr.md](SECURITY.fr.md).

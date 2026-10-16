@@ -1,5 +1,26 @@
 # Documentation version history
 
+## 0.1.1.0 — 2026-10-16
+
+- Add an English README with reciprocal language links, retaining Android APK
+  installation guidance. Translate both SVG banners and all three illustrated
+  previews, explicitly noting that the app interface remains in French.
+- Add English and French security policies with a private reporting address,
+  reproduction guidance and links from both READMEs.
+
+**Threat impact:** Direct vulnerability reports to a private contact and ask
+  reporters to omit personal financial data and secrets from evidence.
+
+**Sovereignty impact:** Documentation continues to use local SVG assets. The
+  reporting address does not introduce an application service or data collection.
+
+**Validation:** Local document and image links, public-file exclusions, language
+  navigation and diff whitespace checked. English SVG structure and local rendering
+  reviewed. No application code changes.
+
+**Status:** `verification-pending` — documentation only; no runtime or device
+  acceptance claimed.
+
 ## 0.1.0.0 — 2026-10-16
 
 Initial platform version `0.1.0.0`, following the repository's unversioned README
