@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
-import { router } from 'expo-router';
 import { Search, X } from 'lucide-react-native';
 import { SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
-import { AddTransactionButton, FAB_RESERVE } from '../../src/components/AddTransactionButton';
+import { AddTransactionButton } from '../../src/components/AddTransactionButton';
 import { MonthPicker } from '../../src/components/MonthPicker';
 import { ScreenHeading } from '../../src/components/ScreenHeading';
 import { decorativeIconProps } from '../../src/components/decorativeIconProps';
@@ -50,12 +49,12 @@ export default function HistoryScreen() {
   }, [visible]);
   const summary = useMemo(() => monthlySummary(visible, month), [visible, month]);
   const filtered = filter !== 'all' || query.trim().length > 0;
-  const showAdd = !loading && !error && visible.length > 0;
-  return <ScreenContainer>
+  const showAdd = !loading && !error;
+  return <ScreenContainer footer={showAdd ? <AddTransactionButton /> : undefined}>
     <SectionList sections={loading || error ? [] : sections} keyExtractor={(item) => item.id}
       stickySectionHeadersEnabled={false}
       keyboardShouldPersistTaps="handled"
-      contentContainerStyle={[styles.page, { paddingBottom: showAdd ? FAB_RESERVE : theme.spacing.xl }]}
+      contentContainerStyle={styles.page}
       ListHeaderComponent={<>
         <ScreenHeading title="Mes dépenses" action={<IconButton icon={searchOpen ? X : Search}
           label={searchOpen ? 'Fermer la recherche' : 'Rechercher une transaction'} onPress={() => { setSearchOpen(!searchOpen); setQuery(''); }} />} />
@@ -84,15 +83,14 @@ export default function HistoryScreen() {
         title={filtered ? 'Aucun résultat' : 'Aucune transaction ce mois-ci'}
         description={filtered ? 'Essayez un autre mot ou retirez les filtres pour retrouver vos transactions.'
           : 'Ajoutez une dépense ou un revenu pour commencer.'}
-        actionLabel={filtered ? 'Effacer les filtres' : 'Ajouter une transaction'}
-        onAdd={filtered ? () => { setQuery(''); setFilter('all'); } : () => router.push('/transaction')} />}
+        actionLabel="Effacer les filtres"
+        onAdd={filtered ? () => { setQuery(''); setFilter('all'); } : undefined} />}
     />
-    {showAdd ? <AddTransactionButton /> : null}
   </ScreenContainer>;
 }
 
 const styles = StyleSheet.create({
-  page: { paddingHorizontal: theme.layout.gutter, flexGrow: 1 },
+  page: { paddingHorizontal: theme.layout.gutter, paddingBottom: theme.spacing.xl, flexGrow: 1 },
   tools: { gap: theme.spacing.lg, marginBottom: theme.spacing.lg },
   search: { minHeight: theme.size.inputMinHeight, flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm,
     paddingLeft: theme.spacing.lg, paddingRight: theme.spacing.xs,

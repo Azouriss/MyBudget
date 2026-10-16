@@ -1,5 +1,37 @@
 # Frontend version history
 
+## 0.2.2.0 — 2026-10-16
+
+- Restore native transaction filter styles and equal-width touch targets by
+  letting Pressable resolve its state styles without NativeWind flattening.
+- Keep large-font filters stacked with natural heights and rounded corners.
+- Keep an explicit Add expense button in the history screen footer, above
+  the tabs, including empty months, filters and searches. The list scrolls
+  independently; loading and read errors retain their existing safeguards.
+
+**Threat impact:** Presentation, filtering controls and navigation only.
+  Financial calculations, input validation, database identity, migrations,
+  Android identity and signing material are unchanged by this correction.
+
+**Sovereignty impact:** Existing local UI and navigation are reused. No new
+  dependency, network service, account, telemetry, financial-data export or
+  remote compilation is introduced.
+
+**Validation:** `npm run check` passed in the working directory: TypeScript,
+  129 application tests and 23 release-tool tests. `node scripts/check-release.cjs`
+  and `git diff --check` passed. Eight isolated native React checks passed via
+  `node node_modules/jest/bin/jest.js --config /tmp/mybudget-history-review/jest.config.cjs --runInBand --silent`,
+  reproducing the style loss and checking filter states, large fonts, empty
+  lists, searches, add navigation and loading/error states. Isolated Chrome
+  checks at 320, 360 and 390 px passed touch-target and overflow checks,
+  empty-filter add availability and opening the expense form, with zero
+  runtime exceptions. Screens were inspected using synthetic empty storage.
+  The scoped detect-secrets scan passed. Android phone and APK acceptance
+  remain pending.
+
+**Status:** `verification-pending` — local source correction; no new APK,
+  push, tag or publication.
+
 ## 0.2.1.0 — 2026-10-16
 
 - Centralize result messages in `NoticePopup`, displayed at the top safe area

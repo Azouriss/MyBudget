@@ -12,7 +12,7 @@ export function SegmentedControl<T extends string>({ label, options, value, onCh
     style={[styles.group, fontScale >= theme.layout.stackedFontScale && styles.stacked]}>
     {options.map((option) => {
       const selected = value === option.value;
-      return <Pressable key={option.value} accessibilityRole="radio" accessibilityLabel={option.label}
+      return <Pressable cssInterop={false} key={option.value} accessibilityRole="radio" accessibilityLabel={option.label}
         accessibilityState={{ checked: selected, disabled }} disabled={disabled}
         onFocus={() => setFocused(option.value)} onBlur={() => setFocused(null)}
         onPress={() => onChange(option.value)} style={({ pressed }) => [styles.option,
@@ -29,11 +29,11 @@ export function SegmentedControl<T extends string>({ label, options, value, onCh
 }
 
 const styles = StyleSheet.create({
-  group: { flexDirection: 'row', gap: theme.spacing.xs, padding: theme.spacing.xs,
+  group: { alignSelf: 'stretch', flexShrink: 0, flexDirection: 'row', gap: theme.spacing.xs, padding: theme.spacing.xs,
     backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.full },
-  stacked: { flexDirection: 'column' },
-  verticalOption: { flex: 0 },
-  option: { flex: 1, minHeight: theme.size.touchMin, minWidth: theme.size.touchMin,
+  stacked: { flexDirection: 'column', borderRadius: theme.radius.large },
+  verticalOption: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto' },
+  option: { flexGrow: 1, flexShrink: 1, flexBasis: 0, minHeight: theme.size.touchMin, minWidth: theme.size.touchMin,
     flexDirection: 'row', gap: theme.spacing.xs, alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.sm,
     borderRadius: theme.radius.full, borderWidth: theme.size.focusWidth },
