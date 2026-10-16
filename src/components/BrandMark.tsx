@@ -1,15 +1,13 @@
-import Svg, { Path, Rect } from 'react-native-svg';
+import { Image } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { theme } from '../theme';
 import { decorativeIconProps } from './decorativeIconProps';
 
 export function BrandMark({ size = 38 }: { size?: number }) {
-  return <Svg width={size} height={size} viewBox="0 0 64 64" {...decorativeIconProps}>
-    <Rect x="1" y="1" width="62" height="62" rx="17" fill={theme.colors.primaryLight} />
-    <Path d="M29 51C22 43 23 36 29 28M29 51C30 41 36 34 43 25" fill="none" stroke={theme.colors.eucalyptus} strokeWidth="1.8" strokeLinecap="round" />
-    <Path d="M27 42C13 39 11 26 14 17C26 23 31 31 27 42Z" fill={theme.colors.eucalyptus} />
-    <Path d="M31 37C29 24 39 14 52 11C51 26 43 35 31 37Z" fill={theme.colors.primary} />
-    <Path d="M26 40L17 22M33 35L47 17" fill="none" stroke={theme.colors.secondary} strokeWidth="1" strokeLinecap="round" />
-  </Svg>;
+  return <Image source={require('../../assets/branding/mybudget-mark.png')}
+    style={{ width: size, height: size, borderRadius: size * 17 / 64 }}
+    resizeMode="contain" fadeDuration={0} accessible={false} alt=""
+    accessibilityIgnoresInvertColors />;
 }
 
 export function BotanicalSprig({ size = 72, mirrored = false }: { size?: number; mirrored?: boolean }) {

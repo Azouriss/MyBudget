@@ -60,7 +60,7 @@ export default function SettingsScreen() {
           <Text style={styles.body}>Catégories personnalisées et sauvegardes JSON/CSV avec import et export. Ces fonctions ne sont pas encore disponibles.</Text>
         </SurfaceCard>
         <View style={styles.about}>
-          <Text style={styles.label}>Mon Budget</Text>
+          <Text style={styles.label}>MyBudget</Text>
           <Text style={styles.body}>Version {Constants.expoConfig?.version ?? 'indisponible'} · Sauge & Crème</Text>
         </View>
 

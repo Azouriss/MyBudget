@@ -31,7 +31,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       <Text style={styles.copy}>{requiresUpdate
         ? 'Cette version ne peut pas ouvrir vos données. Installez une version plus récente sans désinstaller l’application. Vos données n’ont pas été réinitialisées.'
         : 'La base locale n’a pas pu être ouverte. Vos données n’ont pas été réinitialisées.'}</Text>
-      {Platform.OS === 'web' ? <Text style={styles.copy}>Si Mon Budget est ouvert dans un autre onglet, fermez-le, puis rechargez cette page.</Text> : null}
+      {Platform.OS === 'web' ? <Text style={styles.copy}>Si MyBudget est ouvert dans un autre onglet, fermez-le, puis rechargez cette page.</Text> : null}
       <Button title="Réessayer" onPress={() => setAttempt((value) => value + 1)} />
     </> : <>
       <ActivityIndicator color={theme.colors.primaryDark} size="large" />

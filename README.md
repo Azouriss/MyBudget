@@ -1,7 +1,7 @@
 <p align="center">Français · <a href="README.en.md">English</a></p>
 
 <p align="center">
-  <img src="assets/readme/banner.svg" alt="Mon Budget — Application pour téléphone Android. Hors ligne, sans compte, distribuée en APK." width="1200" />
+  <img src="assets/readme/banner.svg" alt="MyBudget — Application pour téléphone Android. Hors ligne, sans compte, distribuée en APK." width="1200" />
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@
 
 <p align="center"><sub>Aperçus illustrés en SVG · données fictives · ce ne sont pas des captures d’écran.</sub></p>
 
-| Votre quotidien | Dans Mon Budget |
+| Votre quotidien | Dans MyBudget |
 | :--- | :--- |
 | Suivre | Dépenses, revenus, recherche et bilan mensuel. |
 | Prévoir | Budget global et limites par catégorie. |
@@ -37,7 +37,7 @@ Aucun compte Expo, Node.js ou ordinateur n’est nécessaire pour utiliser l’a
 
 1. Ouvrir les [Releases](https://github.com/Azouriss/MyBudget/releases) et télécharger l’APK dans **Assets**.
 2. Ouvrir le fichier sur le téléphone ; autoriser l’installation depuis cette source si Android le demande.
-3. Lancer **Mon Budget**. L’application fonctionne ensuite hors ligne.
+3. Lancer **MyBudget**. L’application fonctionne ensuite hors ligne.
 
 **Mise à jour :** installer le nouvel APK par-dessus l’ancien, sans désinstaller,
 pour conserver les données.

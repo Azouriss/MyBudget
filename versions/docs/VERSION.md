@@ -1,5 +1,23 @@
 # Documentation version history
 
+## 0.1.2.0 — 2026-10-16
+
+- Use MyBudget consistently in both READMEs, banners and illustrated previews.
+- Update the illustrated brand mark to the approved dark wallet-and-leaf design.
+  Preserve the explicit fictional-data and illustrated-preview labels.
+
+**Threat impact:** Public naming and illustrated artwork only; no personal
+  financial records, credentials or internal design documents are included.
+
+**Sovereignty impact:** Documentation assets remain local, self-contained SVGs
+  without scripts, remote resources or embedded fonts.
+
+**Validation:** Both READMEs' local links and SVG XML/accessibility metadata are
+  checked, along with the diff and public-file exclusions. This does not establish
+  browser rendering or Android device acceptance.
+
+**Status:** `verification-pending` — local documentation and artwork only.
+
 ## 0.1.1.0 — 2026-10-16
 
 - Add an English README with reciprocal language links, retaining Android APK

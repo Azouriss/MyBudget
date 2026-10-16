@@ -1,5 +1,22 @@
 # Tooling version history
 
+## 0.1.3.0 — 2026-10-16
+
+- Name the next locally built APK `MyBudget-<version>-<code>.apk` to match the
+  approved application name. Keep the existing signing and update procedure.
+
+**Threat impact:** Output filename only; application identity, signing keys,
+  versionCode handling and release verification remain unchanged.
+
+**Sovereignty impact:** The existing local compilation path is retained. No
+  remote build, additional service or dependency is introduced.
+
+**Validation:** Windows PowerShell parser accepts the updated build script.
+  `node scripts/check-release.cjs` verifies identity, versions and migrations;
+  release-tool tests run through `npm run check`. No APK build is performed.
+
+**Status:** `verification-pending` — local filename change only.
+
 ## 0.1.2.0 — 2026-10-16
 
 - Rename the workflow to 🔎 Tag Version and run it on every push to main.

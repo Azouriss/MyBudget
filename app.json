@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Mon Budget",
+    "name": "MyBudget",
     "slug": "mybudget",
     "version": "0.1.0",
     "scheme": "clairdepenses",
@@ -11,11 +11,16 @@
       "web"
     ],
     "backgroundColor": "#FAF8F1",
+    "icon": "./assets/branding/mybudget-icon.png",
     "android": {
       "package": "fr.remid.depenseslocales",
       "versionCode": 1,
       "allowBackup": false,
       "softwareKeyboardLayoutMode": "resize",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/branding/mybudget-adaptive-foreground.png",
+        "backgroundColor": "#1E342C"
+      },
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -25,7 +30,16 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/branding/mybudget-adaptive-foreground.png",
+          "imageWidth": 256,
+          "resizeMode": "contain",
+          "backgroundColor": "#1E342C"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -36,7 +50,8 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "name": "Mon Budget"
+      "favicon": "./assets/branding/mybudget-favicon.png",
+      "name": "MyBudget"
     }
   }
 }

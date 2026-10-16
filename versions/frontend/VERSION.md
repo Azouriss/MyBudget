@@ -1,5 +1,32 @@
 # Frontend version history
 
+## 0.1.1.0 — 2026-10-16
+
+- Use MyBudget as the application name in Android/web configuration, headers,
+  settings, loading states and database recovery guidance.
+- Add the approved dark forest-green wallet-and-leaf branding to the launcher,
+  Android adaptive icon, launch screen, application header and web favicon.
+- Keep the adaptive foreground inside a circle of radius 28% of its canvas so
+  the wallet and leaf fit the launcher's circular mask.
+
+**Threat impact:** Local image assets and display configuration only. No change
+  to financial calculations, database identity, protected migrations, Android
+  application ID, permissions or signing material.
+
+**Sovereignty impact:** All runtime images are bundled locally. No network
+  dependency, account, telemetry, synchronization or remote build is added.
+  The logo was created using imagegen from project design references; no
+  financial records were supplied.
+
+**Validation:** `npm run check` passed: TypeScript, 118 application tests and
+  23 release-tool tests. Release identity/migrations, resolved Expo prebuild
+  configuration, PNG dimensions, alpha and adaptive-icon safe bounds passed
+  separate checks. The circular icon preview was inspected locally. Android
+  device and packaged APK acceptance remain pending.
+
+**Status:** `verification-pending` — local source and asset integration; no new
+  APK, push or publication.
+
 ## 0.1.0.0 — 2026-10-16
 
 Initial tracked application baseline. The four-part Git version starts at

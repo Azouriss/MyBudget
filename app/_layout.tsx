@@ -33,9 +33,9 @@ function FontGate({ children, retry }: { children: ReactNode; retry: () => void 
   const [loaded, error] = useFonts(fonts);
   if (!loaded) return <View style={styles.loading}>
     {error ? <>
-      <Text style={styles.fallbackText}>Impossible de charger les polices de Mon Budget.</Text>
+      <Text style={styles.fallbackText}>Impossible de charger les polices de MyBudget.</Text>
       <Pressable accessibilityRole="button" onPress={retry} style={styles.retry}><Text style={styles.fallbackText}>Réessayer</Text></Pressable>
-    </> : <ActivityIndicator color={theme.colors.primaryDark} accessibilityLabel="Chargement de Mon Budget" />}
+    </> : <ActivityIndicator color={theme.colors.primaryDark} accessibilityLabel="Chargement de MyBudget" />}
   </View>;
   return children;
 }

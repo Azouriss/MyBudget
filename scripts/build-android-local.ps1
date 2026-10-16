@@ -66,7 +66,7 @@ try {
   if (($badging -join "`n") -notmatch "(?m)^package: name='$expectedPackage' versionCode='$buildCode' versionName='$expectedVersion'") { throw 'Identité ou version APK invalide.' }
   if (($badging -join "`n") -match 'application-debuggable') { throw 'APK de débogage refusé.' }
   New-Item -ItemType Directory -Force dist | Out-Null
-  $destination = "$projectPath\dist\MonBudget-$($config.version)-$buildCode.apk"
+  $destination = "$projectPath\dist\MyBudget-$($config.version)-$buildCode.apk"
   Copy-Item $sourceApk $destination
   $hash = (Get-FileHash -Algorithm SHA256 $destination).Hash.ToLowerInvariant()
   "$hash  $([IO.Path]::GetFileName($destination))" | Set-Content "$destination.sha256" -Encoding ascii

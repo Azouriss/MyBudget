@@ -7,8 +7,8 @@ import { IconButton } from './IconButton';
 
 export function AppHeader({ profile = false }: { profile?: boolean }) {
   return <View style={styles.row}>
-    <View style={styles.brand} accessibilityRole="header" accessibilityLabel="Mon Budget">
-      <BrandMark /><Text style={styles.title}>Mon Budget</Text>
+    <View style={styles.brand} accessibilityRole="header" accessibilityLabel="MyBudget">
+      <BrandMark /><Text style={styles.title}>MyBudget</Text>
     </View>
     {profile ? <IconButton icon={UserRound} label="Ouvrir les paramètres" onPress={() => router.push('/settings')} /> : null}
   </View>;

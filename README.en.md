@@ -1,7 +1,7 @@
 <p align="center"><a href="README.md">Français</a> · English</p>
 
 <p align="center">
-  <img src="assets/readme/banner.en.svg" alt="Mon Budget — An Android phone app. Offline, no account needed, distributed as an APK." width="1200" />
+  <img src="assets/readme/banner.en.svg" alt="MyBudget — An Android phone app. Offline, no account needed, distributed as an APK." width="1200" />
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@
 
 <p align="center"><sub>SVG illustrations translated into English · fictional data · not screenshots. The app interface is currently in French, with amounts in euros.</sub></p>
 
-| Your everyday needs | In Mon Budget |
+| Your everyday needs | In MyBudget |
 | :--- | :--- |
 | Track | Expenses, income, search and a monthly overview. |
 | Plan | An overall budget and limits per category. |
@@ -37,7 +37,7 @@ You do not need an Expo account, Node.js or a computer to use the app.
 
 1. Open [Releases](https://github.com/Azouriss/MyBudget/releases) and download the APK under **Assets**.
 2. Open the file on your phone; allow installation from this source if Android asks.
-3. Launch **Mon Budget**. The app then works offline.
+3. Launch **MyBudget**. The app then works offline.
 
 **Updates:** install the new APK over the existing app, without uninstalling it,
 to keep your data.
