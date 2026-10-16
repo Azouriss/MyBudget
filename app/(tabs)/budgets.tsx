@@ -28,7 +28,8 @@ export default function BudgetsScreen() {
   const data = useMonthlyTransactions();
   const [focusedCategory, setFocusedCategory] = useState<string | null>(null);
   const { width, fontScale } = useWindowDimensions();
-  const stacked = Math.min(width, theme.layout.contentMaxWidth) < 360 || fontScale >= theme.layout.stackedFontScale;
+  const stacked = Math.min(width, theme.layout.contentMaxWidth) - 2 * theme.layout.gutter < theme.layout.compactContentWidth
+    || fontScale >= theme.layout.stackedFontScale;
   const summary = useMemo(() => monthlySummary(data.transactions, month), [data.transactions, month]);
   const hasPlanned = data.transactions.some((item) => item.isPlanned);
   const spending = useMemo(() => new Map(expenseByCategory(data.transactions).map((item) => [item.categoryId, item.amountCents])), [data.transactions]);
@@ -73,20 +74,25 @@ export default function BudgetsScreen() {
             const spent = spending.get(category.id) ?? 0;
             const limit = limits.get(category.id);
             const exceeded = limit !== undefined && spent > limit;
-            return <Pressable key={category.id} accessibilityRole="button"
+            return <Pressable cssInterop={false} key={category.id} accessibilityRole="button"
               accessibilityLabel={`${category.label}, ${formatMoney(spent)} ${hasPlanned ? 'prévus' : 'dépensés'}, ${limit === undefined ? 'limite à définir' : `budget ${formatMoney(limit)}`}. Modifier la limite.`}
               onPress={() => edit(category.id)} onFocus={() => setFocusedCategory(category.id)} onBlur={() => setFocusedCategory(null)}
               style={({ pressed }) => [styles.category, index === all.length - 1 && styles.last,
                 { backgroundColor: pressed ? theme.colors.primaryLight : theme.colors.transparent,
                   borderColor: focusedCategory === category.id ? theme.colors.focusRing : theme.colors.transparent }]}>
-              <CategoryIcon category={category} />
-              <View style={styles.categoryCopy}>
-                <View style={styles.categoryHeading}><Text style={styles.categoryName}>{category.label}</Text>
-                  <Text style={[styles.categoryAmount, exceeded && styles.exceeded]}>{formatMoney(spent)}{limit === undefined ? ' · À définir' : ` / ${formatMoney(limit)}`}</Text></View>
-                {limit !== undefined ? <BudgetProgress spent={spent} limit={limit} /> : <View style={styles.emptyTrack} />}
-                {exceeded ? <Text style={styles.exceeded}>Dépassé de {formatMoney(spent - limit!)}</Text> : null}
+              <View style={styles.categoryHeading}>
+                <CategoryIcon category={category} />
+                <Text style={styles.categoryName}>{category.label}</Text>
+                <View style={styles.chevron}>
+                  <ChevronRight size={theme.size.icon.small} color={theme.colors.textSubtle} {...decorativeIconProps} />
+                </View>
               </View>
-              <ChevronRight size={theme.size.icon.small} color={theme.colors.textSubtle} {...decorativeIconProps} />
+              <View style={styles.categoryAmounts}>
+                <Text style={[styles.categoryAmount, exceeded && styles.exceeded]}>{formatMoney(spent)}</Text>
+                <Text style={styles.categoryLimit}>{limit === undefined ? 'À définir' : `sur ${formatMoney(limit)}`}</Text>
+              </View>
+              {limit !== undefined ? <BudgetProgress spent={spent} limit={limit} /> : <View style={styles.emptyTrack} />}
+              {exceeded ? <Text style={styles.exceeded}>Dépassé de {formatMoney(spent - limit!)}</Text> : null}
             </Pressable>;
           })}
         </SurfaceCard>
@@ -110,14 +116,19 @@ const styles = StyleSheet.create({
   total: { ...theme.typography.financial, color: theme.colors.textPrimary },
   copy: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
   list: { padding: theme.spacing.xs },
-  category: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, padding: theme.spacing.md,
+  category: { gap: theme.spacing.sm, padding: theme.spacing.md,
     minHeight: 80, borderWidth: theme.size.focusWidth, borderBottomWidth: theme.size.borderWidth,
     borderBottomColor: theme.colors.border, borderRadius: theme.radius.small },
   last: { borderBottomWidth: 0 },
-  categoryCopy: { flex: 1, gap: theme.spacing.xs, minWidth: 0 },
-  categoryHeading: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: theme.spacing.xs },
-  categoryName: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.semibold, color: theme.colors.textPrimary, flexGrow: 1 },
-  categoryAmount: { ...theme.typography.bodySmall, ...theme.typography.amount, color: theme.colors.textSubtle },
+  categoryHeading: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md },
+  categoryName: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.semibold, color: theme.colors.textPrimary,
+    flex: 1, minWidth: 0 },
+  chevron: { width: theme.size.icon.small, height: theme.size.icon.small, flexShrink: 0 },
+  categoryAmounts: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: theme.spacing.sm },
+  categoryAmount: { ...theme.typography.bodySmall, ...theme.typography.amount, fontFamily: theme.fontFamily.medium,
+    color: theme.colors.textPrimary, maxWidth: '100%', flexShrink: 1 },
+  categoryLimit: { ...theme.typography.bodySmall, ...theme.typography.amount, color: theme.colors.textSubtle,
+    maxWidth: '100%', flexShrink: 1 },
   emptyTrack: { height: theme.size.progressHeight, backgroundColor: theme.colors.chartTrack, borderRadius: theme.radius.full, marginVertical: 5 },
   exceeded: { ...theme.typography.caption, color: theme.colors.dangerText },
   note: { ...theme.typography.bodySmall, color: theme.colors.textSubtle, textAlign: 'center' },

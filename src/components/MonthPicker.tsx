@@ -14,7 +14,7 @@ export function MonthPicker() {
   return <View style={styles.row}>
     <IconButton icon={ChevronLeft} label="Mois précédent" disabled={month === '1900-01'}
       onPress={() => setMonth(shiftMonth(month, -1))} />
-    <Pressable accessibilityRole="button" accessibilityLabel={`${monthLabel(month)}. Revenir au mois actuel`}
+    <Pressable cssInterop={false} accessibilityRole="button" accessibilityLabel={`${monthLabel(month)}. Revenir au mois actuel`}
       onPress={() => setMonth(currentMonth())}
       onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
       style={({ pressed }) => [styles.month, pressed && styles.pressed,
@@ -28,11 +28,15 @@ export function MonthPicker() {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs, marginBottom: theme.spacing.lg,
+  row: { width: '100%', alignSelf: 'stretch', flexShrink: 0, minHeight: theme.size.touchMin + 2 * theme.size.borderWidth,
+    flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs, marginBottom: theme.spacing.lg,
     borderWidth: theme.size.borderWidth, borderColor: theme.colors.border, borderRadius: theme.radius.medium },
-  month: { flex: 1, minHeight: theme.size.touchMin, alignItems: 'center', justifyContent: 'center',
-    padding: theme.spacing.sm, borderRadius: theme.radius.medium, borderWidth: theme.size.focusWidth },
+  month: { flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0, alignSelf: 'stretch',
+    minHeight: theme.size.touchMin, alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: theme.spacing.xs, paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.medium, borderWidth: theme.size.focusWidth },
   pressed: { backgroundColor: theme.colors.primaryLight },
-  label: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.medium, color: theme.colors.textPrimary, textTransform: 'capitalize', textAlign: 'center' },
-  hint: { ...theme.typography.bodySmall, color: theme.colors.textAction, textAlign: 'center' },
+  label: { ...theme.typography.body, fontFamily: theme.fontFamily.medium, color: theme.colors.textPrimary,
+    alignSelf: 'stretch', textTransform: 'capitalize', textAlign: 'center' },
+  hint: { ...theme.typography.bodySmall, color: theme.colors.textAction, alignSelf: 'stretch', textAlign: 'center' },
 });

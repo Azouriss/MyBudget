@@ -8,7 +8,7 @@ export function IconButton({ icon: Icon, label, onPress, disabled = false }: {
   icon: LucideIcon; label: string; onPress: () => void; disabled?: boolean;
 }) {
   const [focused, setFocused] = useState(false);
-  return <Pressable accessibilityRole="button" accessibilityLabel={label}
+  return <Pressable cssInterop={false} accessibilityRole="button" accessibilityLabel={label}
     accessibilityState={{ disabled }} disabled={disabled} onPress={onPress}
     onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
     style={({ pressed }) => [styles.button, {
@@ -21,6 +21,6 @@ export function IconButton({ icon: Icon, label, onPress, disabled = false }: {
 }
 
 const styles = StyleSheet.create({
-  button: { width: theme.size.iconButton, height: theme.size.iconButton, borderRadius: theme.radius.medium,
+  button: { width: theme.size.iconButton, height: theme.size.iconButton, flexShrink: 0, borderRadius: theme.radius.medium,
     borderWidth: theme.size.focusWidth, alignItems: 'center', justifyContent: 'center' },
 });

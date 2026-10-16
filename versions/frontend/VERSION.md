@@ -1,5 +1,33 @@
 # Frontend version history
 
+## 0.5.1.0 — 2026-10-16
+
+- Arrange category budgets with a separate heading, spending amount and limit
+  so long labels and amounts can wrap within the available width. Account for
+  screen gutters when stacking the monthly overview on small screens.
+- Keep the month selector at full width, allow its label to wrap, and preserve
+  the 48 dp icon buttons without shrinking. Let Pressable resolve pressed and
+  focus styles for the selector, icon buttons and category budget rows.
+
+**Threat impact:** Presentation only. Budget calculations, salary defaults,
+  input validation, database identity and migrations are unchanged. Accessible
+  labels, focus indicators, disabled states and existing navigation actions
+  are preserved. No financial data is read or exported by this commit task.
+
+**Sovereignty impact:** Existing local components and theme tokens are reused.
+  No dependency, account, telemetry, network service, synchronization, export
+  or remote build is introduced.
+
+**Validation:** Windows `npm run check` passed: TypeScript, 208 application
+  tests and 23 release-tool tests. `node scripts/check-release.cjs` passed
+  with seven protected migrations. Reviewed the three source diffs and
+  48 dp theme values; `git diff --check` and the scoped secret scan passed.
+  Browser rendering, Android phone and packaged APK acceptance are pending
+  for this commit; automated tests do not establish those results.
+
+**Status:** `verification-pending` — local source checks only; no APK,
+  push, tag, publication or deployment.
+
 ## 0.5.0.0 — 2026-10-16
 
 - Add complete versioned JSON backup and atomic restore through the system file
