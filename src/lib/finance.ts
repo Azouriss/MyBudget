@@ -2,7 +2,7 @@ import type { Transaction } from '../features/transactions/types';
 import { MAX_AMOUNT_CENTS } from './money';
 import { monthBounds } from './dates';
 
-type FinancialEntry = Pick<Transaction, 'kind' | 'amountCents' | 'occurredOn' | 'categoryId'>;
+type FinancialEntry = Pick<Transaction, 'kind' | 'amountCents' | 'occurredOn' | 'categoryId' | 'splits'>;
 
 function addCents(total: number, amount: number): number {
   const result = total + amount;
@@ -37,7 +37,12 @@ export function expenseByCategory(entries: readonly FinancialEntry[]) {
   for (const entry of entries) {
     if (entry.kind !== 'expense') continue;
     validateAmount(entry.amountCents);
-    totals.set(entry.categoryId, addCents(totals.get(entry.categoryId) ?? 0, entry.amountCents));
+    const parts = entry.splits?.length ? entry.splits : [{ categoryId: entry.categoryId, amountCents: entry.amountCents }];
+    if (parts.reduce((n, p) => addCents(n, p.amountCents), 0) !== entry.amountCents) throw new Error('Répartition incohérente.');
+    for (const part of parts) {
+      validateAmount(part.amountCents);
+      totals.set(part.categoryId, addCents(totals.get(part.categoryId) ?? 0, part.amountCents));
+    }
   }
   return [...totals].map(([categoryId, amountCents]) => ({ categoryId, amountCents }))
     .sort((a, b) => b.amountCents - a.amountCents || a.categoryId.localeCompare(b.categoryId));

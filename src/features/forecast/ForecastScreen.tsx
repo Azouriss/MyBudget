@@ -10,6 +10,7 @@ import { SegmentedControl } from '../../components/SegmentedControl';
 import { SurfaceCard } from '../../components/SurfaceCard';
 import { monthLabel, shortDate } from '../../lib/dates';
 import { formatMoney } from '../../lib/money';
+import { expenseByCategory } from '../../lib/finance';
 import { useAppStore } from '../../stores/useAppStore';
 import { parseBudgetAmount } from '../budgets/validation';
 import { ProvisionList } from '../provisions/ProvisionList';
@@ -59,8 +60,8 @@ function Margin({ data }: { data: ForecastData }) {
       <Button title="Réinitialiser la simulation" variant="ghost" onPress={() => { setPurchase('0'); setReserve('0'); }} />
     </SurfaceCard>
     {data.budgets.categories.map((limit) => {
-      const spent = sumCents(data.entries.filter((entry) => entry.kind === 'expense' && entry.categoryId === limit.categoryId
-        && entry.occurredOn.slice(0, 7) === data.today.slice(0, 7)).map((entry) => entry.amountCents));
+      const spent = expenseByCategory(data.entries.filter((entry) => entry.occurredOn.slice(0, 7) === data.today.slice(0, 7)))
+        .find((part) => part.categoryId === limit.categoryId)?.amountCents ?? 0;
       if (spent <= limit.amountCents) return null;
       return <Text key={limit.categoryId} style={styles.error}>{data.categories.find((category) => category.id === limit.categoryId)?.label} : les dépenses et charges connues dépassent l’enveloppe de {formatMoney(spent - limit.amountCents)}.</Text>;
     })}

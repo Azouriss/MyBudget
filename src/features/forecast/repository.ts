@@ -6,6 +6,7 @@ import { createBudgetRepository } from '../budgets/repository';
 import { occurrenceOn, occurrencesForMonth } from '../recurring/schedule';
 import type { Transaction } from '../transactions/types';
 import { horizonEnd } from './calculations';
+import { attachSplits } from '../entry-tools/repository';
 
 export class ForecastPendingError extends Error {}
 
@@ -42,7 +43,7 @@ export function createForecastRepository(db: AppDatabase) {
         if (cursor === '2099-12') break;
         cursor = shiftMonth(cursor, 1);
       }
-      return { today, entries: [...recorded, ...planned].sort((a, b) => a.occurredOn.localeCompare(b.occurredOn) || a.id.localeCompare(b.id)),
+      return { today, entries: attachSplits(db, [...recorded, ...planned]).sort((a, b) => a.occurredOn.localeCompare(b.occurredOn) || a.id.localeCompare(b.id)),
         budgets: createBudgetRepository(db).forMonth(month),
         categories: db.select().from(categories).orderBy(asc(categories.position)).all() };
     },

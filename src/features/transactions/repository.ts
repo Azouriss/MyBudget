@@ -7,6 +7,7 @@ import { transactionDraftSchema } from './validation';
 import type { Transaction, TransactionDraft } from './types';
 import { createPaydayRepository } from '../payday/repository';
 import { createRecurringRepository } from '../recurring/repository';
+import { assertEditable, attachSplits } from '../entry-tools/repository';
 
 export function createTransactionRepository(db: AppDatabase) {
   function validateCategory(draft: TransactionDraft) {
@@ -18,9 +19,9 @@ export function createTransactionRepository(db: AppDatabase) {
     categories: () => db.select().from(categories).orderBy(asc(categories.position)).all(),
     forMonth(month: string): Transaction[] {
       const { start, end } = monthBounds(month);
-      return db.select().from(transactions)
+      return attachSplits(db, db.select().from(transactions)
         .where(and(gte(transactions.occurredOn, start), lt(transactions.occurredOn, end)))
-        .orderBy(desc(transactions.occurredOn), desc(transactions.createdAt), desc(transactions.id)).all();
+        .orderBy(desc(transactions.occurredOn), desc(transactions.createdAt), desc(transactions.id)).all());
     },
     withPlannedForMonth(month: string, today?: string): Transaction[] {
       return [...this.forMonth(month), ...createRecurringRepository(db).plannedForMonth(month, today)]
@@ -40,6 +41,7 @@ export function createTransactionRepository(db: AppDatabase) {
     update(id: string, input: TransactionDraft) {
       const draft = transactionDraftSchema.parse(input);
       validateCategory(draft);
+      assertEditable(db, id, draft);
       const result = db.update(transactions).set({ ...draft, updatedAt: Date.now() })
         .where(eq(transactions.id, id)).run();
       if (result.changes !== 1) throw new Error('Transaction introuvable.');

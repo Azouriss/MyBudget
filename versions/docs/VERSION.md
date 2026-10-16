@@ -1,5 +1,24 @@
 # Documentation version history
 
+## 0.1.3.0 — 2026-10-16
+
+- Document Settings tools in both READMEs, complete JSON backups, replacement
+  restore, CSV limits, plaintext exports and device-specific reminder consent.
+- Add the resolved Expo document picker and file system modules to third-party
+  notices with their MIT licenses. Keep Android APK installation first.
+
+**Threat impact:** Public feature documentation only. Explicitly explain backup
+  replacement and plaintext files; no private exports, reports or finances included.
+
+**Sovereignty impact:** Document user-selected file transfers and offline tools;
+  no external service or remote asset is introduced.
+
+**Validation:** Reviewed local links, public-file scope and dependency versions
+  against the lockfile; `git diff --check` and scoped secret review passed.
+
+**Status:** `verification-pending` — documentation of local source changes;
+  no APK publication or phone acceptance claimed.
+
 ## 0.1.2.0 — 2026-10-16
 
 - Use MyBudget consistently in both READMEs, banners and illustrated previews.

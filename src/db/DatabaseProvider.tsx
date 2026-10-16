@@ -4,6 +4,7 @@ import { getDatabase, type AppDatabase } from './client';
 import { DatabaseVersionError } from './migrateSafely';
 import { theme } from '../theme';
 import { Button } from '../components/Button';
+import { RenewalRuntime } from '../features/renewals/RenewalRuntime';
 
 const DatabaseContext = createContext<AppDatabase | null>(null);
 
@@ -24,7 +25,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     });
     return () => { active = false; };
   }, [attempt]);
-  if (db) return <DatabaseContext.Provider value={db}>{children}</DatabaseContext.Provider>;
+  if (db) return <DatabaseContext.Provider value={db}>{children}<RenewalRuntime db={db} /></DatabaseContext.Provider>;
   return <View style={styles.screen}>
     {failed ? <>
       <Text accessibilityRole="header" style={styles.title}>{requiresUpdate ? 'Mise à jour nécessaire' : 'Ouverture impossible'}</Text>

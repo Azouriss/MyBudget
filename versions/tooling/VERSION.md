@@ -1,5 +1,20 @@
 # Tooling version history
 
+## 0.1.4.0 — 2026-10-16
+
+- Include the separate planning schema in Drizzle generation so migration SQL,
+  snapshots and bundled imports include the local planning and portability tables.
+
+**Threat impact:** Schema generation only; existing protected migration hashes
+  remain unchanged and generation does not connect to a user database.
+
+**Sovereignty impact:** Local development tooling only; no remote build or service.
+
+**Validation:** `npm run db:generate -- --name=local_planning_tools` generated
+  migration 0006; SQL review, SQLite tests and `npm run release:check` passed.
+
+**Status:** `verification-pending` — local tooling validation only.
+
 ## 0.1.3.0 — 2026-10-16
 
 - Name the next locally built APK `MyBudget-<version>-<code>.apk` to match the

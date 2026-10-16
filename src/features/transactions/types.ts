@@ -13,6 +13,8 @@ export type Transaction = {
   recurringOccurrenceOn?: string | null;
   /** Read-only forecast of a future recurrence; never persisted as a transaction. */
   isPlanned?: boolean;
+  /** Category allocations of the same payment; never additional transactions. */
+  splits?: { categoryId: string; amountCents: number }[];
 };
 
 export type TransactionDraft = Pick<Transaction,

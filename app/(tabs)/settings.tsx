@@ -77,9 +77,15 @@ export default function SettingsScreen() {
             </View>
           </SurfaceCard>
         </View>
-        <SurfaceCard>
-          <Text style={styles.label}>À venir</Text>
-          <Text style={styles.body}>Catégories personnalisées et sauvegardes JSON/CSV avec import et export. Ces fonctions ne sont pas encore disponibles.</Text>
+        <SurfaceCard style={{ gap: theme.spacing.md }}>
+          <Text style={styles.label}>Vos outils</Text>
+          <Button title="Sauvegarder, restaurer et exporter" variant="secondary" onPress={() => router.push('/data-transfer')} />
+          <Button title="Importer un relevé CSV" variant="secondary" onPress={() => router.push('/csv-import')} />
+          <Button title="Favoris et saisie express" variant="secondary" onPress={() => router.push('/quick-entry')} />
+          <Button title="Budget de paie à paie" variant="secondary" onPress={() => router.push('/pay-cycle')} />
+          <Button title="Répartition et remboursements" variant="secondary" onPress={() => router.push('/expense-details')} />
+          <Button title="Comprendre mon mois" variant="secondary" onPress={() => router.push('/month-review')} />
+          <Button title="Renouvellements" variant="secondary" onPress={() => router.push('/renewals')} />
         </SurfaceCard>
         <View style={styles.about}>
           <Text style={styles.label}>MyBudget</Text>

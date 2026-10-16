@@ -6,6 +6,7 @@ import { localDateKey, isISODate, monthBounds } from '../../lib/dates';
 import { transactionDraftSchema } from '../transactions/validation';
 import type { Transaction, TransactionDraft } from '../transactions/types';
 import { occurrenceOn, occurrencesForMonth, type Frequency } from './schedule';
+import { assertEditable } from '../entry-tools/repository';
 
 export type RecurringExpense = typeof recurringExpenses.$inferSelect;
 export function createRecurringRepository(db: AppDatabase) {
@@ -44,6 +45,7 @@ export function createRecurringRepository(db: AppDatabase) {
         if (existingId) {
           const existing = tx.select().from(transactions).where(eq(transactions.id, existingId)).get();
           if (!existing || existing.recurringExpenseId) throw new Error('Transaction déjà liée ou absente.');
+          assertEditable(db, existingId, draft);
         }
         tx.insert(recurringExpenses).values({ id: ruleId, label: draft.label, amountCents: draft.amountCents,
           categoryId: draft.categoryId, subcategoryId: draft.subcategoryId, frequency, startOn: draft.occurredOn, nextIndex: 1, active: true, createdAt: now, updatedAt: now }).run();

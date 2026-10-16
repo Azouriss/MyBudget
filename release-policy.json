@@ -62,6 +62,16 @@
         "breakpoints": true
       },
       "sha256": "e17ea748f0577a482302bca0b452ef740c8107577e5fa9b3c34eb04234a4f375"
+    },
+    {
+      "entry": {
+        "idx": 6,
+        "version": "6",
+        "when": 1792166488651,
+        "tag": "0006_local_planning_tools",
+        "breakpoints": true
+      },
+      "sha256": "85ec1bf7e9287aa952b11a2f47903c509b372330f9cc1fb564d9256aaa7836ca"
     }
   ]
 }

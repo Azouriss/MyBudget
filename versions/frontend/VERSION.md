@@ -1,5 +1,52 @@
 # Frontend version history
 
+## 0.5.0.0 — 2026-10-16
+
+- Add complete versioned JSON backup and atomic restore through the system file
+  picker, plus CSV transaction export. Reject unknown schemas, invalid records,
+  broken references and oversized UTF-8 files; restore with reminders disabled.
+- Add editable entry favorites, explicit pay-to-pay budget periods, partial
+  reimbursement tracking, and category allocations that preserve payment totals.
+- Add CSV column mapping, previews, local category rules, explicit row selection
+  and duplicate review. Scope exact reimport identities to the source file;
+  matching payments from other files require review. Escape spreadsheet formulas.
+- Add monthly comparisons with category contributions and source transactions,
+  and renewal/cancellation dates with optional private local Android reminders.
+- Expose these tools in Settings, preserve existing monthly budgets and forecasts,
+  and add migration 0006 with its generated snapshot, journal and protected hash.
+
+**Threat impact:** New file ingestion is bounded and strictly validated. Restore
+  and CSV batches commit atomically; the existing database and migration ledger
+  are preserved. Destructive actions require confirmation, unsaved forms are
+  guarded, and linked payments cannot silently invalidate splits or reimbursements.
+  Exported files contain financial data in plaintext and are explicitly labeled.
+  Secret scanning found only the seven expected migration SHA-256 values, verified
+  by release checks. No maintainer finances were read or exported.
+
+**Sovereignty impact:** All calculations, rules, parsing and reminders run locally.
+  File selection and saving use the system picker and Expo modules compatible with
+  SDK 57. No bank connection, account, telemetry, remote build or service is added.
+  Export destinations are chosen by the user; backups are not uploaded by the app.
+
+**Validation:** Windows `npm run release:check` passed in the shared workspace:
+  TypeScript, 208 application tests and 23 release-tool tests. The 28 new cases
+  cover restore/rollback, references, reimport identities, split totals, partial
+  reimbursements, cycle boundaries, CSV parsing, UTF-8 limits and reminder dates.
+  Migration 0006 was reviewed, tested and locked with `npm run
+  release:lock-migrations`; previous protected entries were preserved.
+  Local Expo web export and isolated Chrome acceptance passed favorites, splitting,
+  reimbursements, period budgets, renewal records, JSON download, CSV import and
+  restore after import. All seven new routes plus Settings were checked at 320
+  and 390 px without page overflow or runtime exceptions; screenshots were reviewed.
+  The final UTF-8 size-bound adjustment was verified by unit tests.
+  `npx expo export --platform android --output-dir
+  docs/planning-review/android-bundle` also produced the Android Hermes bundle;
+  this does not constitute an APK build or device acceptance.
+
+**Status:** `verification-pending` — local source and web checks. Android device
+  file selection, notification delivery, signed APK and update acceptance remain
+  pending. No APK, push, tag, publication or deployment.
+
 ## 0.4.1.0 — 2026-10-16
 
 - Use the net salary recorded for the selected month as the default global

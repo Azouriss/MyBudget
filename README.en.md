@@ -85,7 +85,18 @@ previous APK without uninstalling. Verify that data is preserved.
 
 </details>
 
-**Backup and export are not available yet.** Uninstalling the app or clearing
+**Backup:** save a complete JSON file from Settings before changing phones.
+Restoring replaces local data after confirmation, requires the same data schema,
+and disables reminders until you enable them again on the phone. CSV files are
+for viewing or importing transactions, not full backups. Exported files are
+unencrypted; keep them in a private location. Imports are limited to 8 MB and
+1,000 transactions per CSV. No automatic remote backup is performed.
+
+Settings also includes entry favorites, pay-to-pay budgets, split transactions,
+partial reimbursements, monthly comparisons, renewal reminders, and CSV import
+with previews, local category rules and duplicate checks.
+
+Uninstalling the app or clearing
 its data deletes the local database.
 
 <sub>Expo SDK 57 · React Native · TypeScript · SQLite / Drizzle · NativeWind</sub>

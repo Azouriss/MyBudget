@@ -30,6 +30,10 @@
 | Anticiper | Dépenses récurrentes et rappel local du jour de paie sur Android. |
 | Garder la main | Sans compte, sans backend, sans télémétrie. Données SQLite locales. |
 
+Dans **Paramètres → Vos outils** : favoris de saisie, budgets de paie à paie,
+répartition d’un ticket, remboursements partiels, bilan mensuel explicable,
+renouvellements et import CSV avec aperçu, règles locales et contrôle des doublons.
+
 ## Installer sur son téléphone
 
 Chaque release publiée contient un **fichier `.apk`**, prêt à installer.
@@ -85,8 +89,14 @@ l’ancien APK sans désinstaller. Vérifier la conservation des données.
 
 </details>
 
-**Sauvegarde et export : pas encore disponibles.** Désinstaller l’application
-ou effacer ses données supprime la base locale.
+**Sauvegarde :** enregistrez un fichier JSON complet depuis les paramètres avant
+de changer de téléphone. La restauration remplace les données locales après
+confirmation, accepte le même schéma de données et désactive les rappels à
+réactiver sur le téléphone. Le CSV sert à consulter ou importer des transactions ;
+il ne remplace pas une sauvegarde complète. Les fichiers exportés ne sont pas
+chiffrés : conservez-les dans un emplacement privé. Import : 8 Mo maximum et
+1 000 opérations par CSV. Désinstaller l’application ou effacer ses données
+supprime la base locale ; aucune sauvegarde distante automatique n’est réalisée.
 
 <sub>Expo SDK 57 · React Native · TypeScript · SQLite / Drizzle · NativeWind</sub>
 

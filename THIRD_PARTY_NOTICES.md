@@ -42,6 +42,8 @@ Dependencies are obtained through npm rather than vendored in this repository.
 | `expo` | 57.0.30 | MIT |
 | `expo-constants` | 57.0.22 | MIT |
 | `expo-crypto` | 57.0.4 | MIT |
+| `expo-document-picker` | 57.0.3 | MIT |
+| `expo-file-system` | 57.0.7 | MIT |
 | `expo-font` | 57.0.4 | MIT |
 | `expo-linking` | 57.0.13 | MIT |
 | `expo-notifications` | 57.0.23 | MIT |
