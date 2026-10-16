@@ -11,6 +11,8 @@ export type Transaction = {
   updatedAt: number;
   recurringExpenseId?: string | null;
   recurringOccurrenceOn?: string | null;
+  /** Read-only forecast of a future recurrence; never persisted as a transaction. */
+  isPlanned?: boolean;
 };
 
 export type TransactionDraft = Pick<Transaction,

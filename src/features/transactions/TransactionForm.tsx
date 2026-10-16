@@ -198,7 +198,7 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
           </View>
           {recurring ? <>
             <SegmentedControl label="Répéter chaque" options={frequencies} value={frequency} onChange={setFrequency} disabled={saving} />
-            <Text style={styles.help}>La date choisie est la première échéance. Les suivantes sont ajoutées lorsqu’elles arrivent à échéance, à l’ouverture de l’app. Les jours absents d’un mois sont reportés à son dernier jour.</Text>
+            <Text style={styles.help}>La date choisie est la première échéance. Les suivantes apparaissent comme prévues dans les mois futurs, puis sont enregistrées à leur date, à l’ouverture de l’app. Les jours absents d’un mois sont reportés à son dernier jour.</Text>
           </> : null}
         </View> : null}
         {existing?.recurringExpenseId ? <View style={styles.categoryField}>

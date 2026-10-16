@@ -1,17 +1,36 @@
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq, gte, lt } from 'drizzle-orm';
 import { randomUUID } from 'expo-crypto';
 import type { AppDatabase } from '../../db/client';
 import { categories, recurringExpenses, transactions } from '../../db/schema';
-import { localDateKey, isISODate } from '../../lib/dates';
+import { localDateKey, isISODate, monthBounds } from '../../lib/dates';
 import { transactionDraftSchema } from '../transactions/validation';
-import type { TransactionDraft } from '../transactions/types';
-import { occurrenceOn, type Frequency } from './schedule';
+import type { Transaction, TransactionDraft } from '../transactions/types';
+import { occurrenceOn, occurrencesForMonth, type Frequency } from './schedule';
 
 export type RecurringExpense = typeof recurringExpenses.$inferSelect;
 export function createRecurringRepository(db: AppDatabase) {
   return {
     all: () => db.select().from(recurringExpenses).orderBy(asc(recurringExpenses.label)).all(),
     find: (id: string) => db.select().from(recurringExpenses).where(eq(recurringExpenses.id, id)).get(),
+    plannedForMonth(month: string, today = localDateKey()): Transaction[] {
+      const { start, end } = monthBounds(month);
+      if (!isISODate(today)) throw new Error('Date invalide.');
+      // Current and past months retain their recorded totals. Forecasts never write or advance cursors.
+      if (month <= today.slice(0, 7)) return [];
+      const recorded = db.select({ ruleId: transactions.recurringExpenseId, date: transactions.recurringOccurrenceOn })
+        .from(transactions).where(and(gte(transactions.recurringOccurrenceOn, start), lt(transactions.recurringOccurrenceOn, end))).all();
+      const existing = new Set(recorded.map((item) => `${item.ruleId}:${item.date}`));
+      return db.select().from(recurringExpenses).where(eq(recurringExpenses.active, true)).all().flatMap((rule) =>
+        occurrencesForMonth(rule.startOn, rule.frequency, rule.nextIndex, month)
+          .filter((date) => !existing.has(`${rule.id}:${date}`))
+          .map((date): Transaction => ({
+            id: `planned:${rule.id}:${date}`, kind: 'expense', label: rule.label, amountCents: rule.amountCents,
+            categoryId: rule.categoryId, subcategoryId: rule.subcategoryId, occurredOn: date,
+            recurringExpenseId: rule.id, recurringOccurrenceOn: date, createdAt: rule.createdAt, updatedAt: rule.updatedAt,
+            isPlanned: true,
+          })),
+      );
+    },
     saveTransaction(input: TransactionDraft, frequency: Frequency, existingId?: string): string {
       const draft = transactionDraftSchema.parse(input);
       if (draft.kind !== 'expense') throw new Error('Une récurrence doit être une dépense.');

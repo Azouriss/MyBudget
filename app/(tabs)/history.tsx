@@ -48,6 +48,7 @@ export default function HistoryScreen() {
     return [...dates].map(([date, data]) => ({ date, data }));
   }, [visible]);
   const summary = useMemo(() => monthlySummary(visible, month), [visible, month]);
+  const hasPlanned = visible.some((item) => item.isPlanned);
   const filtered = filter !== 'all' || query.trim().length > 0;
   const showAdd = !loading && !error;
   return <ScreenContainer footer={showAdd ? <AddTransactionButton /> : undefined}>
@@ -72,6 +73,7 @@ export default function HistoryScreen() {
         <MonthPicker />
         {!loading && !error && visible.length ? <View style={styles.summary}>
           <Text style={styles.meta}>{filtered ? 'Résultats filtrés' : 'Toutes les transactions'} · {visible.length}</Text>
+          {hasPlanned ? <Text style={styles.meta}>Les totaux incluent les échéances récurrentes prévues.</Text> : null}
           {filter !== 'income' ? <Text style={styles.total}>Dépenses : {formatMoney(summary.expenseCents)}</Text> : null}
           {filter !== 'expense' ? <Text style={styles.total}>Revenus : {formatMoney(summary.incomeCents)}</Text> : null}
         </View> : null}

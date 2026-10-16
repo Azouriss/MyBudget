@@ -21,7 +21,7 @@ export function useMonthlyTransactions() {
 
   useEffect(() => {
     try {
-      setState({ month, revision, transactions: repository.forMonth(month),
+      setState({ month, revision, transactions: repository.withPlannedForMonth(month),
         categories: repository.categories(), error: false, loading: false });
     } catch {
       setState({ month, revision, transactions: [], categories: [], error: true, loading: false });

@@ -18,7 +18,7 @@ export default function RecurringScreen() {
   const [error, setError] = useState(false);
   useEffect(() => { try { setRules(createRecurringRepository(db).all()); setError(false); } catch { setError(true); } }, [db, revision]);
   return <SettingsPage title="Dépenses récurrentes">
-    <Text style={styles.copy}>Abonnements, loyer… Activez « Dépense récurrente » lors de la saisie d’une dépense. Les échéances sont ajoutées à leur date, à l’ouverture de l’app.</Text>
+    <Text style={styles.copy}>Abonnements, loyer… Activez « Dépense récurrente » lors de la saisie d’une dépense. Les échéances apparaissent comme prévues dans les mois futurs, puis sont enregistrées à leur date, à l’ouverture de l’app.</Text>
     <Button title="Ajouter une dépense récurrente" onPress={() => router.push({ pathname: '/transaction', params: { recurring: '1' } })} />
     {error ? <Text accessibilityRole="alert" style={styles.error}>Les récurrences n’ont pas pu être chargées. Rouvrez cet écran.</Text> : !rules.length ? <Text style={styles.copy}>Aucune dépense récurrente pour le moment.</Text> : rules.map((rule) => {
       const next = occurrenceOn(rule.startOn, rule.frequency, rule.nextIndex);

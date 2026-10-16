@@ -29,6 +29,7 @@ export default function DashboardScreen() {
   const summary = useMemo(() => monthlySummary(data.transactions, month), [data.transactions, month]);
   const breakdown = useMemo(() => expenseByCategory(data.transactions), [data.transactions]);
   const categories = useMemo(() => new Map(data.categories.map((category) => [category.id, category])), [data.categories]);
+  const hasPlanned = data.transactions.some((item) => item.isPlanned);
   return <ScreenContainer><ScrollView contentContainerStyle={styles.page}>
     <AppHeader profile />
     <View style={styles.greeting}><Text style={styles.hello}>Bonjour !</Text>
@@ -38,7 +39,8 @@ export default function DashboardScreen() {
     {data.loading || data.error ? <QueryState error={data.error} /> : <View style={styles.sections}>
       <SurfaceCard style={styles.summaryCard}>
         <View pointerEvents="none" style={styles.cornerLeaf}><BotanicalSprig size={64} /></View>
-        <Text style={styles.meta}>Dépenses ce mois-ci</Text>
+        <Text style={styles.meta}>{hasPlanned ? 'Dépenses prévues ce mois-ci' : 'Dépenses ce mois-ci'}</Text>
+        {hasPlanned ? <Text style={styles.caption}>Les totaux incluent les échéances récurrentes prévues.</Text> : null}
         <View style={styles.expenseLine}>
           <Text accessibilityLabel={`Dépenses du mois : ${formatMoney(summary.expenseCents)}`} style={styles.expenses}>{formatMoney(summary.expenseCents)}</Text>
           {!budgets.loading && !budgets.error ? <View style={styles.limitCopy}><Text style={styles.caption}>Sur un budget de</Text>

@@ -30,6 +30,7 @@ export default function BudgetsScreen() {
   const { width, fontScale } = useWindowDimensions();
   const stacked = Math.min(width, theme.layout.contentMaxWidth) < 360 || fontScale >= theme.layout.stackedFontScale;
   const summary = useMemo(() => monthlySummary(data.transactions, month), [data.transactions, month]);
+  const hasPlanned = data.transactions.some((item) => item.isPlanned);
   const spending = useMemo(() => new Map(expenseByCategory(data.transactions).map((item) => [item.categoryId, item.amountCents])), [data.transactions]);
   const limits = useMemo(() => new Map(budgets.categories.map((item) => [item.categoryId, item.amountCents])), [budgets.categories]);
   const progress = budgets.monthly ? budgetProgress(summary.expenseCents, budgets.monthly.amountCents) : undefined;
@@ -44,12 +45,13 @@ export default function BudgetsScreen() {
         actionLabel="Réessayer" onAdd={() => useAppStore.getState().invalidate()} /> : <QueryState error={false} />}
     </> : <View style={styles.sections}>
       <SurfaceCard>
+        {hasPlanned ? <Text style={styles.meta}>Les totaux incluent les échéances récurrentes prévues.</Text> : null}
         <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.heading}>Vue d’ensemble</Text>
           <IconButton icon={SlidersHorizontal} label="Modifier le budget global" onPress={() => edit()} /></View>
         {budgets.monthly && progress ? <>
           <View style={[styles.overview, stacked && styles.overviewStacked]}>
             {[
-              { amount: summary.expenseCents, label: 'dépensés', color: theme.colors.textPrimary },
+              { amount: summary.expenseCents, label: hasPlanned ? 'prévus' : 'dépensés', color: theme.colors.textPrimary },
               { amount: budgets.monthly.amountCents, label: 'budget', color: theme.colors.textPrimary },
               { amount: Math.abs(progress.remainingCents), label: progress.exceeded ? 'de dépassement' : 'restants', color: progress.exceeded ? theme.colors.dangerText : theme.colors.success },
             ].map((item) => <View key={item.label} style={styles.stat}><Text style={[styles.amount, { color: item.color }]}>{formatMoney(item.amount)}</Text>
@@ -58,7 +60,7 @@ export default function BudgetsScreen() {
           <BudgetProgress spent={summary.expenseCents} limit={budgets.monthly.amountCents} />
         </> : <View style={styles.intro}>
           <Text style={styles.total}>{formatMoney(summary.expenseCents)}</Text>
-          <Text style={styles.copy}>de dépenses ce mois-ci. Définissez votre budget pour suivre ce qu’il vous reste.</Text>
+          <Text style={styles.copy}>{hasPlanned ? 'de dépenses prévues' : 'de dépenses'} ce mois-ci. Définissez votre budget pour suivre ce qu’il vous reste.</Text>
           <Button title="Définir mon budget" icon={Plus} onPress={() => edit()} />
         </View>}
         {budgets.monthly?.amountCents === 0 ? <Text style={styles.meta}>Aucun montant autorisé pour ce mois.</Text> : null}
@@ -71,7 +73,7 @@ export default function BudgetsScreen() {
             const limit = limits.get(category.id);
             const exceeded = limit !== undefined && spent > limit;
             return <Pressable key={category.id} accessibilityRole="button"
-              accessibilityLabel={`${category.label}, ${formatMoney(spent)} dépensés, ${limit === undefined ? 'limite à définir' : `budget ${formatMoney(limit)}`}. Modifier la limite.`}
+              accessibilityLabel={`${category.label}, ${formatMoney(spent)} ${hasPlanned ? 'prévus' : 'dépensés'}, ${limit === undefined ? 'limite à définir' : `budget ${formatMoney(limit)}`}. Modifier la limite.`}
               onPress={() => edit(category.id)} onFocus={() => setFocusedCategory(category.id)} onBlur={() => setFocusedCategory(null)}
               style={({ pressed }) => [styles.category, index === all.length - 1 && styles.last,
                 { backgroundColor: pressed ? theme.colors.primaryLight : theme.colors.transparent,

@@ -6,6 +6,7 @@ import { monthBounds } from '../../lib/dates';
 import { transactionDraftSchema } from './validation';
 import type { Transaction, TransactionDraft } from './types';
 import { createPaydayRepository } from '../payday/repository';
+import { createRecurringRepository } from '../recurring/repository';
 
 export function createTransactionRepository(db: AppDatabase) {
   function validateCategory(draft: TransactionDraft) {
@@ -20,6 +21,10 @@ export function createTransactionRepository(db: AppDatabase) {
       return db.select().from(transactions)
         .where(and(gte(transactions.occurredOn, start), lt(transactions.occurredOn, end)))
         .orderBy(desc(transactions.occurredOn), desc(transactions.createdAt), desc(transactions.id)).all();
+    },
+    withPlannedForMonth(month: string, today?: string): Transaction[] {
+      return [...this.forMonth(month), ...createRecurringRepository(db).plannedForMonth(month, today)]
+        .sort((a, b) => b.occurredOn.localeCompare(a.occurredOn) || b.createdAt - a.createdAt || b.id.localeCompare(a.id));
     },
     find(id: string): Transaction | undefined {
       return db.select().from(transactions).where(eq(transactions.id, id)).get();

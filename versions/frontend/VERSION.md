@@ -1,5 +1,42 @@
 # Frontend version history
 
+## 0.3.1.0 — 2026-10-16
+
+- Show active recurring expense forecasts when viewing future months in the
+  dashboard, history and budgets. Keep current and past months based on
+  recorded transactions, and identify totals that include forecasts.
+- Mark recorded recurring expenses with a repeat icon and label. Add
+  `Récurrente · Prévue` to forecasts and open their recurrence settings when
+  selected; recorded occurrences keep their individual editing flow.
+- Compute forecasts without writing transactions or advancing recurrence
+  cursors. Respect stops, edits, deleted or moved recorded occurrences,
+  weekly/yearly rules, leap days and the original end-of-month anchor.
+
+**Threat impact:** Forecasts only read the local database. Existing integer
+  cents, civil dates, parameterized queries, validation and due-occurrence
+  materialization remain in use. Database identity, migrations, Android
+  identity and signing material are unchanged. Synthetic test data only
+  was used for acceptance; no maintainer finances were read or exported.
+
+**Sovereignty impact:** Scheduling, icons and forecasts reuse bundled code
+  and dependencies. No account, telemetry, network service, synchronization,
+  financial-data export, new dependency or remote build is introduced.
+
+**Validation:** `npm run check` passed in the shared working directory:
+  TypeScript, 149 application tests and 23 release-tool tests. Fifteen added
+  regression cases cover future forecasts, calendar boundaries, read-only
+  behavior, deduplication, edits, stops and preserved recorded expenses.
+  `node scripts/check-release.cjs`, `git diff --check` and the scoped
+  `detect-secrets scan --no-verify --all-files` scan passed. Isolated Chrome
+  acceptance using synthetic storage passed the actual recurring badge,
+  future dashboard/history, 320/360/390 px layouts, filters/search, forecast
+  navigation, amount changes and stopping without altering recorded history.
+  Screens were inspected; no page overflow or runtime exceptions were seen.
+  Android phone and packaged APK acceptance remain pending.
+
+**Status:** `verification-pending` — local source and web verification only;
+  no new APK, push, tag or publication.
+
 ## 0.3.0.0 — 2026-10-16
 
 - Open a French calendar when tapping the transaction date, with Monday-first

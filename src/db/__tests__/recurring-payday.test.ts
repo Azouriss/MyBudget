@@ -7,7 +7,7 @@ import journal from '../migrations/meta/_journal.json';
 import { createRecurringRepository, materializeDueExpenses } from '../../features/recurring/repository';
 import { createTransactionRepository } from '../../features/transactions/repository';
 import { createPaydayRepository } from '../../features/payday/repository';
-import { occurrenceOn } from '../../features/recurring/schedule';
+import { occurrenceOn, occurrencesForMonth } from '../../features/recurring/schedule';
 import { paydayOn, planSalaryReminders, REMINDER_PREFIX } from '../../features/payday/schedule';
 import { reconcileReminders, type ScheduledReminder } from '../../features/payday/notificationPlan';
 import { expenseByCategory, monthlySummary } from '../../lib/finance';
@@ -27,6 +27,20 @@ describe('calendriers civils', () => {
     expect(() => occurrenceOn('2026-02-30', 'monthly', 1)).toThrow();
     expect(() => occurrenceOn('2026-01-01', 'monthly', -1)).toThrow();
     expect(() => occurrenceOn('2026-01-01', 'daily' as 'monthly', 1)).toThrow();
+  });
+  test.each([
+    ['2028-01-31', 'monthly', 1, '2028-02', ['2028-02-29']],
+    ['2028-01-31', 'monthly', 1, '2028-03', ['2028-03-31']],
+    ['2026-12-28', 'weekly', 1, '2027-01', ['2027-01-04', '2027-01-11', '2027-01-18', '2027-01-25']],
+    ['2028-02-29', 'yearly', 1, '2029-02', ['2029-02-28']],
+    ['2028-02-29', 'yearly', 1, '2032-02', ['2032-02-29']],
+    ['2028-02-29', 'yearly', 1, '2029-03', []],
+    ['2027-03-31', 'monthly', 0, '2027-02', []],
+    ['2027-01-31', 'monthly', 3, '2027-02', []],
+    ['1900-01-01', 'weekly', 0, '2099-12', ['2099-12-07', '2099-12-14', '2099-12-21', '2099-12-28']],
+    ['2099-12-31', 'monthly', 0, '2099-12', ['2099-12-31']],
+  ] as const)('projette %s (%s) dans %s sans perdre l’ancrage', (start, frequency, cursor, month, expected) => {
+    expect(occurrencesForMonth(start, frequency, cursor, month)).toEqual(expected);
   });
   it('borne le jour de paie et reporte les jours absents', () => {
     expect(paydayOn('2026-02', 31)).toBe('2026-02-28');
@@ -56,6 +70,76 @@ describe('récurrences et paie sur SQLite réel', () => {
   });
   afterEach(() => sqlite.close());
   const draft = { kind: 'expense', label: 'Abonnement', amountCents: 999, categoryId: 'food', occurredOn: '2026-01-31' } as const;
+  it('affiche le mois suivant sans écrire de transaction ni avancer le curseur', () => {
+    const recurring = createRecurringRepository(db);
+    const transactions = createTransactionRepository(db);
+    recurring.saveTransaction({ ...draft, subcategoryId: 'food-groceries' }, 'monthly');
+    const before = sqlite.prepare('SELECT total_changes() AS n').get()?.n;
+    const forecast = transactions.withPlannedForMonth('2026-02', '2026-01-31');
+    expect(forecast).toHaveLength(1);
+    expect(forecast[0]).toMatchObject({ label: 'Abonnement', amountCents: 999, subcategoryId: 'food-groceries',
+      occurredOn: '2026-02-28', recurringExpenseId: recurring.all()[0]!.id, isPlanned: true });
+    expect(monthlySummary(forecast, '2026-02').expenseCents).toBe(999);
+    expect(expenseByCategory(forecast)).toEqual([{ categoryId: 'food', amountCents: 999 }]);
+    expect(transactions.withPlannedForMonth('2026-02', '2026-01-31')).toEqual(forecast);
+    expect(transactions.withPlannedForMonth('2026-03', '2026-01-31')[0]?.occurredOn).toBe('2026-03-31');
+    expect(transactions.forMonth('2026-02')).toEqual([]);
+    expect(recurring.all()[0]!.nextIndex).toBe(1);
+    expect(sqlite.prepare('SELECT total_changes() AS n').get()?.n).toBe(before);
+  });
+  it('garde les mois passés et courant sans prévision et trie les saisies avec les échéances futures', () => {
+    createRecurringRepository(db).saveTransaction(draft, 'monthly');
+    const transactions = createTransactionRepository(db);
+    expect(transactions.withPlannedForMonth('2026-01', '2026-01-01')).toEqual(transactions.forMonth('2026-01'));
+    expect(transactions.withPlannedForMonth('2026-02', '2026-03-01')).toEqual([]);
+    transactions.create({ ...draft, label: 'Achat prévu fictif', occurredOn: '2026-02-15' });
+    const february = transactions.withPlannedForMonth('2026-02', '2026-01-31');
+    expect(february.map((item) => item.occurredOn)).toEqual(['2026-02-28', '2026-02-15']);
+    expect(february.map((item) => !!item.isPlanned)).toEqual([true, false]);
+    expect(() => transactions.withPlannedForMonth('2026-13', '2026-01-31')).toThrow();
+    expect(() => transactions.withPlannedForMonth('2026-02', '2026-02-30')).toThrow();
+  });
+  it('remplace la prévision par l’échéance enregistrée et respecte suppression et déplacement', () => {
+    const recurring = createRecurringRepository(db);
+    const transactions = createTransactionRepository(db);
+    recurring.saveTransaction(draft, 'monthly');
+    expect(transactions.withPlannedForMonth('2026-02', '2026-01-31')[0]?.isPlanned).toBe(true);
+    materializeDueExpenses(db, '2026-02-28');
+    const february = transactions.withPlannedForMonth('2026-02', '2026-01-31');
+    expect(february).toHaveLength(1);
+    expect(february[0]?.isPlanned).toBeUndefined();
+    transactions.update(february[0]!.id, { ...draft, occurredOn: '2026-03-01' });
+    expect(transactions.withPlannedForMonth('2026-02', '2026-01-31')).toEqual([]);
+    expect(transactions.withPlannedForMonth('2026-03', '2026-01-31')).toHaveLength(2);
+    transactions.remove(february[0]!.id);
+    expect(transactions.withPlannedForMonth('2026-02', '2026-01-31')).toEqual([]);
+  });
+  it('ne double pas une échéance déjà saisie même hors du mois de sa date d’origine', () => {
+    const recurring = createRecurringRepository(db);
+    const transactions = createTransactionRepository(db);
+    const id = recurring.saveTransaction({ ...draft, occurredOn: '2027-01-31' }, 'monthly');
+    const rule = recurring.all()[0]!;
+    recurring.update(rule.id, draft, 'monthly', '2027-01-31');
+    expect(transactions.withPlannedForMonth('2027-01', '2026-12-31')).toHaveLength(1);
+    transactions.update(id, { ...draft, occurredOn: '2027-02-01' });
+    expect(transactions.withPlannedForMonth('2027-01', '2026-12-31')).toEqual([]);
+    expect(sqlite.prepare('PRAGMA foreign_key_check').all()).toEqual([]);
+  });
+  it('actualise les prévisions après modification, arrêt et reprise sans changer les dépenses enregistrées', () => {
+    const recurring = createRecurringRepository(db);
+    const transactions = createTransactionRepository(db);
+    const id = recurring.saveTransaction({ ...draft, occurredOn: '2027-01-31' }, 'monthly');
+    const rule = recurring.all()[0]!;
+    expect(transactions.withPlannedForMonth('2027-02', '2026-12-31')[0]?.amountCents).toBe(999);
+    recurring.update(rule.id, { ...draft, label: 'Nouveau montant', amountCents: 1299 }, 'monthly', '2027-02-28');
+    expect(transactions.withPlannedForMonth('2027-02', '2026-12-31')[0]).toMatchObject({ amountCents: 1299, label: 'Nouveau montant' });
+    expect(transactions.withPlannedForMonth('2027-03', '2026-12-31')[0]?.occurredOn).toBe('2027-03-31');
+    recurring.stop(rule.id);
+    expect(transactions.withPlannedForMonth('2027-02', '2026-12-31')).toEqual([]);
+    recurring.update(rule.id, draft, 'yearly', '2028-02-29');
+    expect(transactions.withPlannedForMonth('2029-02', '2026-12-31')[0]?.occurredOn).toBe('2029-02-28');
+    expect(transactions.find(id)).toMatchObject({ label: 'Abonnement', amountCents: 999, occurredOn: '2027-01-31' });
+  });
   it('enregistre, relit, modifie et retire la sous-catégorie sans fragmenter les totaux', () => {
     const repository = createTransactionRepository(db);
     const id = repository.create({ ...draft, subcategoryId: 'food-groceries' });
