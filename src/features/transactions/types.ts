@@ -5,6 +5,7 @@ export type Transaction = {
   amountCents: number;
   label: string;
   categoryId: string;
+  subcategoryId?: string | null;
   occurredOn: string;
   createdAt: number;
   updatedAt: number;
@@ -13,5 +14,5 @@ export type Transaction = {
 };
 
 export type TransactionDraft = Pick<Transaction,
-  'kind' | 'amountCents' | 'label' | 'categoryId' | 'occurredOn'
+  'kind' | 'amountCents' | 'label' | 'categoryId' | 'subcategoryId' | 'occurredOn'
 >;

@@ -29,6 +29,13 @@
       "when": 1792145678007,
       "tag": "0003_recurring_and_payday",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1792161772302,
+      "tag": "0004_expense_subcategories",
+      "breakpoints": true
     }
   ]
 }

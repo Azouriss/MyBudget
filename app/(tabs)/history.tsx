@@ -19,6 +19,7 @@ import { displayDate, localDateKey } from '../../src/lib/dates';
 import { monthlySummary } from '../../src/lib/finance';
 import { theme } from '../../src/theme';
 import type { Transaction } from '../../src/features/transactions/types';
+import { getExpenseSubcategory } from '../../src/features/categories/subcategories';
 
 const filters = [
   { value: 'all', label: 'Toutes' }, { value: 'expense', label: 'Dépenses' }, { value: 'income', label: 'Revenus' },
@@ -36,7 +37,7 @@ export default function HistoryScreen() {
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
   const visible = useMemo(() => transactions.filter((item) =>
     (filter === 'all' || item.kind === filter)
-      && normalize(`${item.label} ${categoryMap.get(item.categoryId)?.label ?? ''}`).includes(normalize(query.trim())),
+      && normalize(`${item.label} ${categoryMap.get(item.categoryId)?.label ?? ''} ${getExpenseSubcategory(item.subcategoryId)?.label ?? ''}`).includes(normalize(query.trim())),
   ), [transactions, filter, query, categoryMap]);
   const sections = useMemo(() => {
     const dates = new Map<string, Transaction[]>();

@@ -15,8 +15,9 @@ import { occurrenceOn, frequencies, tomorrow, type Frequency } from '../src/feat
 import { centsToInput, parseAmountToCents } from '../src/lib/money';
 import { displayDate, parseFrenchDate, localDateKey } from '../src/lib/dates';
 import { useAppStore } from '../src/stores/useAppStore';
+import { ExpenseSubcategoryPicker } from '../src/features/categories/ExpenseSubcategoryPicker';
 
-type Values = { label: string; amount: string; categoryId: string; frequency: Frequency; date: string };
+type Values = { label: string; amount: string; categoryId: string; subcategoryId: string | null; frequency: Frequency; date: string };
 export default function RecurringExpenseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const db = useDatabase();
@@ -24,7 +25,7 @@ export default function RecurringExpenseScreen() {
   const navigation = useNavigation();
   const [rule, setRule] = useState<RecurringExpense | null>(null);
   const [initial, setInitial] = useState<Values | null>(null);
-  const [values, setValues] = useState<Values>({ label: '', amount: '', categoryId: '', frequency: 'monthly', date: '' });
+  const [values, setValues] = useState<Values>({ label: '', amount: '', categoryId: '', subcategoryId: null, frequency: 'monthly', date: '' });
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -36,6 +37,7 @@ export default function RecurringExpenseScreen() {
       if (!existing) throw new Error();
       const next = existing.active ? occurrenceOn(existing.startOn, existing.frequency, existing.nextIndex) : null;
       const value = { label: existing.label, amount: centsToInput(existing.amountCents), categoryId: existing.categoryId,
+        subcategoryId: existing.subcategoryId,
         frequency: existing.frequency, date: displayDate(next && next > localDateKey() ? next : tomorrow()) };
       setRule(existing); setValues(value); setInitial(value);
       setCategories(createTransactionRepository(db).categories().filter((c) => c.kind === 'expense'));
@@ -63,7 +65,7 @@ export default function RecurringExpenseScreen() {
     try {
       await catchUpExpenses(db);
       createRecurringRepository(db).update(rule.id, { kind: 'expense', label: values.label, amountCents,
-        categoryId: values.categoryId, occurredOn: nextOn }, values.frequency, nextOn);
+        categoryId: values.categoryId, subcategoryId: values.subcategoryId, occurredOn: nextOn }, values.frequency, nextOn);
       useAppStore.getState().invalidate();
       useAppStore.getState().showNotice(rule.active ? 'Récurrence modifiée' : 'Récurrence reprise');
       allowLeave.current = true; back();
@@ -85,7 +87,11 @@ export default function RecurringExpenseScreen() {
     <FormField label="Libellé de la récurrence" value={values.label} onChangeText={(v) => change('label', v)} maxLength={80} editable={!!rule && !saving} />
     <FormField label="Montant récurrent en euros" value={values.amount} onChangeText={(v) => change('amount', v)} keyboardType="decimal-pad" suffix="€" editable={!!rule && !saving} />
     <Text style={styles.label}>Catégorie</Text>
-    {categories.map((c) => <Button key={c.id} title={c.label} variant={values.categoryId === c.id ? 'primary' : 'secondary'} disabled={saving} onPress={() => change('categoryId', c.id)} />)}
+    {categories.map((c) => <Button key={c.id} title={c.label} variant={values.categoryId === c.id ? 'primary' : 'secondary'} disabled={saving}
+      onPress={() => setValues((old) => ({ ...old, categoryId: c.id, subcategoryId: old.categoryId === c.id ? old.subcategoryId : null }))} />)}
+    {rule ? <ExpenseSubcategoryPicker key={values.categoryId} categories={categories} categoryId={values.categoryId}
+      value={values.subcategoryId} disabled={saving}
+      onChange={(categoryId, subcategoryId) => setValues((old) => ({ ...old, categoryId, subcategoryId }))} /> : null}
     <SegmentedControl label="Répéter chaque" options={frequencies} value={values.frequency} onChange={(v) => change('frequency', v)} disabled={!rule || saving} />
     <FormField label="Prochaine échéance · JJ/MM/AAAA" value={values.date} onChangeText={(v) => change('date', v)} maxLength={10} editable={!!rule && !saving} />
     <Text style={styles.copy}>Cette date fixe le jour des échéances suivantes. Un 31 est reporté au dernier jour des mois plus courts.</Text>

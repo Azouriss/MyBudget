@@ -10,6 +10,7 @@ import { createPaydayRepository } from '../../features/payday/repository';
 import { occurrenceOn } from '../../features/recurring/schedule';
 import { paydayOn, planSalaryReminders, REMINDER_PREFIX } from '../../features/payday/schedule';
 import { reconcileReminders, type ScheduledReminder } from '../../features/payday/notificationPlan';
+import { expenseByCategory, monthlySummary } from '../../lib/finance';
 
 jest.mock('expo-crypto', () => ({ randomUUID: () => require('node:crypto').randomUUID() }));
 
@@ -55,6 +56,38 @@ describe('récurrences et paie sur SQLite réel', () => {
   });
   afterEach(() => sqlite.close());
   const draft = { kind: 'expense', label: 'Abonnement', amountCents: 999, categoryId: 'food', occurredOn: '2026-01-31' } as const;
+  it('enregistre, relit, modifie et retire la sous-catégorie sans fragmenter les totaux', () => {
+    const repository = createTransactionRepository(db);
+    const id = repository.create({ ...draft, subcategoryId: 'food-groceries' });
+    expect(repository.find(id)?.subcategoryId).toBe('food-groceries');
+    repository.update(id, { ...draft, subcategoryId: 'food-restaurant' });
+    expect(repository.forMonth('2026-01')[0]?.subcategoryId).toBe('food-restaurant');
+    repository.create({ ...draft, subcategoryId: 'food-bakery' });
+    expect(expenseByCategory(repository.forMonth('2026-01'))).toEqual([{ categoryId: 'food', amountCents: 1998 }]);
+    expect(monthlySummary(repository.forMonth('2026-01'), '2026-01').expenseCents).toBe(1998);
+    repository.update(id, { ...draft, subcategoryId: null });
+    expect(repository.find(id)?.subcategoryId).toBeNull();
+    expect(() => repository.create({ ...draft, subcategoryId: 'transport-fuel' })).toThrow();
+    expect(repository.forMonth('2026-01')).toHaveLength(2);
+  });
+  it('transmet la sous-catégorie aux échéances et limite ses changements au futur', () => {
+    const recurring = createRecurringRepository(db);
+    const transactions = createTransactionRepository(db);
+    const id = transactions.create({ ...draft, subcategoryId: 'food-groceries' });
+    recurring.saveTransaction({ ...draft, subcategoryId: 'food-groceries' }, 'monthly', id);
+    const rule = recurring.all()[0]!;
+    expect(rule.subcategoryId).toBe('food-groceries');
+    materializeDueExpenses(db, '2026-02-28');
+    expect(transactions.forMonth('2026-02')[0]?.subcategoryId).toBe('food-groceries');
+    recurring.update(rule.id, { ...draft, subcategoryId: 'food-restaurant' }, 'monthly', '2027-01-31');
+    materializeDueExpenses(db, '2027-01-31');
+    expect(transactions.forMonth('2027-01')[0]?.subcategoryId).toBe('food-restaurant');
+    expect(transactions.find(id)?.subcategoryId).toBe('food-groceries');
+    recurring.update(rule.id, { ...draft, subcategoryId: null }, 'monthly', '2027-02-28');
+    materializeDueExpenses(db, '2027-02-28');
+    expect(transactions.forMonth('2027-02')[0]?.subcategoryId).toBeNull();
+    expect(sqlite.prepare('PRAGMA foreign_key_check').all()).toEqual([]);
+  });
   it('ajoute les seules échéances dues sans doublon, y compris après suppression ou changement de date d’une occurrence', () => {
     const recurring = createRecurringRepository(db);
     const transactions = createTransactionRepository(db);

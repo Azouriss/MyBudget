@@ -59,6 +59,10 @@ function seed(sqlite: DatabaseSync, count: number) {
       .run('recurring-payment', 'expense', 3900, 'Abonnement existant', 'food', '2026-10-01', 11, 12, 'subscription', '2026-10-01');
     sqlite.prepare('INSERT INTO payday_settings (id, day, notifications_enabled) VALUES (?, ?, ?)').run(1, 28, 0);
   }
+  if (count >= 5) {
+    sqlite.prepare('UPDATE transactions SET subcategory_id = ? WHERE id = ?').run('food-groceries', 'expense');
+    sqlite.prepare('UPDATE recurring_expenses SET subcategory_id = ? WHERE id = ?').run('food-meal-kits', 'subscription');
+  }
 }
 
 function snapshot(sqlite: DatabaseSync) {
@@ -104,6 +108,10 @@ describe('mises à niveau via le véritable migrateur Drizzle Expo et SQLite sur
       expect(actual.map((row, index) => Object.fromEntries(Object.keys(rows[index]!).map((key) => [key, row[key]])))).toEqual(rows);
     }
     expect(after.__drizzle_migrations).toHaveLength(journal.entries.length);
+    if (count < 5) {
+      expect(connection.sqlite.prepare('SELECT subcategory_id FROM transactions').all().every((row) => row.subcategory_id === null)).toBe(true);
+      expect(connection.sqlite.prepare('SELECT subcategory_id FROM recurring_expenses').all().every((row) => row.subcategory_id === null)).toBe(true);
+    }
     expect(connection.sqlite.prepare('PRAGMA foreign_key_check').all()).toEqual([]);
     expect(connection.sqlite.prepare('PRAGMA integrity_check').get()?.integrity_check).toBe('ok');
     expect(connection.sqlite.prepare('PRAGMA foreign_keys').get()?.foreign_keys).toBe(1);

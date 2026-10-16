@@ -27,7 +27,7 @@ export function createRecurringRepository(db: AppDatabase) {
           if (!existing || existing.recurringExpenseId) throw new Error('Transaction déjà liée ou absente.');
         }
         tx.insert(recurringExpenses).values({ id: ruleId, label: draft.label, amountCents: draft.amountCents,
-          categoryId: draft.categoryId, frequency, startOn: draft.occurredOn, nextIndex: 1, active: true, createdAt: now, updatedAt: now }).run();
+          categoryId: draft.categoryId, subcategoryId: draft.subcategoryId, frequency, startOn: draft.occurredOn, nextIndex: 1, active: true, createdAt: now, updatedAt: now }).run();
         const value = { ...draft, recurringExpenseId: ruleId, recurringOccurrenceOn: draft.occurredOn, updatedAt: now };
         if (existingId) tx.update(transactions).set(value).where(eq(transactions.id, existingId)).run();
         else tx.insert(transactions).values({ ...value, id, createdAt: now }).run();
@@ -46,7 +46,7 @@ export function createRecurringRepository(db: AppDatabase) {
         const keepAnchor = existing.active && existing.frequency === frequency
           && occurrenceOn(existing.startOn, frequency, existing.nextIndex) === nextOn;
         const result = tx.update(recurringExpenses).set({ label: draft.label, amountCents: draft.amountCents,
-          categoryId: draft.categoryId, frequency, startOn: keepAnchor ? existing.startOn : nextOn,
+          categoryId: draft.categoryId, subcategoryId: draft.subcategoryId, frequency, startOn: keepAnchor ? existing.startOn : nextOn,
           nextIndex: keepAnchor ? existing.nextIndex : 0, active: true, updatedAt: Date.now() })
           .where(eq(recurringExpenses.id, id)).run();
         if (result.changes !== 1) throw new Error('Récurrence absente.');
@@ -71,7 +71,7 @@ export function materializeDueExpenses(db: AppDatabase, today = localDateKey(), 
       let next = occurrenceOn(rule.startOn, rule.frequency, cursor);
       while (next && next <= today && count < limit) {
         tx.insert(transactions).values({ id: `${rule.id}:${next}`, kind: 'expense', amountCents: rule.amountCents,
-          label: rule.label, categoryId: rule.categoryId, occurredOn: next, recurringExpenseId: rule.id,
+          label: rule.label, categoryId: rule.categoryId, subcategoryId: rule.subcategoryId, occurredOn: next, recurringExpenseId: rule.id,
           recurringOccurrenceOn: next, createdAt: now, updatedAt: now }).onConflictDoNothing().run();
         cursor += 1;
         count += 1;

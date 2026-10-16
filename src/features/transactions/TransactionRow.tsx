@@ -9,6 +9,7 @@ import { theme } from '../../theme';
 import type { Transaction } from './types';
 import { ChevronRight } from 'lucide-react-native';
 import { decorativeIconProps } from '../../components/decorativeIconProps';
+import { getExpenseSubcategory } from '../categories/subcategories';
 
 export function TransactionRow({ transaction, category, last = false }: {
   transaction: Transaction; category?: Category; last?: boolean;
@@ -18,8 +19,10 @@ export function TransactionRow({ transaction, category, last = false }: {
   const stacked = Math.min(width, theme.layout.contentMaxWidth) - 2 * theme.layout.gutter < theme.layout.compactTransactionWidth
     || fontScale >= theme.layout.stackedFontScale;
   const income = transaction.kind === 'income';
+  const subcategory = getExpenseSubcategory(transaction.subcategoryId);
+  const categoryLabel = `${category?.label ?? 'Catégorie'}${subcategory ? ` · ${subcategory.label}` : ''}`;
   return <Pressable accessibilityRole="button"
-    accessibilityLabel={`${transaction.label}, ${income ? 'revenu' : 'dépense'} de ${formatMoney(transaction.amountCents)}, ${category?.label ?? 'Catégorie'}, ${shortDate(transaction.occurredOn)}. Modifier.`}
+    accessibilityLabel={`${transaction.label}, ${income ? 'revenu' : 'dépense'} de ${formatMoney(transaction.amountCents)}, ${categoryLabel}, ${shortDate(transaction.occurredOn)}. Modifier.`}
     onPress={() => router.push({ pathname: '/transaction', params: { id: transaction.id } })}
     onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
     style={({ pressed }) => [styles.row, {
@@ -33,7 +36,7 @@ export function TransactionRow({ transaction, category, last = false }: {
       <View style={[styles.details, stacked && styles.stacked]}>
         <View style={styles.copy}>
           <Text style={styles.label}>{transaction.label}</Text>
-          <Text style={styles.meta}>{category?.label ?? 'Catégorie'}{income ? ' · Revenu' : ''}</Text>
+          <Text style={styles.meta}>{categoryLabel}{income ? ' · Revenu' : ''}</Text>
         </View>
         <View style={styles.amountColumn}><Text style={[styles.amount, { color: income ? theme.colors.success : theme.colors.textPrimary }]}>
           {income ? '+' : '−'}{formatMoney(transaction.amountCents)}

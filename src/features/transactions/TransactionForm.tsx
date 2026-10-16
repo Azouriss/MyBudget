@@ -25,6 +25,7 @@ import { useAppStore } from '../../stores/useAppStore';
 import { useTransactionRepository } from './hooks';
 import type { Transaction, TransactionKind } from './types';
 import { formToDraft, transactionFormSchema, type TransactionFormValues } from './validation';
+import { ExpenseSubcategoryPicker } from '../categories/ExpenseSubcategoryPicker';
 
 const kinds = [{ value: 'expense', label: 'Dépense' }, { value: 'income', label: 'Revenu' }] as const;
 
@@ -49,10 +50,12 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
     defaultValues: {
       kind: existing?.kind ?? (salaryMonth ? 'income' : 'expense'), amount: existing ? centsToInput(existing.amountCents) : '',
       label: existing?.label ?? (salaryMonth ? 'Salaire net' : ''), categoryId: existing?.categoryId ?? (salaryMonth ? 'salary' : categories.find((item) => item.kind === 'expense')?.id ?? ''),
+      subcategoryId: existing?.subcategoryId ?? null,
       date: displayDate(existing?.occurredOn ?? (salaryMonth && salaryMonth !== localDateKey().slice(0, 7) ? `${salaryMonth}-01` : localDateKey())),
     },
   });
   const kind = watch('kind');
+  const categoryId = watch('categoryId');
   const { width, fontScale } = useWindowDimensions();
   const columns = width < 360 || fontScale >= theme.layout.stackedFontScale ? 2 : 3;
   const categoryWidth = (Math.min(width, theme.layout.contentMaxWidth) - theme.layout.gutter * 2 - theme.spacing.sm * (columns - 1)) / columns;
@@ -73,6 +76,7 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
   function changeKind(next: TransactionKind) {
     setValue('kind', next, { shouldDirty: true });
     setValue('categoryId', categories.find((category) => category.kind === next)?.id ?? '', { shouldDirty: true, shouldValidate: true });
+    setValue('subcategoryId', null, { shouldDirty: true, shouldValidate: true });
   }
 
   async function save(values: TransactionFormValues) {
@@ -147,10 +151,14 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
           <Text style={styles.label}>Catégorie</Text>
           <Controller control={control} name="categoryId" render={({ field: { value, onChange } }) =>
             <View accessibilityRole="radiogroup" accessibilityLabel="Catégorie" style={styles.categories}>
-              {categories.filter((category) => category.kind === kind && (!salaryMonth || category.id === 'salary')).map((category) => <Pressable
+              {categories.filter((category) => category.kind === kind && (!salaryMonth || category.id === 'salary')).map((category) => <Pressable cssInterop={false}
                 key={category.id} accessibilityRole="radio" accessibilityLabel={category.label}
+                aria-checked={value === category.id}
                 accessibilityState={{ checked: value === category.id, disabled: saving }} disabled={saving}
-                onPress={() => onChange(category.id)} onFocus={() => setFocusedCategory(category.id)} onBlur={() => setFocusedCategory(null)}
+                onPress={() => {
+                  if (value !== category.id) setValue('subcategoryId', null, { shouldDirty: true, shouldValidate: true });
+                  onChange(category.id);
+                }} onFocus={() => setFocusedCategory(category.id)} onBlur={() => setFocusedCategory(null)}
                 style={({ pressed }) => [styles.category, {
                   width: categoryWidth,
                   backgroundColor: value === category.id || pressed ? theme.colors.primaryLight : theme.colors.surface,
@@ -164,6 +172,14 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
             </View>
           } />
           {errors.categoryId ? <Text accessibilityLiveRegion="polite" style={styles.error}>{errors.categoryId.message}</Text> : null}
+          {kind === 'expense' ? <Controller control={control} name="subcategoryId" render={({ field: { value } }) =>
+            <ExpenseSubcategoryPicker key={categoryId} categories={categories} categoryId={categoryId} value={value}
+              disabled={saving} error={errors.subcategoryId?.message}
+              onChange={(parentId, subcategoryId) => {
+                setValue('categoryId', parentId, { shouldDirty: true, shouldValidate: true });
+                setValue('subcategoryId', subcategoryId, { shouldDirty: true, shouldValidate: true });
+              }} />
+          } /> : null}
         </View>
         <Controller control={control} name="date" render={({ field: { ref, value, onChange, onBlur } }) =>
           <FormField ref={ref} label="Date · JJ/MM/AAAA" leadingIcon={CalendarDays} placeholder="JJ/MM/AAAA" value={value}

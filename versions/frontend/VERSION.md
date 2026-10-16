@@ -1,5 +1,45 @@
 # Frontend version history
 
+## 0.2.0.0 — 2026-10-16
+
+- Keep the six main expense sections and add an optional search below them
+  with 90 bundled subcategories, section suggestions and expandable results.
+- Search across sections using accent-insensitive terms and keywords such as
+  petrol, pharmacy and streaming; selecting a result selects its main section.
+- Save the selection when creating or editing expenses and recurring rules,
+  carry it to future occurrences and show it in transaction history/search.
+- Clear the selection when changing section or switching to income. Keep
+  budgets and charts grouped under the six main sections.
+- Append migration `0004_expense_subcategories` with nullable transaction and
+  recurring-rule fields. Existing SQL, migration dates and protected hashes
+  remain intact. Expo version and Android identity are unchanged.
+
+**Threat impact:** Validate subcategory IDs and their parent expense section
+  in both form and repository input. Parameterized local writes, integer cents
+  and existing destructive confirmations remain in use. The migration only
+  adds optional fields and preserves existing financial records.
+
+**Sovereignty impact:** The full catalogue, keywords, search and persistence
+  work locally. No dependency, account, network service, telemetry, remote
+  compilation or financial-data export is added.
+
+**Validation:** `npm run release:check` passed in the working directory:
+  TypeScript, 129 application tests and 23 release-tool tests. The four
+  feature-related suites also passed separately (34 tests). After the final
+  accessibility adjustment, `npm run typecheck`, `node scripts/check-release.cjs`
+  and `git diff --check` passed. Reviewed the SQL and protected the new migration
+  with `npm run release:lock-migrations`; checked all previous hashes and schema
+  snapshot definitions stayed intact. The scoped secret scan passed after
+  excluding verified migration SHA-256 fields from entropy detection.
+  Isolated Chrome acceptance with synthetic data passed global/keyword/accent
+  search, empty results, parent selection, save/reload/edit, removal and section/
+  type changes. Mobile 390 px and desktop 1280 px renders were inspected;
+  the form also passed the 320 px horizontal overflow check. Android phone and
+  packaged APK acceptance remain pending.
+
+**Status:** `verification-pending` — local source change; Android phone and
+  packaged APK acceptance remain pending. No new APK, push, tag or publication.
+
 ## 0.1.2.0 — 2026-10-16
 
 - Restore the sage background and pressed styles of native buttons, including

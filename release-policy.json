@@ -42,6 +42,16 @@
         "breakpoints": true
       },
       "sha256": "9fc13e8b8cfb219688e4058413b42d8988115832466f8322353c9c547683cacc"
+    },
+    {
+      "entry": {
+        "idx": 4,
+        "version": "6",
+        "when": 1792161772302,
+        "tag": "0004_expense_subcategories",
+        "breakpoints": true
+      },
+      "sha256": "53df2de6ca2b7b0058055865577b7c064f57eac653b79e0e6a81cc13f8aab4e4"
     }
   ]
 }

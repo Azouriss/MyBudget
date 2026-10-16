@@ -5,7 +5,7 @@ const valid = { kind: 'expense' as const, amount: '42,29', label: '  Courses  ',
 describe('validation des transactions', () => {
   it('produit un objet normalisé et un montant entier', () => {
     expect(formToDraft(valid)).toEqual({
-      kind: 'expense', amountCents: 4229, label: 'Courses', categoryId: 'food', occurredOn: '2026-10-15',
+      kind: 'expense', amountCents: 4229, label: 'Courses', categoryId: 'food', subcategoryId: null, occurredOn: '2026-10-15',
     });
   });
 
@@ -25,5 +25,24 @@ describe('validation des transactions', () => {
     expect(transactionDraftSchema.safeParse({ ...draft, amountCents: 42.29 }).success).toBe(false);
     expect(transactionDraftSchema.safeParse({ ...draft, occurredOn: '2026-02-30' }).success).toBe(false);
     expect(transactionDraftSchema.safeParse({ ...draft, unexpected: true }).success).toBe(false);
+  });
+
+  it('conserve une sous-catégorie valide et permet de la retirer', () => {
+    expect(formToDraft({ ...valid, subcategoryId: 'food-groceries' }).subcategoryId).toBe('food-groceries');
+    expect(formToDraft({ ...valid, subcategoryId: null }).subcategoryId).toBeNull();
+  });
+
+  it('refuse les sous-catégories inconnues, incompatibles et associées aux revenus', () => {
+    for (const values of [
+      { ...valid, subcategoryId: 'unknown' },
+      { ...valid, subcategoryId: '' },
+      { ...valid, subcategoryId: 'transport-fuel' },
+      { ...valid, kind: 'income', categoryId: 'salary', subcategoryId: 'food-groceries' },
+    ]) {
+      expect(transactionFormSchema.safeParse(values).success).toBe(false);
+      expect(transactionDraftSchema.safeParse({ ...formToDraft(valid),
+        kind: values.kind, categoryId: values.categoryId, subcategoryId: values.subcategoryId }).success).toBe(false);
+    }
+    expect(formToDraft({ ...valid, kind: 'income', categoryId: 'salary' }).subcategoryId).toBeNull();
   });
 });
