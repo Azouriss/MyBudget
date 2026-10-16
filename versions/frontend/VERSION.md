@@ -1,5 +1,29 @@
 # Frontend version history
 
+## 0.1.2.0 — 2026-10-16
+
+- Restore the sage background and pressed styles of native buttons, including
+  payday confirmation, by letting React Native resolve their style callbacks.
+- Show the saved payday in the settings card and refresh it after changes or
+  removal. Distinguish missing settings from a failed read.
+
+**Threat impact:** Presentation and local settings reads only. Financial
+  calculations, input validation, persistence, protected migrations, Android
+  identity and signing material are unchanged.
+
+**Sovereignty impact:** The existing local SQLite settings remain the only
+  source of the payday. No network dependency, account, telemetry,
+  synchronization or remote build is added.
+
+**Validation:** `npm run check` passed: TypeScript, 118 application tests and
+  23 release-tool tests. `node scripts/check-release.cjs` and `git diff --check`
+  passed. Two additional isolated React checks reproduced the native style
+  loss and verified button states and payday updates, removal and read errors.
+  Browser rendering, Android device and packaged APK acceptance remain pending.
+
+**Status:** `verification-pending` — local source fix; no new APK, push, tag or
+  publication.
+
 ## 0.1.1.0 — 2026-10-16
 
 - Use MyBudget as the application name in Android/web configuration, headers,

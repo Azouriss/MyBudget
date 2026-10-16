@@ -18,7 +18,8 @@ export function Button({ title, onPress, variant = 'primary', disabled = false, 
   const foreground = disabled ? theme.colors.disabledForeground
     : primary ? theme.colors.textOnPrimary : danger ? theme.colors.dangerText : theme.colors.textAction;
   return <View style={[styles.frame, pill && styles.pill, { borderColor: focused ? theme.colors.focusRing : theme.colors.transparent }]}>
-    <Pressable accessibilityRole="button" accessibilityLabel={title}
+    {/* NativeWind's native interop flattens style callbacks; let Pressable resolve its own states. */}
+    <Pressable cssInterop={false} accessibilityRole="button" accessibilityLabel={title}
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
       disabled={disabled || loading} onPress={onPress}
       onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
