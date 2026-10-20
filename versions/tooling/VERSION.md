@@ -1,5 +1,33 @@
 # Tooling version history
 
+## 0.1.5.0 - 2026-10-20
+
+- Exclude the local Gradle/npm caches, Android SDK and SDK downloads under
+  `.expo` from Metro. These generated directories could exhaust the Windows
+  watcher startup timeout and prevent development with Fast Refresh.
+- Preserve Metro's default exclusions, application sources, JavaScript
+  dependencies, SQL/WASM support and SQLite web isolation headers. Match both
+  Windows and POSIX path separators without deleting any cache files.
+
+**Threat impact:** Development configuration only. Application identity,
+  financial calculations, validation and protected migrations are unchanged.
+  Runtime checks use an isolated browser profile and a temporary HMR probe;
+  no maintainer financial data is read or exported.
+
+**Sovereignty impact:** Local tooling only. No dependency, account, telemetry,
+  external service, remote build or data transfer is introduced.
+
+**Validation:** Windows `npm run check` passed: TypeScript, 208 application
+  tests and 23 release-tool tests. `node scripts/check-release.cjs` passed with
+  seven protected migrations. Metro starts without CI mode on localhost:8091;
+  HTTP 200 and SQLite isolation headers pass. An isolated Chrome session
+  renders the development app, registers its HMR graph and reports no runtime
+  exceptions. Saving a temporary module produces a verified HMR WebSocket
+  update. `git diff --check` and the scoped secret scan passed.
+
+**Status:** `verification-pending` - local tooling and development browser
+  checks only; no APK build, Android device validation, push or publication.
+
 ## 0.1.4.0 — 2026-10-16
 
 - Include the separate planning schema in Drizzle generation so migration SQL,
