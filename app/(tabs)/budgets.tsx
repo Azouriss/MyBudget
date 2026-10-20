@@ -28,7 +28,7 @@ export default function BudgetsScreen() {
   const data = useMonthlyTransactions();
   const [focusedCategory, setFocusedCategory] = useState<string | null>(null);
   const { width, fontScale } = useWindowDimensions();
-  const stacked = Math.min(width, theme.layout.contentMaxWidth) - 2 * theme.layout.gutter < theme.layout.compactContentWidth
+  const stacked = Math.min(width, theme.layout.contentMaxWidth) - 2 * theme.layout.gutter <= theme.layout.compactTransactionWidth
     || fontScale >= theme.layout.stackedFontScale;
   const summary = useMemo(() => monthlySummary(data.transactions, month), [data.transactions, month]);
   const hasPlanned = data.transactions.some((item) => item.isPlanned);
@@ -45,27 +45,38 @@ export default function BudgetsScreen() {
       {budgets.error || data.error ? <EmptyState title="Budget indisponible" description="Les budgets ou les dépenses n’ont pas pu être lus. Vos données sont conservées."
         actionLabel="Réessayer" onAdd={() => useAppStore.getState().invalidate()} /> : <QueryState error={false} />}
     </> : <View style={styles.sections}>
-      <SurfaceCard>
-        {hasPlanned ? <Text style={styles.meta}>Échéances prévues incluses.</Text> : null}
-        <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.heading}>Vue d’ensemble</Text>
+      <SurfaceCard style={styles.summaryCard}>
+        <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.heading}>Budget du mois</Text>
           <IconButton icon={SlidersHorizontal} label="Modifier le budget global" onPress={() => edit()} /></View>
-        {budgets.monthlySource === 'salary' ? <Text style={styles.meta}>Salaire net utilisé par défaut.</Text> : null}
         {budgets.monthly && progress ? <>
-          <View style={[styles.overview, stacked && styles.overviewStacked]}>
-            {[
-              { amount: summary.expenseCents, label: hasPlanned ? 'prévus' : 'dépensés', color: theme.colors.textPrimary },
-              { amount: budgets.monthly.amountCents, label: 'budget', color: theme.colors.textPrimary },
-              { amount: Math.abs(progress.remainingCents), label: progress.exceeded ? 'de dépassement' : 'restants', color: progress.exceeded ? theme.colors.dangerText : theme.colors.success },
-            ].map((item) => <View key={item.label} style={styles.stat}><Text style={[styles.amount, { color: item.color }]}>{formatMoney(item.amount)}</Text>
-              <Text style={styles.meta}>{item.label}</Text></View>)}
+          <View style={[styles.balance, progress.exceeded && styles.balanceExceeded]}>
+            <Text style={[styles.balanceLabel, progress.exceeded && styles.balanceDanger]}>
+              {progress.exceeded ? 'Dépassement' : hasPlanned ? 'Reste après prévisions' : 'Reste à dépenser'}
+            </Text>
+            <Text style={[styles.balanceAmount, stacked && styles.balanceAmountCompact, progress.exceeded && styles.balanceDanger]}>
+              {formatMoney(Math.abs(progress.remainingCents))}
+            </Text>
           </View>
-          <BudgetProgress spent={summary.expenseCents} limit={budgets.monthly.amountCents} />
+          <View style={styles.details}>
+            <View style={[styles.overview, stacked && styles.overviewStacked]}>
+              <View style={styles.stat}>
+                <Text style={styles.meta}>{hasPlanned ? 'Dépenses prévues' : 'Dépensé'}</Text>
+                <Text style={styles.amount}>{formatMoney(summary.expenseCents)}</Text>
+              </View>
+              <View style={[styles.stat, !stacked && styles.statEnd]}>
+                <Text style={[styles.meta, !stacked && styles.alignEnd]}>{budgets.monthlySource === 'salary' ? 'Salaire net' : 'Budget fixé'}</Text>
+                <Text style={[styles.amount, !stacked && styles.alignEnd]}>{formatMoney(budgets.monthly.amountCents)}</Text>
+              </View>
+            </View>
+            <BudgetProgress spent={summary.expenseCents} limit={budgets.monthly.amountCents} />
+          </View>
         </> : <View style={styles.intro}>
-          <Text style={styles.total}>{formatMoney(summary.expenseCents)}</Text>
-          <Text style={styles.copy}>{hasPlanned ? 'de dépenses prévues' : 'de dépenses'} ce mois-ci.</Text>
+          <View style={styles.stat}>
+            <Text style={styles.meta}>{hasPlanned ? 'Dépenses prévues' : 'Dépensé'}</Text>
+            <Text style={[styles.total, stacked && styles.balanceAmountCompact]}>{formatMoney(summary.expenseCents)}</Text>
+          </View>
           <Button title="Définir mon budget" icon={Plus} onPress={() => edit()} />
         </View>}
-        {budgets.monthly?.amountCents === 0 ? <Text style={styles.meta}>Aucun montant autorisé pour ce mois.</Text> : null}
       </SurfaceCard>
       <View>
         <SectionHeader title="Budget par catégorie" />
@@ -104,16 +115,25 @@ export default function BudgetsScreen() {
 const styles = StyleSheet.create({
   page: { paddingHorizontal: theme.layout.gutter, paddingBottom: theme.spacing.xl },
   sections: { gap: theme.spacing.xl },
-  cardHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: -theme.spacing.sm, marginBottom: theme.spacing.sm },
-  heading: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, color: theme.colors.textPrimary },
-  overview: { flexDirection: 'row', gap: theme.spacing.sm, marginBottom: theme.spacing.lg },
+  summaryCard: { gap: theme.spacing.lg },
+  cardHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: theme.spacing.sm, marginTop: -theme.spacing.sm },
+  heading: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, color: theme.colors.textPrimary, flex: 1 },
+  balance: { backgroundColor: theme.colors.primaryLight, borderRadius: theme.radius.medium, padding: theme.spacing.lg, gap: theme.spacing.xs },
+  balanceExceeded: { backgroundColor: theme.colors.dangerBackground },
+  balanceLabel: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.medium, color: theme.colors.textAction },
+  balanceAmount: { ...theme.typography.headingXL, ...theme.typography.amount, color: theme.colors.textAction },
+  balanceAmountCompact: { ...theme.typography.headingL },
+  balanceDanger: { color: theme.colors.dangerText },
+  details: { gap: theme.spacing.md },
+  overview: { flexDirection: 'row', gap: theme.spacing.lg },
   overviewStacked: { flexDirection: 'column', gap: theme.spacing.md },
   stat: { flex: 1, minWidth: 0, gap: theme.spacing.xs },
-  amount: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, ...theme.typography.amount },
+  statEnd: { alignItems: 'flex-end' },
+  alignEnd: { textAlign: 'right' },
+  amount: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, ...theme.typography.amount, color: theme.colors.textPrimary, maxWidth: '100%' },
   meta: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
   intro: { gap: theme.spacing.md },
-  total: { ...theme.typography.financial, color: theme.colors.textPrimary },
-  copy: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
+  total: { ...theme.typography.headingXL, ...theme.typography.amount, color: theme.colors.textPrimary },
   list: { padding: theme.spacing.xs },
   category: { gap: theme.spacing.sm, padding: theme.spacing.md,
     minHeight: 80, borderWidth: theme.size.focusWidth, borderBottomWidth: theme.size.borderWidth,

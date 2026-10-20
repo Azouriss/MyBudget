@@ -1,5 +1,36 @@
 # Frontend version history
 
+## 0.5.4.0 - 2026-10-20
+
+- Redesign the monthly budget overview with a prominent remaining balance,
+  compact spending and limit details, and a distinct overspending state.
+- Replace explanatory sentences with short labels for net salary and planned
+  expenses. Keep explicit zero limits distinguishable from an unset budget.
+- Use Inter for every amount in this card and stack secondary values on narrow
+  screens or with enlarged native text. Reuse existing theme tokens and controls.
+
+**Threat impact:** Presentation only. Budget calculations, salary fallback,
+  validation, database identity and migrations are unchanged. Preserve accessible
+  progress information and the 48 dp budget editing target.
+
+**Sovereignty impact:** No dependency, account, telemetry, remote service or build
+  is added. Browser acceptance uses an isolated profile and synthetic data.
+
+**Validation:** Windows `npm run release:check` passed: TypeScript, 208 application
+  tests, 23 release-tool tests and seven protected migrations. Final responsive
+  styling also passed `npm run typecheck` and a fresh offline Expo web export.
+  Isolated Chrome checks passed eight budget states at 320, 390 and 768 px:
+  empty, zero without/with spending, normal, exceeded, large amounts, salary
+  fallback and planned expenses. Verified Inter amounts, edit/create navigation,
+  48 dp edit targets and simulated 150% web text within this card; screenshots
+  were reviewed. No card text clipping, page overflow or runtime exceptions in
+  the final run. An earlier repeated-reload run encountered a transient database
+  lock; final acceptance used in-app navigation where available.
+  `git diff --check` and the scoped added-line credential scan passed.
+
+**Status:** `verification-pending` - Android phone and packaged APK acceptance
+  remain pending. No APK, push, tag, publication or deployment.
+
 ## 0.5.3.0 - 2026-10-20
 
 - Shorten interface copy across all tabs, transaction and budget forms,
