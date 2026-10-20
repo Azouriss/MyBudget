@@ -2,8 +2,10 @@ import { t } from '../../i18n/locale';
 import { useLanguage } from '../../i18n/useLanguage';
 import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
+import { Plus, SlidersHorizontal } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 import { Button } from '../../components/Button';
+import { IconButton } from '../../components/IconButton';
 import { SurfaceCard } from '../../components/SurfaceCard';
 import { useDatabase } from '../../db/DatabaseProvider';
 import { displayDate, localDateKey } from '../../lib/dates';
@@ -26,23 +28,55 @@ export function ProvisionList() {
   }, [revision, repository]);
   const today = localDateKey();
   return <View style={styles.group}>
-    <Text style={styles.note}>{t("Réserve indicative : aucun virement ni effet sur le budget.")}</Text>
-    <Button title={t("Créer une provision")} onPress={() => router.push('/provision')} />
-    {state.revision !== revision ? <Text style={styles.note}>{t("Chargement des provisions…")}</Text>
-      : state.error ? <><Text accessibilityRole="alert" style={styles.error}>{t("Impossible de lire les provisions.")}</Text><Button title={t("Réessayer")} onPress={invalidate} /></>
-      : state.goals?.length === 0 ? <SurfaceCard style={styles.card}><Text style={styles.title}>{t("Aucune provision")}</Text></SurfaceCard>
-      : state.goals?.map((goal) => {
-        const plan = provisionPlan(goal, goal.reservedCents, today);
-        return <SurfaceCard key={goal.id} style={styles.card}>
-          <Text accessibilityRole="header" style={styles.title}>{goal.label}</Text>
-          <Text style={styles.copy}>{formatMoney(goal.reservedCents)}{t(" réservés sur ")}{formatMoney(goal.targetCents)}</Text>
-          <Text style={styles.note}>{t("Échéance : ")}{displayDate(goal.dueOn)}</Text>
-          <Text style={plan.overdue ? styles.error : styles.copy}>{plan.remainingCents === 0 ? t("Objectif entièrement réservé")
-            : plan.overdue ? t("Échéance dépassée · {0} restent à réserver", [formatMoney(plan.remainingCents)])
-            : plan.monthlyCents === null ? t("{0} à réserver avant l’échéance", [formatMoney(plan.remainingCents)])
-            : t("{0} par contribution · {1} date{2} restante{3}", [formatMoney(plan.monthlyCents), plan.contributions, plan.contributions > 1 ? 's' : '', plan.contributions > 1 ? 's' : ''])}</Text>
-          <Button title={t("Gérer {0}", [goal.label])} variant="secondary" onPress={() => router.push({ pathname: '/provision', params: { id: goal.id } })} />
-        </SurfaceCard>;
-      })}
+    <View style={styles.provisionSummary}>
+      <Text style={styles.note}>{t('Réserve indicative : aucun virement ni effet sur le budget.')}</Text>
+    </View>
+    {state.revision !== revision ? <Text style={styles.note}>{t('Chargement des provisions…')}</Text>
+      : state.error ? <><Text accessibilityRole="alert" style={styles.error}>{t('Impossible de lire les provisions.')}</Text><Button title={t('Réessayer')} onPress={invalidate} /></>
+      : state.goals?.length === 0 ? <SurfaceCard style={styles.card}>
+        <Text accessibilityRole="header" style={styles.title}>{t('Aucune provision')}</Text>
+        <Button title={t('Créer une provision')} icon={Plus} onPress={() => router.push('/provision')} />
+      </SurfaceCard>
+      : <>
+        <Button title={t('Créer une provision')} variant="secondary" icon={Plus} onPress={() => router.push('/provision')} />
+        {state.goals?.map((goal) => {
+          const plan = provisionPlan(goal, goal.reservedCents, today);
+          const percent = Math.round(goal.reservedCents / goal.targetCents * 100);
+          return <SurfaceCard key={goal.id} style={styles.card}>
+            <View style={styles.cardHeading}>
+              <View style={styles.headingCopy}>
+                <Text accessibilityRole="header" style={styles.title}>{goal.label}</Text>
+                <Text style={styles.note}>{t('Échéance : ')}{displayDate(goal.dueOn)}</Text>
+              </View>
+              <IconButton icon={SlidersHorizontal} label={t('Gérer ') + goal.label}
+                onPress={() => router.push({ pathname: '/provision', params: { id: goal.id } })} />
+            </View>
+            <View style={styles.provisionSummary}>
+              <Text style={styles.amount}>{formatMoney(goal.reservedCents)}</Text>
+              <Text style={styles.note}>{t('réservés sur ')}{formatMoney(goal.targetCents)}</Text>
+            </View>
+            <View accessibilityRole="progressbar" accessibilityLabel={goal.label}
+              aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}
+              aria-valuetext={`${formatMoney(goal.reservedCents)} / ${formatMoney(goal.targetCents)}`}
+              accessibilityValue={{ min: 0, max: 100, now: percent,
+                text: `${formatMoney(goal.reservedCents)} / ${formatMoney(goal.targetCents)}` }} style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${goal.reservedCents / goal.targetCents * 100}%` }]} />
+            </View>
+            <View style={[styles.provisionPlan, plan.overdue && styles.balanceNegative]}>
+              <Text style={[styles.copy, plan.overdue && styles.negative]}>{plan.remainingCents === 0 ? t('Objectif entièrement réservé')
+                : plan.overdue ? t('Échéance dépassée')
+                : plan.monthlyCents === null ? t('À réserver avant l’échéance')
+                : t('Par contribution')}</Text>
+              {plan.remainingCents > 0 ? <Text style={[styles.secondaryAmount, plan.overdue && styles.negative]}>
+                {formatMoney(plan.monthlyCents === null || plan.overdue ? plan.remainingCents : plan.monthlyCents)}
+              </Text> : null}
+              {plan.overdue ? <Text style={styles.error}>{t('restent à réserver')}</Text> : null}
+              {plan.monthlyCents !== null && plan.remainingCents > 0 && !plan.overdue ? <Text style={styles.note}>
+                {plan.contributions}{plan.contributions > 1 ? t(' dates restantes') : t(' date restante')}
+              </Text> : null}
+            </View>
+          </SurfaceCard>;
+        })}
+      </>}
   </View>;
 }

@@ -1,5 +1,45 @@
 # Frontend version history
 
+## 0.6.1.0 - 2026-10-20
+
+- Redesign all three Forecast views with white cards, sage balance panels,
+  clear Inter amounts and distinct negative-budget states.
+- Group the daily reference and calculation details inside the margin card;
+  give the temporary purchase simulation a separate result panel.
+- Present upcoming charges in accessible category rows with date, amount and
+  planned/recorded badges. Keep both agenda horizons and existing navigation.
+- Show provision targets with reserve progress and contribution panels, and
+  reuse Inter amounts in the shared provision form.
+
+**Threat impact:** Presentation only. Forecast arithmetic, integer cents,
+  recurring deduplication, validation, reserve movements, database identity and
+  migrations are unchanged. Preserve financial qualifications, accessible
+  controls and budget/provision editing. Reserve progress exposes its value
+  to native and web assistive technology.
+
+**Sovereignty impact:** Existing bundled fonts, icons, components and theme
+  tokens are reused. No dependency, remote service, account, telemetry, export
+  or remote build is added.
+
+**Validation:** Windows `npm run release:check` passed on a temporary public
+  source export containing HEAD plus only this design change: TypeScript,
+  229 application tests, 23 release-tool tests and eight protected migrations.
+  The final shared-directory run encountered three failures from concurrent
+  category catalogue edits, excluded from this commit. Final TypeScript and
+  offline Expo web export passed. Metro recovered an unreadable cache with its
+  full-crawl fallback. Isolated Chrome acceptance passed 14 views/states at
+  320/390/768 px and simulated 150% web text: margin and agenda empty states,
+  calculation details, negative budget/simulation, 7/30-day agenda, provision
+  creation/reserve/complete/overdue states, and the shared provision form.
+  Verified simulation validation/reset, edit navigation, Inter amounts, 48 dp
+  radio targets and the accessible 25% reserve value. No normal-text clipping,
+  page overflow or runtime exceptions; screenshots were reviewed. Forecast
+  navigation wraps enlarged labels and stacks for native font scaling.
+  `git diff --check` and the scoped added-line credential scan passed.
+
+**Status:** `verification-pending` - Android phone and packaged APK acceptance
+  remain pending. No APK, push, tag, publication or deployment.
+
 ## 0.6.0.0 - 2026-10-20
 
 - Add a profile card at the top of Settings and a profile editor with optional
