@@ -97,7 +97,6 @@ export default function BudgetsScreen() {
           })}
         </SurfaceCard>
       </View>
-      <Text style={styles.note}>Chaque limite est propre au mois affiché. Le budget global et les limites par catégorie sont indépendants.</Text>
     </View>}
   </ScrollView></ScreenContainer>;
 }
@@ -131,5 +130,4 @@ const styles = StyleSheet.create({
     maxWidth: '100%', flexShrink: 1 },
   emptyTrack: { height: theme.size.progressHeight, backgroundColor: theme.colors.chartTrack, borderRadius: theme.radius.full, marginVertical: 5 },
   exceeded: { ...theme.typography.caption, color: theme.colors.dangerText },
-  note: { ...theme.typography.bodySmall, color: theme.colors.textSubtle, textAlign: 'center' },
 });

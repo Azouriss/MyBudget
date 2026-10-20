@@ -2,7 +2,7 @@ import { SalaryReminder } from '../../src/features/payday/SalaryReminder';
 import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { ChevronRight, Plus } from 'lucide-react-native';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../../src/components/AppHeader';
 import { BotanicalSprig } from '../../src/components/BrandMark';
 import { BudgetProgress } from '../../src/components/BudgetProgress';
@@ -32,8 +32,6 @@ export default function DashboardScreen() {
   const hasPlanned = data.transactions.some((item) => item.isPlanned);
   return <ScreenContainer><ScrollView contentContainerStyle={styles.page}>
     <AppHeader profile />
-    <View style={styles.greeting}><Text style={styles.hello}>Bonjour !</Text>
-      <Text style={styles.meta}>Un peu plus près de vos objectifs.</Text></View>
     <SalaryReminder />
     <MonthPicker />
     {data.loading || data.error ? <QueryState error={data.error} /> : <View style={styles.sections}>
@@ -56,9 +54,6 @@ export default function DashboardScreen() {
           <View style={styles.financialItem}><Text style={styles.caption}>Solde du mois</Text><Text style={styles.balance}>{formatMoney(summary.netCents)}</Text></View>
         </View>
       </SurfaceCard>
-      <View style={styles.quoteCard}>
-        <BotanicalSprig size={70} /><Text style={styles.quote}>« De petits choix aujourd’hui,{"\n"}de grands projets demain. »</Text>
-      </View>
       <View>
         <SectionHeader title="Dépenses par catégorie" />
         <ExpenseChart breakdown={breakdown} categories={data.categories} total={summary.expenseCents} />
@@ -71,19 +66,15 @@ export default function DashboardScreen() {
             transaction={transaction} category={categories.get(transaction.categoryId)} last={index === recent.length - 1} />)}
         </SurfaceCard>
       </View> : <Pressable accessibilityRole="button" onPress={() => router.push('/budgets')} style={styles.firstBudget}>
-        <View style={styles.budgetCopy}><Text style={styles.budgetTitle}>Votre mois, à votre rythme</Text>
-          <Text style={styles.meta}>Définissez vos limites, gardez le cap.</Text></View>
+        <Text style={styles.budgetTitle}>Définir un budget</Text>
         <ChevronRight size={theme.size.icon.medium} color={theme.colors.primaryDark} {...decorativeIconProps} />
       </Pressable>}
-      <Text style={styles.local}>{Platform.OS === 'web' ? 'Vos données restent dans ce navigateur.' : 'Vos données restent sur votre téléphone.'}</Text>
     </View>}
   </ScrollView></ScreenContainer>;
 }
 
 const styles = StyleSheet.create({
   page: { paddingHorizontal: theme.layout.gutter, paddingBottom: theme.spacing.xl },
-  greeting: { marginBottom: theme.spacing.lg, gap: theme.spacing.xs },
-  hello: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, color: theme.colors.textPrimary },
   meta: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
   caption: { ...theme.typography.caption, color: theme.colors.textSubtle },
   sections: { gap: theme.spacing.xl },
@@ -97,13 +88,8 @@ const styles = StyleSheet.create({
   financialItem: { flexGrow: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', minWidth: 0, gap: theme.spacing.xs },
   income: { ...theme.typography.bodySmall, ...theme.typography.amount, fontFamily: theme.fontFamily.medium, color: theme.colors.success },
   balance: { ...theme.typography.bodySmall, ...theme.typography.amount, fontFamily: theme.fontFamily.medium, color: theme.colors.textPrimary },
-  quoteCard: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md,
-    backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.large, paddingHorizontal: theme.spacing.lg, paddingVertical: theme.spacing.sm },
-  quote: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.editorial, color: theme.colors.textPrimary, flex: 1 },
   transactions: { padding: theme.spacing.xs },
   firstBudget: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, padding: theme.spacing.lg,
     backgroundColor: theme.colors.surface, borderRadius: theme.radius.large, borderWidth: theme.size.borderWidth, borderColor: theme.colors.border },
-  budgetCopy: { flex: 1, gap: theme.spacing.xs },
-  budgetTitle: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.semibold, color: theme.colors.textPrimary },
-  local: { ...theme.typography.caption, color: theme.colors.textSubtle, textAlign: 'center' },
+  budgetTitle: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.semibold, color: theme.colors.textPrimary, flex: 1 },
 });

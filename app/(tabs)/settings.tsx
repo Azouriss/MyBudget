@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Database, LockKeyhole, Wallet, WifiOff } from 'lucide-react-native';
+import { Database, Wallet, WifiOff } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Constants from 'expo-constants';
@@ -35,21 +35,13 @@ export default function SettingsScreen() {
   return <ScreenContainer>
     <ScrollView contentContainerStyle={styles.page}>
       <AppHeader />
-      <ScreenHeading title="À votre rythme" />
+      <ScreenHeading title="Paramètres" />
       <View style={styles.sections}>
-        <SurfaceCard featured>
-          <LockKeyhole color={theme.colors.primaryDark} size={theme.size.icon.large} />
-          <Text style={styles.featureTitle}>Votre budget, chez vous</Text>
-          <Text style={styles.body}>Aucun compte à créer, aucune connexion bancaire.
-            {web ? ' Les transactions de cet aperçu restent dans le stockage de ce navigateur, séparées de votre téléphone.'
-              : ' Vos transactions restent dans la base locale de votre téléphone.'}</Text>
-        </SurfaceCard>
         <SurfaceCard style={{ gap: theme.spacing.md }}>
           <Text style={styles.label}>Paie & abonnements</Text>
           <Text accessibilityLiveRegion="polite" style={payday === null ? styles.body : styles.payday}>
             {payday === null ? paydayStatus : `Jour de paie : le ${payday === 1 ? '1er' : payday} de chaque mois.`}
           </Text>
-          <Text style={styles.body}>Choisissez votre jour de paie et gérez les dépenses qui reviennent.</Text>
           <Button title="Jour de paie et rappels" variant="secondary" onPress={() => router.push('/payday')} />
           <Button title="Dépenses récurrentes" variant="ghost" onPress={() => router.push('/recurring')} />
         </SurfaceCard>
@@ -89,7 +81,7 @@ export default function SettingsScreen() {
         </SurfaceCard>
         <View style={styles.about}>
           <Text style={styles.label}>MyBudget</Text>
-          <Text style={styles.body}>Version {Constants.expoConfig?.version ?? 'indisponible'} · Sauge & Crème</Text>
+          <Text style={styles.body}>Version {Constants.expoConfig?.version ?? 'indisponible'}</Text>
         </View>
 
       </View>
@@ -100,7 +92,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   page: { paddingHorizontal: theme.layout.gutter, paddingBottom: theme.spacing['2xl'] },
   sections: { gap: theme.spacing.xl },
-  featureTitle: { ...theme.typography.headingM, color: theme.colors.textPrimary, marginTop: theme.spacing.lg, marginBottom: theme.spacing.sm },
   body: { ...theme.typography.body, color: theme.colors.textSubtle },
   payday: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, color: theme.colors.primaryDark },
   label: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, color: theme.colors.textPrimary, marginBottom: theme.spacing.xs },

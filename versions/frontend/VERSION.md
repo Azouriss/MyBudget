@@ -1,5 +1,35 @@
 # Frontend version history
 
+## 0.5.2.0 - 2026-10-20
+
+- Remove the dashboard greeting, motivational quote and repeated local-storage
+  footer. Use a direct "Définir un budget" action for the empty dashboard.
+- Remove the monthly/category budget explanation footer and the redundant
+  promotional card and payday instructions in Settings. Name the screen
+  "Paramètres" and display the app version without the internal theme name.
+- Retain financial context, salary fallback labels, data-loss notices and
+  destructive confirmations. Remove unused presentation styles and imports.
+
+**Threat impact:** Presentation only. Financial calculations, validation,
+  database identity and protected migrations are unchanged. Existing accessible
+  controls and confirmations are preserved. Browser checks use an isolated
+  profile with synthetic transactions; no maintainer finances are accessed.
+
+**Sovereignty impact:** Existing components and theme tokens are reused. No
+  dependency, telemetry, network service, account or remote build is added.
+
+**Validation:** Windows `npm run check` passed: TypeScript, 208 application
+  tests and 23 release-tool tests. `node scripts/check-release.cjs` passed
+  with seven protected migrations. A fresh local Expo web export and isolated
+  Chrome checks passed for empty/populated dashboard and budget screens and
+  Settings at 320, 390 and 768 px without page overflow or runtime exceptions.
+  Verified budget navigation, retained data-loss copy and app version, and
+  reviewed screenshots. `git diff --check` and the scoped secret scan passed.
+  Android phone and packaged APK acceptance remain pending.
+
+**Status:** `verification-pending` - local source and browser checks only;
+  no APK, push, tag, publication or deployment.
+
 ## 0.5.1.0 — 2026-10-16
 
 - Arrange category budgets with a separate heading, spending amount and limit
