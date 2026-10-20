@@ -8,6 +8,7 @@ import { defaultCategories } from '../categories/defaults';
 import { transactionDraftSchema } from '../transactions/validation';
 import { isValidExpenseSubcategory } from '../categories/subcategories';
 import { MAX_FILE_BYTES, utf8Bytes } from '../csv/parser';
+import { profileSchema } from '../profile/validation';
 
 const id = z.string().min(1).max(160), label = z.string().trim().min(1).max(80);
 const cents = z.number().int().min(1).max(MAX_AMOUNT_CENTS), zeroCents = z.number().int().min(0).max(MAX_AMOUNT_CENTS);
@@ -34,6 +35,8 @@ const schemas = {
   import_rules: z.object({ id, pattern: label, kind, category_id: id }).strict(),
   import_records: z.object({ id, fingerprint: z.string().min(1).max(600), transaction_id: id }).strict(),
   renewals: z.object({ id, label, due_on: date, cancel_by: date, remind_days: z.number().int().min(0).max(90), amount_cents: zeroCents, notifications_enabled: flag }).strict(),
+  user_profile: z.object({ id: z.literal(1), first_name: profileSchema.shape.firstName,
+    last_name: profileSchema.shape.lastName, language: profileSchema.shape.language }).strict(),
 };
 export const backupTables = Object.keys(schemas) as (keyof typeof schemas)[];
 type Row = Record<string, string | number | null>;
@@ -43,9 +46,15 @@ export function parseBackup(text: string): Backup {
   if (text.length > MAX_FILE_BYTES || utf8Bytes(text) > MAX_FILE_BYTES) throw new Error('Sauvegarde trop volumineuse (8 Mo maximum).');
   const envelope = z.object({ format: z.literal('mybudget'), version: z.literal(1), migrations: z.array(z.string()),
     exportedAt: z.iso.datetime(), tables: z.record(z.string(), z.array(z.unknown()).max(50000)) }).strict().parse(JSON.parse(text));
-  if (JSON.stringify(envelope.migrations) !== JSON.stringify(journal.entries.map((e) => e.tag))) throw new Error('Sauvegarde créée avec une autre version du schéma. Utilisez la version correspondante de MyBudget.');
-  if (Object.keys(envelope.tables).sort().join('|') !== [...backupTables].sort().join('|')) throw new Error('Tables manquantes ou inconnues.');
-  const tables = Object.fromEntries(backupTables.map((table) => [table, envelope.tables[table]!.map((r) => schemas[table].parse(r))])) as unknown as Backup['tables'];
+  const migrations = journal.entries.map((e) => e.tag);
+  const beforeProfile = migrations.slice(0, migrations.indexOf('0007_user_profile'));
+  const legacy = JSON.stringify(envelope.migrations) === JSON.stringify(beforeProfile);
+  if (!legacy && JSON.stringify(envelope.migrations) !== JSON.stringify(migrations)) throw new Error('Sauvegarde créée avec une autre version du schéma. Utilisez la version correspondante de MyBudget.');
+  const expectedTables = legacy ? backupTables.filter((table) => table !== 'user_profile') : backupTables;
+  if (Object.keys(envelope.tables).sort().join('|') !== [...expectedTables].sort().join('|')) throw new Error('Tables manquantes ou inconnues.');
+  const tables = Object.fromEntries(backupTables.map((table) => [table,
+    (legacy && table === 'user_profile' ? [] : envelope.tables[table]!).map((r) => schemas[table].parse(r))])) as unknown as Backup['tables'];
+  if (tables.user_profile.length > 1) throw new Error('Profil invalide.');
   const categories = new Map(tables.categories.map((c) => [c.id, c]));
   for (const c of defaultCategories) if (categories.get(c.id)?.kind !== c.kind) throw new Error('Catégories requises absentes.');
   for (const table of ['transactions', 'transaction_templates'] as const) for (const row of tables[table]) {
@@ -82,7 +91,7 @@ export function parseBackup(text: string): Backup {
   cycles.forEach((c, i) => { const days = (Date.parse(String(c.end_on)) - Date.parse(String(c.start_on))) / 86400000;
     if (days < 1 || days > 62 || (i > 0 && String(cycles[i - 1]!.end_on) > String(c.start_on))) throw new Error('Périodes incohérentes.'); });
   for (const r of tables.renewals) if (String(r.cancel_by) > String(r.due_on)) throw new Error('Renouvellement invalide.');
-  return { ...envelope, tables };
+  return { ...envelope, migrations, tables };
 }
 
 export function makeBackup(db: AppDatabase): string {

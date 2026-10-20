@@ -1,4 +1,5 @@
 import { isISODate, localDateKey, monthBounds, parseFrenchDate } from './dates';
+import { getLocale } from '../i18n/locale';
 
 export function calendarSelection(value: string, today = localDateKey()): string {
   try { return parseFrenchDate(value); }
@@ -22,6 +23,6 @@ export function calendarDays(month: string): (string | null)[] {
 
 export function calendarDateLabel(value: string): string {
   if (!isISODate(value)) throw new Error('Date invalide.');
-  return new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+  return new Intl.DateTimeFormat(getLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
     .format(new Date(`${value}T12:00:00Z`));
 }

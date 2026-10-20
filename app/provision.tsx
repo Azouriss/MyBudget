@@ -1,3 +1,5 @@
+import { t } from '../src/i18n/locale';
+import { useLanguage } from '../src/i18n/useLanguage';
 import { useEffect, useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text, View } from 'react-native';
@@ -9,6 +11,7 @@ import { ProvisionForm } from '../src/features/provisions/ProvisionForm';
 import { createProvisionRepository } from '../src/features/provisions/repository';
 
 export default function ProvisionScreen() {
+  useLanguage();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const db = useDatabase();
   const repository = useMemo(() => createProvisionRepository(db), [db]);
@@ -24,8 +27,8 @@ export default function ProvisionScreen() {
   }, [id, repository, attempt]);
   if (state.loaded && state.id === id) return <ProvisionForm key={id ?? 'new'} repository={repository} initial={state.initial} initialMovements={state.movements!} />;
   return <ScreenContainer inTabs={false}><View style={styles.page}>
-    <Text style={styles.note}>{state.failed ? 'Provision introuvable ou indisponible. Vos données sont conservées.' : 'Chargement de la provision…'}</Text>
-    <Button title="Réessayer" onPress={() => setAttempt((value) => value + 1)} />
-    <Button title="Retour aux prévisions" onPress={() => router.replace('/forecast')} variant="secondary" />
+    <Text style={styles.note}>{state.failed ? t("Provision introuvable ou indisponible. Vos données sont conservées.") : t("Chargement de la provision…")}</Text>
+    <Button title={t("Réessayer")} onPress={() => setAttempt((value) => value + 1)} />
+    <Button title={t("Retour aux prévisions")} onPress={() => router.replace('/forecast')} variant="secondary" />
   </View></ScreenContainer>;
 }

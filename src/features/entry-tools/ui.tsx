@@ -1,3 +1,5 @@
+import { t } from '../../i18n/locale';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useEffect, useRef, useState } from 'react';
 import { Text } from 'react-native';
 import { useAppStore } from '../../stores/useAppStore';
@@ -11,7 +13,7 @@ export function useDraftGuard(dirty: boolean, busy: boolean) {
   const navigation = useNavigation(), confirm = useConfirmation();
   usePreventRemove(dirty || busy, ({ data }) => {
     if (busy) return;
-    void confirm({ title: 'Quitter sans enregistrer ?', message: 'La saisie en cours sera perdue.', confirmLabel: 'Quitter' })
+    void confirm({ title: t("Quitter sans enregistrer ?"), message: t("La saisie en cours sera perdue."), confirmLabel: t("Quitter") })
       .then((yes) => { if (yes) navigation.dispatch(data.action); });
   });
 }
@@ -38,9 +40,11 @@ export function useOperation() {
   return { busy, error, run };
 }
 export function QueryFeedback({ error, retry }: { error: boolean; retry: () => void }) {
-  return <><Text style={settingsStyles.copy}>{error ? 'Chargement impossible.' : 'Chargement…'}</Text>
-    {error ? <Button title="Réessayer" onPress={retry} /> : null}</>;
+  useLanguage();
+  return <><Text style={settingsStyles.copy}>{error ? t("Chargement impossible.") : t("Chargement…")}</Text>
+    {error ? <Button title={t("Réessayer")} onPress={retry} /> : null}</>;
 }
 export function OperationError({ message }: { message: string }) {
-  return message ? <Text accessibilityRole="alert" style={settingsStyles.error}>{message}</Text> : null;
+  useLanguage();
+  return message ? <Text accessibilityRole="alert" style={settingsStyles.error}>{t(message)}</Text> : null;
 }

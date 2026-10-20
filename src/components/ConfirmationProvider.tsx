@@ -1,3 +1,5 @@
+import { t } from '../i18n/locale';
+import { useLanguage } from '../i18n/useLanguage';
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { theme } from '../theme';
@@ -8,6 +10,7 @@ type Confirm = (options: Confirmation) => Promise<boolean>;
 const Context = createContext<Confirm | null>(null);
 
 export function ConfirmationProvider({ children }: { children: ReactNode }) {
+  useLanguage();
   const [request, setRequest] = useState<Confirmation | null>(null);
   const resolve = useRef<((confirmed: boolean) => void) | null>(null);
   const confirm = useCallback<Confirm>((options) => {
@@ -28,10 +31,10 @@ export function ConfirmationProvider({ children }: { children: ReactNode }) {
           onPress={() => close(false)} />
         <View style={styles.dialog} accessibilityViewIsModal>
           <ScrollView contentContainerStyle={styles.dialogContent}>
-            <Text accessibilityRole="header" style={styles.title}>{request?.title}</Text>
-            <Text style={styles.copy}>{request?.message}</Text>
-            <Button title="Annuler" onPress={() => close(false)} variant="secondary" />
-            <Button title={request?.confirmLabel ?? 'Confirmer'} onPress={() => close(true)}
+            <Text accessibilityRole="header" style={styles.title}>{t(request?.title)}</Text>
+            <Text style={styles.copy}>{t(request?.message)}</Text>
+            <Button title={t("Annuler")} onPress={() => close(false)} variant="secondary" />
+            <Button title={t(request?.confirmLabel ?? "Confirmer")} onPress={() => close(true)}
               variant={request?.destructive ? 'destructive' : 'primary'} />
           </ScrollView>
         </View>

@@ -1,5 +1,45 @@
 # Frontend version history
 
+## 0.6.0.0 - 2026-10-20
+
+- Add a profile card at the top of Settings and a profile editor with optional
+  first and last names, explicit saving and an unsaved-change confirmation.
+- Store the profile and French/English language locally in SQLite with an
+  additive, protected migration. Include the profile in backups and continue
+  accepting the complete seven-migration backup format without a profile.
+- Translate all application screens, bundled categories, help, validation,
+  notices, confirmations and reminder content. Apply the saved language to
+  dates, calendars, euro formatting and the web document language. Keep user
+  labels, civil dates, category IDs and integer-cent calculations unchanged.
+- Reschedule existing local reminders after a language change without changing
+  their due dates or touching reminders outside their feature.
+
+**Threat impact:** Names are optional, limited to 80 characters, validated and
+  persisted using parameterized queries. Existing financial records and database
+  identity remain intact. Profile backups contain the names in plaintext under
+  the existing backup warning. No authentication or remote account is added.
+
+**Sovereignty impact:** Profile data and translations stay on the device. Reuse
+  the existing SQLite, Zustand, forms, validation and local UI dependencies.
+  No runtime network request, telemetry, synchronization or remote build is added.
+
+**Validation:** Windows `npm run release:check` passed: TypeScript, 229 application
+  tests, 23 release-tool tests and eight protected migrations. Tests cover
+  validation, SQLite constraints, migration/reopen retention, profile backups,
+  legacy restore, catalogue coverage, local formatting and reminder language
+  reconciliation. An offline Expo web export and isolated Chrome acceptance
+  passed profile edits, reload persistence, unsaved-change cancellation, long
+  and cleared names, English routes, calendar/validation messages and the French
+  round trip with unchanged synthetic transactions. Settings/profile passed
+  320/390/768 px and simulated 150% web text; screenshots were reviewed.
+  An earlier repeated document-navigation run reported a save failure; the
+  successful final run used in-app navigation and one deliberate reload.
+
+**Status:** `verification-pending` - Android phone, native notification delivery
+  and packaged APK update/retention acceptance remain pending. No APK, push,
+  tag, publication or deployment.
+
+
 ## 0.5.5.0 - 2026-10-20
 
 - Redesign history with separate expense and income cards, prominent Inter

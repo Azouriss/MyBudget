@@ -1,3 +1,5 @@
+import { getLocale } from '../i18n/locale';
+
 export const MAX_AMOUNT_CENTS = 999_999_999;
 
 // No floating-point multiplication: fractional digits are parsed as integers.
@@ -16,12 +18,12 @@ export function parseAmountToCents(input: string): number {
 
 export function centsToInput(cents: number): string {
   if (!Number.isSafeInteger(cents) || cents < 0) throw new Error('Montant invalide.');
-  return `${Math.floor(cents / 100)},${String(cents % 100).padStart(2, '0')}`;
+  return `${Math.floor(cents / 100)}${getLocale() === 'fr-FR' ? ',' : '.'}${String(cents % 100).padStart(2, '0')}`;
 }
 
 export function formatMoney(cents: number): string {
   if (!Number.isSafeInteger(cents)) throw new Error('Montant invalide.');
-  return new Intl.NumberFormat('fr-FR', {
+  return new Intl.NumberFormat(getLocale(), {
     style: 'currency', currency: 'EUR', minimumFractionDigits: 2,
   }).format(cents / 100);
 }

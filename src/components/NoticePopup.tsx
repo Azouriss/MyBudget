@@ -1,3 +1,5 @@
+import { t } from '../i18n/locale';
+import { useLanguage } from '../i18n/useLanguage';
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Check, X } from 'lucide-react-native';
@@ -18,6 +20,7 @@ const ringRadius = (ringSize - theme.size.focusWidth) / 2;
 const circumference = 2 * Math.PI * ringRadius;
 
 export function NoticePopup({ message, onDismiss }: { message: string; onDismiss: () => void }) {
+  useLanguage();
   const progress = useRef(new Animated.Value(1)).current;
   const [focused, setFocused] = useState(false);
 
@@ -64,8 +67,8 @@ export function NoticePopup({ message, onDismiss }: { message: string; onDismiss
     <View style={styles.icon}>
       <Check size={theme.size.icon.default} color={theme.colors.successText} {...decorativeIconProps} />
     </View>
-    <Text accessibilityLiveRegion="polite" style={styles.copy}>{message}</Text>
-    <Pressable cssInterop={false} accessibilityRole="button" accessibilityLabel="Fermer le message"
+    <Text accessibilityLiveRegion="polite" style={styles.copy}>{t(message)}</Text>
+    <Pressable cssInterop={false} accessibilityRole="button" accessibilityLabel={t("Fermer le message")}
       onPress={onDismiss} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
       style={({ pressed }) => [styles.close, {
         backgroundColor: pressed ? theme.colors.primaryLight : theme.colors.transparent,

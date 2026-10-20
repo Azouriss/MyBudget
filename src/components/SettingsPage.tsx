@@ -1,3 +1,5 @@
+import { t } from '../i18n/locale';
+import { useLanguage } from '../i18n/useLanguage';
 import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
@@ -7,8 +9,9 @@ import { IconButton } from './IconButton';
 import { theme } from '../theme';
 
 export function SettingsPage({ title, children, footer }: { title: string; children: ReactNode; footer?: ReactNode }) {
+  useLanguage();
   return <ScreenContainer inTabs={false} footer={footer}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={settingsStyles.page}>
-    <View style={settingsStyles.header}><IconButton icon={ArrowLeft} label="Retour aux paramètres" onPress={() => {
+    <View style={settingsStyles.header}><IconButton icon={ArrowLeft} label={t("Retour aux paramètres")} onPress={() => {
       if (router.canGoBack()) router.back(); else router.replace('/settings');
     }} /><Text accessibilityRole="header" style={settingsStyles.title}>{title}</Text></View>
     <View style={settingsStyles.fields}>{children}</View>

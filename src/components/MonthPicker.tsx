@@ -1,3 +1,5 @@
+import { t } from '../i18n/locale';
+import { useLanguage } from '../i18n/useLanguage';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -7,22 +9,23 @@ import { IconButton } from './IconButton';
 import { theme } from '../theme';
 
 export function MonthPicker() {
+  useLanguage();
   const month = useAppStore((state) => state.month);
   const setMonth = useAppStore((state) => state.setMonth);
   const isCurrent = month === currentMonth();
   const [focused, setFocused] = useState(false);
   return <View style={styles.row}>
-    <IconButton icon={ChevronLeft} label="Mois précédent" disabled={month === '1900-01'}
+    <IconButton icon={ChevronLeft} label={t("Mois précédent")} disabled={month === '1900-01'}
       onPress={() => setMonth(shiftMonth(month, -1))} />
-    <Pressable cssInterop={false} accessibilityRole="button" accessibilityLabel={`${monthLabel(month)}. Revenir au mois actuel`}
+    <Pressable cssInterop={false} accessibilityRole="button" accessibilityLabel={t("{0}. Revenir au mois actuel", [monthLabel(month)])}
       onPress={() => setMonth(currentMonth())}
       onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
       style={({ pressed }) => [styles.month, pressed && styles.pressed,
         { borderColor: focused ? theme.colors.focusRing : theme.colors.transparent }]}>
       <Text style={styles.label}>{monthLabel(month)}</Text>
-      {!isCurrent ? <Text style={styles.hint}>Revenir au mois actuel</Text> : null}
+      {!isCurrent ? <Text style={styles.hint}>{t("Revenir au mois actuel")}</Text> : null}
     </Pressable>
-    <IconButton icon={ChevronRight} label="Mois suivant" disabled={month === '2099-12'}
+    <IconButton icon={ChevronRight} label={t("Mois suivant")} disabled={month === '2099-12'}
       onPress={() => setMonth(shiftMonth(month, 1))} />
   </View>;
 }

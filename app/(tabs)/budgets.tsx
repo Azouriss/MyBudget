@@ -1,3 +1,5 @@
+import { t } from '../../src/i18n/locale';
+import { useLanguage } from '../../src/i18n/useLanguage';
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { ChevronRight, Plus, SlidersHorizontal } from 'lucide-react-native';
@@ -23,6 +25,7 @@ import { useAppStore } from '../../src/stores/useAppStore';
 import { theme } from '../../src/theme';
 
 export default function BudgetsScreen() {
+  useLanguage();
   const month = useAppStore((state) => state.month);
   const budgets = useMonthlyBudgets();
   const data = useMonthlyTransactions();
@@ -42,16 +45,16 @@ export default function BudgetsScreen() {
     <AppHeader />
     <MonthPicker />
     {budgets.loading || data.loading || budgets.error || data.error ? <>
-      {budgets.error || data.error ? <EmptyState title="Budget indisponible" description="Les budgets ou les dépenses n’ont pas pu être lus. Vos données sont conservées."
-        actionLabel="Réessayer" onAdd={() => useAppStore.getState().invalidate()} /> : <QueryState error={false} />}
+      {budgets.error || data.error ? <EmptyState title={t("Budget indisponible")} description={t("Les budgets ou les dépenses n’ont pas pu être lus. Vos données sont conservées.")}
+        actionLabel={t("Réessayer")} onAdd={() => useAppStore.getState().invalidate()} /> : <QueryState error={false} />}
     </> : <View style={styles.sections}>
       <SurfaceCard style={styles.summaryCard}>
-        <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.heading}>Budget du mois</Text>
-          <IconButton icon={SlidersHorizontal} label="Modifier le budget global" onPress={() => edit()} /></View>
+        <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.heading}>{t("Budget du mois")}</Text>
+          <IconButton icon={SlidersHorizontal} label={t("Modifier le budget global")} onPress={() => edit()} /></View>
         {budgets.monthly && progress ? <>
           <View style={[styles.balance, progress.exceeded && styles.balanceExceeded]}>
             <Text style={[styles.balanceLabel, progress.exceeded && styles.balanceDanger]}>
-              {progress.exceeded ? 'Dépassement' : hasPlanned ? 'Reste après prévisions' : 'Reste à dépenser'}
+              {progress.exceeded ? t("Dépassement") : hasPlanned ? t("Reste après prévisions") : t("Reste à dépenser")}
             </Text>
             <Text style={[styles.balanceAmount, stacked && styles.balanceAmountCompact, progress.exceeded && styles.balanceDanger]}>
               {formatMoney(Math.abs(progress.remainingCents))}
@@ -60,11 +63,11 @@ export default function BudgetsScreen() {
           <View style={styles.details}>
             <View style={[styles.overview, stacked && styles.overviewStacked]}>
               <View style={styles.stat}>
-                <Text style={styles.meta}>{hasPlanned ? 'Dépenses prévues' : 'Dépensé'}</Text>
+                <Text style={styles.meta}>{hasPlanned ? t("Dépenses prévues") : t("Dépensé")}</Text>
                 <Text style={styles.amount}>{formatMoney(summary.expenseCents)}</Text>
               </View>
               <View style={[styles.stat, !stacked && styles.statEnd]}>
-                <Text style={[styles.meta, !stacked && styles.alignEnd]}>{budgets.monthlySource === 'salary' ? 'Salaire net' : 'Budget fixé'}</Text>
+                <Text style={[styles.meta, !stacked && styles.alignEnd]}>{budgets.monthlySource === 'salary' ? t("Salaire net") : t("Budget fixé")}</Text>
                 <Text style={[styles.amount, !stacked && styles.alignEnd]}>{formatMoney(budgets.monthly.amountCents)}</Text>
               </View>
             </View>
@@ -72,38 +75,38 @@ export default function BudgetsScreen() {
           </View>
         </> : <View style={styles.intro}>
           <View style={styles.stat}>
-            <Text style={styles.meta}>{hasPlanned ? 'Dépenses prévues' : 'Dépensé'}</Text>
+            <Text style={styles.meta}>{hasPlanned ? t("Dépenses prévues") : t("Dépensé")}</Text>
             <Text style={[styles.total, stacked && styles.balanceAmountCompact]}>{formatMoney(summary.expenseCents)}</Text>
           </View>
-          <Button title="Définir mon budget" icon={Plus} onPress={() => edit()} />
+          <Button title={t("Définir mon budget")} icon={Plus} onPress={() => edit()} />
         </View>}
       </SurfaceCard>
       <View>
-        <SectionHeader title="Budget par catégorie" />
+        <SectionHeader title={t("Budget par catégorie")} />
         <SurfaceCard style={styles.list}>
           {data.categories.filter((category) => category.kind === 'expense').map((category, index, all) => {
             const spent = spending.get(category.id) ?? 0;
             const limit = limits.get(category.id);
             const exceeded = limit !== undefined && spent > limit;
             return <Pressable cssInterop={false} key={category.id} accessibilityRole="button"
-              accessibilityLabel={`${category.label}, ${formatMoney(spent)} ${hasPlanned ? 'prévus' : 'dépensés'}, ${limit === undefined ? 'limite à définir' : `budget ${formatMoney(limit)}`}. Modifier la limite.`}
+              accessibilityLabel={t("{0}, {1} {2}, {3}. Modifier la limite.", [t(category.label), formatMoney(spent), hasPlanned ? t("prévus") : t("dépensés"), limit === undefined ? t("limite à définir") : t("budget {0}", [formatMoney(limit)])])}
               onPress={() => edit(category.id)} onFocus={() => setFocusedCategory(category.id)} onBlur={() => setFocusedCategory(null)}
               style={({ pressed }) => [styles.category, index === all.length - 1 && styles.last,
                 { backgroundColor: pressed ? theme.colors.primaryLight : theme.colors.transparent,
                   borderColor: focusedCategory === category.id ? theme.colors.focusRing : theme.colors.transparent }]}>
               <View style={styles.categoryHeading}>
                 <CategoryIcon category={category} />
-                <Text style={styles.categoryName}>{category.label}</Text>
+                <Text style={styles.categoryName}>{t(category.label)}</Text>
                 <View style={styles.chevron}>
                   <ChevronRight size={theme.size.icon.small} color={theme.colors.textSubtle} {...decorativeIconProps} />
                 </View>
               </View>
               <View style={styles.categoryAmounts}>
                 <Text style={[styles.categoryAmount, exceeded && styles.exceeded]}>{formatMoney(spent)}</Text>
-                <Text style={styles.categoryLimit}>{limit === undefined ? 'À définir' : `sur ${formatMoney(limit)}`}</Text>
+                <Text style={styles.categoryLimit}>{limit === undefined ? t("À définir") : t("sur {0}", [formatMoney(limit)])}</Text>
               </View>
               {limit !== undefined ? <BudgetProgress spent={spent} limit={limit} /> : <View style={styles.emptyTrack} />}
-              {exceeded ? <Text style={styles.exceeded}>Dépassé de {formatMoney(spent - limit!)}</Text> : null}
+              {exceeded ? <Text style={styles.exceeded}>{t("Dépassé de ")}{formatMoney(spent - limit!)}</Text> : null}
             </Pressable>;
           })}
         </SurfaceCard>

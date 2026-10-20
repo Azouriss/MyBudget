@@ -46,6 +46,18 @@ export const paydaySettings = sqliteTable('payday_settings', {
   check('payday_settings_notifications_check', sql`${table.notificationsEnabled} IN (0, 1)`),
 ]);
 
+export const userProfile = sqliteTable('user_profile', {
+  id: integer('id').primaryKey(),
+  firstName: text('first_name').notNull(),
+  lastName: text('last_name').notNull(),
+  language: text('language', { enum: ['fr', 'en'] }).notNull().default('fr'),
+}, (table) => [
+  check('user_profile_id_check', sql`${table.id} = 1`),
+  check('user_profile_first_name_check', sql`length(${table.firstName}) <= 80`),
+  check('user_profile_last_name_check', sql`length(${table.lastName}) <= 80`),
+  check('user_profile_language_check', sql`${table.language} IN ('fr', 'en')`),
+]);
+
 export const transactions = sqliteTable('transactions', {
   id: text('id').primaryKey(),
   kind: text('kind', { enum: ['expense', 'income'] }).notNull(),

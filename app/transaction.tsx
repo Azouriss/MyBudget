@@ -1,3 +1,5 @@
+import { t } from '../src/i18n/locale';
+import { useLanguage } from '../src/i18n/useLanguage';
 import { useDatabase } from '../src/db/DatabaseProvider';
 import { createPaydayRepository } from '../src/features/payday/repository';
 import { monthBounds } from '../src/lib/dates';
@@ -15,6 +17,7 @@ import { Button } from '../src/components/Button';
 import { theme } from '../src/theme';
 
 export default function TransactionScreen() {
+  useLanguage();
   const { id, salaryMonth, recurring } = useLocalSearchParams<{ id?: string; salaryMonth?: string; recurring?: string }>();
   const db = useDatabase();
   const repository = useTransactionRepository();
@@ -33,9 +36,9 @@ export default function TransactionScreen() {
   return <ScreenContainer inTabs={false}>
     <View style={{ padding: theme.layout.gutter, gap: theme.spacing.lg }}>
       {state.loading ? <QueryState error={false} /> : <>
-        <EmptyState title="Transaction indisponible" description="La transaction ou ses catégories n’ont pas pu être chargées." />
-        <Button title="Réessayer" onPress={() => setAttempt((value) => value + 1)} />
-        <Button title="Revenir à l’accueil" onPress={() => router.replace('/')} variant="secondary" />
+        <EmptyState title={t("Transaction indisponible")} description={t("La transaction ou ses catégories n’ont pas pu être chargées.")} />
+        <Button title={t("Réessayer")} onPress={() => setAttempt((value) => value + 1)} />
+        <Button title={t("Revenir à l’accueil")} onPress={() => router.replace('/')} variant="secondary" />
       </>}
     </View>
   </ScreenContainer>;

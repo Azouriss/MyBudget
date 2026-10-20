@@ -1,3 +1,5 @@
+import { t } from '../../src/i18n/locale';
+import { useLanguage } from '../../src/i18n/useLanguage';
 import { SalaryReminder } from '../../src/features/payday/SalaryReminder';
 import { useMemo } from 'react';
 import { router } from 'expo-router';
@@ -23,6 +25,7 @@ import { useAppStore } from '../../src/stores/useAppStore';
 import { theme } from '../../src/theme';
 
 export default function DashboardScreen() {
+  useLanguage();
   const month = useAppStore((state) => state.month);
   const data = useMonthlyTransactions();
   const budgets = useMonthlyBudgets();
@@ -37,36 +40,36 @@ export default function DashboardScreen() {
     {data.loading || data.error ? <QueryState error={data.error} /> : <View style={styles.sections}>
       <SurfaceCard style={styles.summaryCard}>
         <View pointerEvents="none" style={styles.cornerLeaf}><BotanicalSprig size={64} /></View>
-        <Text style={styles.meta}>{hasPlanned ? 'Dépenses prévues ce mois-ci' : 'Dépenses ce mois-ci'}</Text>
-        {hasPlanned ? <Text style={styles.caption}>Échéances prévues incluses.</Text> : null}
+        <Text style={styles.meta}>{hasPlanned ? t("Dépenses prévues ce mois-ci") : t("Dépenses ce mois-ci")}</Text>
+        {hasPlanned ? <Text style={styles.caption}>{t("Échéances prévues incluses.")}</Text> : null}
         <View style={styles.expenseLine}>
-          <Text accessibilityLabel={`Dépenses du mois : ${formatMoney(summary.expenseCents)}`} style={styles.expenses}>{formatMoney(summary.expenseCents)}</Text>
-          {!budgets.loading && !budgets.error ? <View style={styles.limitCopy}><Text style={styles.caption}>Sur un budget de</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Voir le budget mensuel" onPress={() => router.push('/budgets')}>
-              <Text style={styles.limit}>{budgets.monthly ? formatMoney(budgets.monthly.amountCents) : 'À définir'}</Text>
-            </Pressable></View> : <Text style={styles.caption}>{budgets.error ? 'Budget indisponible' : 'Chargement du budget…'}</Text>}
+          <Text accessibilityLabel={t("Dépenses du mois : {0}", [formatMoney(summary.expenseCents)])} style={styles.expenses}>{formatMoney(summary.expenseCents)}</Text>
+          {!budgets.loading && !budgets.error ? <View style={styles.limitCopy}><Text style={styles.caption}>{t("Sur un budget de")}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel={t("Voir le budget mensuel")} onPress={() => router.push('/budgets')}>
+              <Text style={styles.limit}>{budgets.monthly ? formatMoney(budgets.monthly.amountCents) : t("À définir")}</Text>
+            </Pressable></View> : <Text style={styles.caption}>{budgets.error ? t("Budget indisponible") : t("Chargement du budget…")}</Text>}
         </View>
         {budgets.monthly && !budgets.error && !budgets.loading ? <BudgetProgress spent={summary.expenseCents} limit={budgets.monthly.amountCents} /> : null}
         {budgets.monthlySource === 'salary' && !budgets.error && !budgets.loading
-          ? <Text style={styles.caption}>Salaire net utilisé par défaut.</Text> : null}
+          ? <Text style={styles.caption}>{t("Salaire net utilisé par défaut.")}</Text> : null}
         <View style={styles.financialDetails}>
-          <View style={styles.financialItem}><Text style={styles.caption}>Revenus</Text><Text style={styles.income}>{formatMoney(summary.incomeCents)}</Text></View>
-          <View style={styles.financialItem}><Text style={styles.caption}>Solde du mois</Text><Text style={styles.balance}>{formatMoney(summary.netCents)}</Text></View>
+          <View style={styles.financialItem}><Text style={styles.caption}>{t("Revenus")}</Text><Text style={styles.income}>{formatMoney(summary.incomeCents)}</Text></View>
+          <View style={styles.financialItem}><Text style={styles.caption}>{t("Solde du mois")}</Text><Text style={styles.balance}>{formatMoney(summary.netCents)}</Text></View>
         </View>
       </SurfaceCard>
       <View>
-        <SectionHeader title="Dépenses par catégorie" />
+        <SectionHeader title={t("Dépenses par catégorie")} />
         <ExpenseChart breakdown={breakdown} categories={data.categories} total={summary.expenseCents} />
       </View>
-      <Button title="Ajouter une dépense" icon={Plus} onPress={() => router.push('/transaction')} />
+      <Button title={t("Ajouter une dépense")} icon={Plus} onPress={() => router.push('/transaction')} />
       {data.transactions.length ? <View>
-        <SectionHeader title="Dernières transactions" action="Tout voir" onAction={() => router.push('/history')} />
+        <SectionHeader title={t("Dernières transactions")} action={t("Tout voir")} onAction={() => router.push('/history')} />
         <SurfaceCard style={styles.transactions}>
           {data.transactions.slice(0, 3).map((transaction, index, recent) => <TransactionRow key={transaction.id}
             transaction={transaction} category={categories.get(transaction.categoryId)} last={index === recent.length - 1} />)}
         </SurfaceCard>
       </View> : <Pressable accessibilityRole="button" onPress={() => router.push('/budgets')} style={styles.firstBudget}>
-        <Text style={styles.budgetTitle}>Définir un budget</Text>
+        <Text style={styles.budgetTitle}>{t("Définir un budget")}</Text>
         <ChevronRight size={theme.size.icon.medium} color={theme.colors.primaryDark} {...decorativeIconProps} />
       </Pressable>}
     </View>}

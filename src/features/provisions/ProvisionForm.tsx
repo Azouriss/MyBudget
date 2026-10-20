@@ -1,3 +1,5 @@
+import { t } from '../../i18n/locale';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useRef, useState } from 'react';
 import { router, useNavigation } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
@@ -22,6 +24,7 @@ type Repository = ReturnType<typeof createProvisionRepository>;
 export function ProvisionForm({ repository, initial, initialMovements }: {
   repository: Repository; initial?: NonNullable<ReturnType<Repository['find']>>; initialMovements: ReturnType<Repository['movements']>;
 }) {
+  useLanguage();
   const [label, setLabel] = useState(initial?.label ?? '');
   const [target, setTarget] = useState(initial ? centsToInput(initial.targetCents) : '');
   const [dueOn, setDueOn] = useState(displayDate(initial?.dueOn ?? localDateKey()));
@@ -42,7 +45,7 @@ export function ProvisionForm({ repository, initial, initialMovements }: {
   usePreventRemove(dirty || movement !== '', ({ data }) => {
     if (allowLeave.current) { navigation.dispatch(data.action); return; }
     if (busy.current) return;
-    void confirm({ title: 'Quitter sans enregistrer ?', message: 'Les modifications non enregistrées seront perdues.', confirmLabel: 'Quitter' })
+    void confirm({ title: t("Quitter sans enregistrer ?"), message: t("Les modifications non enregistrées seront perdues."), confirmLabel: t("Quitter") })
       .then((accepted) => { if (accepted) navigation.dispatch(data.action); });
   });
   function back() { if (router.canGoBack()) router.back(); else router.replace('/forecast'); }
@@ -56,7 +59,7 @@ export function ProvisionForm({ repository, initial, initialMovements }: {
       if (draft.targetCents < reserved) { setError('Libérez la réserve excédentaire avant de réduire le montant cible.'); return; }
     } catch { setError('Vérifiez le nom, le montant positif, la date et le jour mensuel entre 1 et 31.'); return; }
     busy.current = true; setSaving(true); setError('');
-    try { repository.save(draft, initial?.id); complete('Provision enregistrée'); }
+    try { repository.save(draft, initial?.id); complete(t("Provision enregistrée")); }
     catch { setError('Impossible d’enregistrer la provision. Votre saisie est conservée.'); busy.current = false; setSaving(false); }
   }
   async function move(direction: 1 | -1) {
@@ -68,7 +71,7 @@ export function ProvisionForm({ repository, initial, initialMovements }: {
     if (direction > 0 && amount > initial.targetCents - reserved) { setError('Le montant dépasse ce qu’il reste à réserver.'); return; }
     busy.current = true; setSaving(true); setError('');
     try {
-      if (direction < 0 && !await confirm({ title: 'Libérer cette réserve ?', message: `${formatMoney(amount)} seront retirés du suivi de cet objectif. Aucun paiement ni virement ne sera créé.`, confirmLabel: 'Libérer la réserve' })) return;
+      if (direction < 0 && !await confirm({ title: t("Libérer cette réserve ?"), message: t("{0} seront retirés du suivi de cet objectif. Aucun paiement ni virement ne sera créé.", [formatMoney(amount)]), confirmLabel: t("Libérer la réserve") })) return;
       repository.move(initial.id, direction * amount);
       setReserved((value) => value + direction * amount); setMovement(''); invalidate();
       showNotice(direction > 0 ? 'Réserve ajoutée' : 'Réserve libérée');
@@ -80,44 +83,44 @@ export function ProvisionForm({ repository, initial, initialMovements }: {
     if (!initial || busy.current) return;
     busy.current = true; setSaving(true);
     try {
-      if (!await confirm({ title: 'Supprimer cette provision ?', message: 'Cet objectif et son historique de réserve seront supprimés. Vos dépenses et budgets seront conservés.', confirmLabel: 'Supprimer', destructive: true })) return;
-      repository.remove(initial.id); complete('Provision supprimée');
+      if (!await confirm({ title: t("Supprimer cette provision ?"), message: t("Cet objectif et son historique de réserve seront supprimés. Vos dépenses et budgets seront conservés."), confirmLabel: t("Supprimer"), destructive: true })) return;
+      repository.remove(initial.id); complete(t("Provision supprimée"));
     } catch { setError('Impossible de supprimer la provision. Vos données sont conservées.'); }
     finally { busy.current = false; setSaving(false); }
   }
   const plan = initial ? provisionPlan(initial, reserved, localDateKey()) : null;
-  return <ScreenContainer inTabs={false} footer={<Button title="Enregistrer la provision" onPress={save} disabled={movement !== ''} loading={saving} />}>
+  return <ScreenContainer inTabs={false} footer={<Button title={t("Enregistrer la provision")} onPress={save} disabled={movement !== ''} loading={saving} />}>
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
-      <View style={styles.header}><IconButton icon={ArrowLeft} label="Retour aux prévisions" onPress={back} disabled={saving} />
-        <Text accessibilityRole="header" style={styles.title}>{initial ? 'Ma provision' : 'Nouvelle provision'}</Text></View>
-      <Text style={styles.note}>Suivi de réserve, sans virement ni effet sur les dépenses.</Text>
-      <FormField label="Nom de la provision" value={label} onChangeText={setLabel} maxLength={80} editable={!saving} />
-      <FormField label="Montant cible en euros" suffix="€" keyboardType="decimal-pad" value={target} onChangeText={setTarget} editable={!saving} />
-      <DateField label="Échéance" value={dueOn} onChangeText={setDueOn} editable={!saving} />
-      <FormField label="Jour de contribution (1 à 31)" keyboardType="number-pad" value={day} onChangeText={setDay} maxLength={2} editable={!saving} />
-      <Text style={styles.note}>Aucun ajout automatique. Mois plus court : dernier jour du mois.</Text>
-      {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+      <View style={styles.header}><IconButton icon={ArrowLeft} label={t("Retour aux prévisions")} onPress={back} disabled={saving} />
+        <Text accessibilityRole="header" style={styles.title}>{initial ? t("Ma provision") : t("Nouvelle provision")}</Text></View>
+      <Text style={styles.note}>{t("Suivi de réserve, sans virement ni effet sur les dépenses.")}</Text>
+      <FormField label={t("Nom de la provision")} value={label} onChangeText={setLabel} maxLength={80} editable={!saving} />
+      <FormField label={t("Montant cible en euros")} suffix="€" keyboardType="decimal-pad" value={target} onChangeText={setTarget} editable={!saving} />
+      <DateField label={t("Échéance")} value={dueOn} onChangeText={setDueOn} editable={!saving} />
+      <FormField label={t("Jour de contribution (1 à 31)")} keyboardType="number-pad" value={day} onChangeText={setDay} maxLength={2} editable={!saving} />
+      <Text style={styles.note}>{t("Aucun ajout automatique. Mois plus court : dernier jour du mois.")}</Text>
+      {error ? <Text accessibilityRole="alert" style={styles.error}>{t(error)}</Text> : null}
       {initial && plan ? <SurfaceCard style={styles.card}>
-        <Text style={styles.title}>Réserve suivie</Text>
+        <Text style={styles.title}>{t("Réserve suivie")}</Text>
         <Text style={styles.amount}>{formatMoney(reserved)}</Text>
-        <Text style={styles.note}>{formatMoney(plan.remainingCents)} à réserver.</Text>
-        {plan.monthlyCents !== null && plan.remainingCents > 0 ? <Text style={styles.copy}>{formatMoney(plan.monthlyCents)} par contribution · {plan.contributions} dates restantes</Text> : null}
-        {plan.overdue ? <Text style={styles.error}>L’échéance de cet objectif est dépassée.</Text> : null}
-        {dirty ? <Text style={styles.note}>Enregistrez l’objectif avant d’ajuster la réserve.</Text> : null}
-        <FormField label="Montant à ajouter ou libérer en euros" suffix="€" keyboardType="decimal-pad" value={movement} onChangeText={setMovement} editable={!saving && !dirty} />
-        <Button title="Ajouter à la réserve" onPress={() => { void move(1); }} disabled={dirty || saving || movement === ''} />
-        <Button title="Libérer une réserve" variant="secondary" onPress={() => { void move(-1); }} disabled={dirty || saving || movement === ''} />
-        {movement !== '' ? <Button title="Annuler la saisie de réserve" variant="ghost" onPress={() => setMovement('')} disabled={saving} /> : null}
-        <Text accessibilityRole="header" style={styles.title}>Historique de la réserve</Text>
-        {movements.length === 0 ? <Text style={styles.note}>Aucun mouvement enregistré.</Text> : movements.map((entry) => <Text key={entry.id} style={styles.copy}>
+        <Text style={styles.note}>{formatMoney(plan.remainingCents)}{t(" à réserver.")}</Text>
+        {plan.monthlyCents !== null && plan.remainingCents > 0 ? <Text style={styles.copy}>{formatMoney(plan.monthlyCents)}{t(" par contribution · ")}{plan.contributions}{t(" dates restantes")}</Text> : null}
+        {plan.overdue ? <Text style={styles.error}>{t("L’échéance de cet objectif est dépassée.")}</Text> : null}
+        {dirty ? <Text style={styles.note}>{t("Enregistrez l’objectif avant d’ajuster la réserve.")}</Text> : null}
+        <FormField label={t("Montant à ajouter ou libérer en euros")} suffix="€" keyboardType="decimal-pad" value={movement} onChangeText={setMovement} editable={!saving && !dirty} />
+        <Button title={t("Ajouter à la réserve")} onPress={() => { void move(1); }} disabled={dirty || saving || movement === ''} />
+        <Button title={t("Libérer une réserve")} variant="secondary" onPress={() => { void move(-1); }} disabled={dirty || saving || movement === ''} />
+        {movement !== '' ? <Button title={t("Annuler la saisie de réserve")} variant="ghost" onPress={() => setMovement('')} disabled={saving} /> : null}
+        <Text accessibilityRole="header" style={styles.title}>{t("Historique de la réserve")}</Text>
+        {movements.length === 0 ? <Text style={styles.note}>{t("Aucun mouvement enregistré.")}</Text> : movements.map((entry) => <Text key={entry.id} style={styles.copy}>
           {displayDate(localDateKey(new Date(entry.createdAt)))} · {entry.amountCents > 0 ? '+' : '−'} {formatMoney(Math.abs(entry.amountCents))}
         </Text>)}
       </SurfaceCard> : null}
-      <Disclosure title="Fonctionnement des provisions">
-        <Text style={styles.note}>Le repère mensuel répartit le montant restant sur les dates de contribution jusqu’à l’échéance incluse. Ajustez la dernière contribution au montant restant.</Text>
-        <Text style={styles.note}>Après paiement, enregistrez la dépense puis libérez la réserve correspondante. La réserve n’est pas déduite de la marge.</Text>
+      <Disclosure title={t("Fonctionnement des provisions")}>
+        <Text style={styles.note}>{t("Le repère mensuel répartit le montant restant sur les dates de contribution jusqu’à l’échéance incluse. Ajustez la dernière contribution au montant restant.")}</Text>
+        <Text style={styles.note}>{t("Après paiement, enregistrez la dépense puis libérez la réserve correspondante. La réserve n’est pas déduite de la marge.")}</Text>
       </Disclosure>
-      {initial ? <Button title="Supprimer la provision" variant="danger" onPress={() => { void remove(); }} disabled={saving} /> : null}
+      {initial ? <Button title={t("Supprimer la provision")} variant="danger" onPress={() => { void remove(); }} disabled={saving} /> : null}
     </ScrollView>
   </ScreenContainer>;
 }

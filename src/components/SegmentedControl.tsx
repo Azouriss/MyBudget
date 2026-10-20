@@ -1,3 +1,5 @@
+import { useLanguage } from '../i18n/useLanguage';
+import { t } from '../i18n/locale';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { theme } from '../theme';
@@ -6,14 +8,15 @@ export function SegmentedControl<T extends string>({ label, options, value, onCh
   label: string; options: readonly { value: T; label: string }[];
   value: T; onChange: (value: T) => void; disabled?: boolean;
 }) {
+  useLanguage();
   const { fontScale } = useWindowDimensions();
   const [focused, setFocused] = useState<T | null>(null);
-  return <View accessibilityRole="radiogroup" accessibilityLabel={label}
+  return <View accessibilityRole="radiogroup" accessibilityLabel={t(label)}
     style={[styles.group, fontScale >= theme.layout.stackedFontScale && styles.stacked]}>
     {options.map((option) => {
       const selected = value === option.value;
-      return <Pressable cssInterop={false} key={option.value} accessibilityRole="radio" accessibilityLabel={option.label}
-        accessibilityState={{ checked: selected, disabled }} disabled={disabled}
+      return <Pressable cssInterop={false} key={option.value} accessibilityRole="radio" accessibilityLabel={t(option.label)}
+        accessibilityState={{ checked: selected, disabled }} aria-checked={selected} disabled={disabled}
         onFocus={() => setFocused(option.value)} onBlur={() => setFocused(null)}
         onPress={() => onChange(option.value)} style={({ pressed }) => [styles.option,
           fontScale >= theme.layout.stackedFontScale && styles.verticalOption, {
@@ -22,7 +25,7 @@ export function SegmentedControl<T extends string>({ label, options, value, onCh
           borderColor: focused === option.value ? theme.colors.focusRing
             : theme.colors.transparent,
         }]}>
-        <Text style={[styles.label, { color: selected && !disabled ? theme.colors.textOnPrimary : theme.colors.textPrimary }]}>{option.label}</Text>
+        <Text style={[styles.label, { color: selected && !disabled ? theme.colors.textOnPrimary : theme.colors.textPrimary }]}>{t(option.label)}</Text>
       </Pressable>;
     })}
   </View>;

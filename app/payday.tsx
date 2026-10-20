@@ -1,3 +1,5 @@
+import { t } from '../src/i18n/locale';
+import { useLanguage } from '../src/i18n/useLanguage';
 import { useEffect, useRef, useState } from 'react';
 import { Switch, Text, View } from 'react-native';
 import { router, useNavigation } from 'expo-router';
@@ -16,6 +18,7 @@ import { useAppStore } from '../src/stores/useAppStore';
 import { theme } from '../src/theme';
 
 export default function PaydayScreen() {
+  useLanguage();
   const db = useDatabase();
   const [initial, setInitial] = useState<{ day: string; enabled: boolean } | null>(null);
   const [day, setDay] = useState('');
@@ -42,7 +45,7 @@ export default function PaydayScreen() {
   const dirty = !!initial && (initial.day !== day || initial.enabled !== enabled);
   usePreventRemove(dirty, ({ data }) => {
     if (allowLeave.current) navigation.dispatch(data.action);
-    else if (!busy.current) void confirm({ title: 'Quitter sans enregistrer ?', message: 'Le jour de paie et les rappels ne seront pas modifiés.', confirmLabel: 'Quitter' })
+    else if (!busy.current) void confirm({ title: t("Quitter sans enregistrer ?"), message: t("Le jour de paie et les rappels ne seront pas modifiés."), confirmLabel: t("Quitter") })
       .then((ok) => { if (ok) navigation.dispatch(data.action); });
   });
   async function save() {
@@ -68,7 +71,7 @@ export default function PaydayScreen() {
   }
   async function remove() {
     if (busy.current || !initial) return;
-    if (!await confirm({ title: 'Désactiver les rappels de paie ?', message: 'Votre salaire et vos transactions restent conservés.', confirmLabel: 'Désactiver' })) return;
+    if (!await confirm({ title: t("Désactiver les rappels de paie ?"), message: t("Votre salaire et vos transactions restent conservés."), confirmLabel: t("Désactiver") })) return;
     busy.current = true; setSaving(true);
     try {
       createPaydayRepository(db).remove();
@@ -79,28 +82,28 @@ export default function PaydayScreen() {
     } catch { setError('Impossible de terminer la désactivation des rappels. Réessayez.'); }
     finally { busy.current = false; setSaving(false); }
   }
-  return <SettingsPage title="Jour de paie" footer={<Button title="Enregistrer" onPress={() => { void save(); }} loading={saving} disabled={!initial} />}>
+  return <SettingsPage title={t("Jour de paie")} footer={<Button title={t("Enregistrer")} onPress={() => { void save(); }} loading={saving} disabled={!initial} />}>
     <View style={{ gap: theme.spacing.sm }}>
-      <FormField label="Jour du mois (1 à 31)" value={day} onChangeText={setDay} placeholder="Ex. 28" keyboardType="number-pad" maxLength={2} editable={!!initial && !saving} />
-      <Text style={styles.copy}>Mois plus court : dernier jour du mois.</Text>
+      <FormField label={t("Jour du mois (1 à 31)")} value={day} onChangeText={setDay} placeholder={t("Ex. 28")} keyboardType="number-pad" maxLength={2} editable={!!initial && !saving} />
+      <Text style={styles.copy}>{t("Mois plus court : dernier jour du mois.")}</Text>
     </View>
     <SurfaceCard style={styles.card}>
-      <View style={styles.row}><Text style={[styles.label, { flex: 1 }]}>Notification téléphone</Text>
-        <Switch accessibilityLabel="Notification téléphone" value={enabled} onValueChange={setEnabled} disabled={!initial || saving}
+      <View style={styles.row}><Text style={[styles.label, { flex: 1 }]}>{t("Notification téléphone")}</Text>
+        <Switch accessibilityLabel={t("Notification téléphone")} value={enabled} onValueChange={setEnabled} disabled={!initial || saving}
           thumbColor={theme.colors.surface} trackColor={{ false: theme.colors.controlBorder, true: theme.colors.primaryDark }} /></View>
-      {status ? <Text accessibilityLiveRegion="polite" style={styles.copy}>{status}</Text> : null}
+      {status ? <Text accessibilityLiveRegion="polite" style={styles.copy}>{t(status)}</Text> : null}
     </SurfaceCard>
     <SurfaceCard style={styles.card}>
-      <Text style={styles.label}>Salaire net · {monthLabel(currentMonth())}</Text>
-      <Button title={hasSalary ? 'Modifier mon salaire net' : 'Saisir mon salaire net'} variant="secondary" disabled={saving}
+      <Text style={styles.label}>{t("Salaire net · ")}{monthLabel(currentMonth())}</Text>
+      <Button title={hasSalary ? t("Modifier mon salaire net") : t("Saisir mon salaire net")} variant="secondary" disabled={saving}
         onPress={() => router.push({ pathname: '/transaction', params: { salaryMonth: currentMonth() } })} />
     </SurfaceCard>
-    <Disclosure title="Fonctionnement des rappels">
-      <Text style={styles.copy}>L’accueil affiche un rappel dès le jour de paie, jusqu’à la saisie du salaire net reçu. Aucun revenu n’est ajouté automatiquement.</Text>
-      <Text style={styles.copy}>Sur Android : notification vers 9 h, même si l’app est fermée, sans afficher de montant.</Text>
-      <Text style={styles.copy}>Les rappels couvrent les 12 prochains mois et sont renouvelés à l’ouverture de l’app.</Text>
+    <Disclosure title={t("Fonctionnement des rappels")}>
+      <Text style={styles.copy}>{t("L’accueil affiche un rappel dès le jour de paie, jusqu’à la saisie du salaire net reçu. Aucun revenu n’est ajouté automatiquement.")}</Text>
+      <Text style={styles.copy}>{t("Sur Android : notification vers 9 h, même si l’app est fermée, sans afficher de montant.")}</Text>
+      <Text style={styles.copy}>{t("Les rappels couvrent les 12 prochains mois et sont renouvelés à l’ouverture de l’app.")}</Text>
     </Disclosure>
-    {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-    {initial?.day ? <Button title="Désactiver les rappels" variant="ghost" onPress={() => { void remove(); }} disabled={saving} /> : null}
+    {error ? <Text accessibilityRole="alert" style={styles.error}>{t(error)}</Text> : null}
+    {initial?.day ? <Button title={t("Désactiver les rappels")} variant="ghost" onPress={() => { void remove(); }} disabled={saving} /> : null}
   </SettingsPage>;
 }

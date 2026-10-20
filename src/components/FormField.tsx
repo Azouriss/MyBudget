@@ -1,3 +1,4 @@
+import { t } from '../i18n/locale';
 import { forwardRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
@@ -16,7 +17,7 @@ export const FormField = forwardRef<TextInput, Props>(function FormField({
       <View style={[styles.inputContainer, { backgroundColor: editable ? theme.colors.surface : theme.colors.disabledBackground,
         borderColor: error ? theme.colors.danger : theme.colors.controlBorder }]}>
       {Icon ? <Icon size={theme.size.icon.medium} color={theme.colors.textSubtle} {...decorativeIconProps} /> : null}
-      <TextInput {...input} ref={ref} accessibilityLabel={label} accessibilityHint={error}
+      <TextInput {...input} ref={ref} accessibilityLabel={label} accessibilityHint={t(error)}
         accessibilityState={{ disabled: !editable }} editable={editable}
         allowFontScaling placeholderTextColor={theme.colors.textSubtle}
         cursorColor={theme.colors.primaryDark} underlineColorAndroid={theme.colors.transparent}
@@ -28,7 +29,7 @@ export const FormField = forwardRef<TextInput, Props>(function FormField({
       {suffix ? <Text style={[styles.suffix, amount && styles.amountSuffix]}>{suffix}</Text> : null}
       </View>
     </View>
-    {error ? <Text accessibilityLiveRegion="polite" style={styles.error}>{error}</Text> : null}
+    {error ? <Text accessibilityLiveRegion="polite" style={styles.error}>{t(error)}</Text> : null}
   </View>;
 });
 

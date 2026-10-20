@@ -1,3 +1,5 @@
+import { t } from '../src/i18n/locale';
+import { useLanguage } from '../src/i18n/useLanguage';
 import { useEffect, useRef, useState } from 'react';
 import { Text } from 'react-native';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
@@ -19,6 +21,7 @@ import { ExpenseSubcategoryPicker } from '../src/features/categories/ExpenseSubc
 
 type Values = { label: string; amount: string; categoryId: string; subcategoryId: string | null; frequency: Frequency; date: string };
 export default function RecurringExpenseScreen() {
+  useLanguage();
   const { id } = useLocalSearchParams<{ id: string }>();
   const db = useDatabase();
   const confirm = useConfirmation();
@@ -46,7 +49,7 @@ export default function RecurringExpenseScreen() {
   const dirty = !!initial && JSON.stringify(initial) !== JSON.stringify(values);
   usePreventRemove(dirty, ({ data }) => {
     if (allowLeave.current) navigation.dispatch(data.action);
-    else if (!busy.current) void confirm({ title: 'Quitter sans enregistrer ?', message: 'Les changements de cette récurrence seront perdus.', confirmLabel: 'Quitter' })
+    else if (!busy.current) void confirm({ title: t("Quitter sans enregistrer ?"), message: t("Les changements de cette récurrence seront perdus."), confirmLabel: t("Quitter") })
       .then((ok) => { if (ok) navigation.dispatch(data.action); });
   });
   function change<K extends keyof Values>(key: K, value: Values[K]) { setValues((old) => ({ ...old, [key]: value })); }
@@ -73,7 +76,7 @@ export default function RecurringExpenseScreen() {
   }
   async function stop() {
     if (!rule || busy.current) return;
-    if (!await confirm({ title: 'Arrêter cette récurrence ?', message: 'Les dépenses déjà enregistrées restent dans votre historique. Les prochaines échéances ne seront plus ajoutées.', confirmLabel: 'Arrêter la récurrence' })) return;
+    if (!await confirm({ title: t("Arrêter cette récurrence ?"), message: t("Les dépenses déjà enregistrées restent dans votre historique. Les prochaines échéances ne seront plus ajoutées."), confirmLabel: t("Arrêter la récurrence") })) return;
     busy.current = true; setSaving(true);
     try {
       await catchUpExpenses(db);
@@ -82,20 +85,20 @@ export default function RecurringExpenseScreen() {
       allowLeave.current = true; back();
     } catch { setError('Impossible d’arrêter cette récurrence. Réessayez.'); busy.current = false; setSaving(false); }
   }
-  return <SettingsPage title="Gérer la récurrence" footer={rule ? <Button title={rule.active ? 'Enregistrer la récurrence' : 'Reprendre la récurrence'} onPress={() => { void save(); }} loading={saving} /> : undefined}>
-    <Text style={styles.copy}>{rule?.active ? 'Modifie les prochaines échéances. Historique conservé.' : 'Récurrence arrêtée. Choisissez une date pour la reprendre.'}</Text>
-    <FormField label="Libellé de la récurrence" value={values.label} onChangeText={(v) => change('label', v)} maxLength={80} editable={!!rule && !saving} />
-    <FormField label="Montant récurrent en euros" value={values.amount} onChangeText={(v) => change('amount', v)} keyboardType="decimal-pad" suffix="€" editable={!!rule && !saving} />
-    <Text style={styles.label}>Catégorie</Text>
-    {categories.map((c) => <Button key={c.id} title={c.label} variant={values.categoryId === c.id ? 'primary' : 'secondary'} disabled={saving}
+  return <SettingsPage title={t("Gérer la récurrence")} footer={rule ? <Button title={rule.active ? t("Enregistrer la récurrence") : t("Reprendre la récurrence")} onPress={() => { void save(); }} loading={saving} /> : undefined}>
+    <Text style={styles.copy}>{rule?.active ? t("Modifie les prochaines échéances. Historique conservé.") : t("Récurrence arrêtée. Choisissez une date pour la reprendre.")}</Text>
+    <FormField label={t("Libellé de la récurrence")} value={values.label} onChangeText={(v) => change('label', v)} maxLength={80} editable={!!rule && !saving} />
+    <FormField label={t("Montant récurrent en euros")} value={values.amount} onChangeText={(v) => change('amount', v)} keyboardType="decimal-pad" suffix="€" editable={!!rule && !saving} />
+    <Text style={styles.label}>{t("Catégorie")}</Text>
+    {categories.map((c) => <Button key={c.id} title={t(c.label)} variant={values.categoryId === c.id ? 'primary' : 'secondary'} disabled={saving}
       onPress={() => setValues((old) => ({ ...old, categoryId: c.id, subcategoryId: old.categoryId === c.id ? old.subcategoryId : null }))} />)}
     {rule ? <ExpenseSubcategoryPicker key={values.categoryId} categories={categories} categoryId={values.categoryId}
       value={values.subcategoryId} disabled={saving}
       onChange={(categoryId, subcategoryId) => setValues((old) => ({ ...old, categoryId, subcategoryId }))} /> : null}
-    <SegmentedControl label="Répéter chaque" options={frequencies} value={values.frequency} onChange={(v) => change('frequency', v)} disabled={!rule || saving} />
-    <FormField label="Prochaine échéance · JJ/MM/AAAA" value={values.date} onChangeText={(v) => change('date', v)} maxLength={10} editable={!!rule && !saving} />
-    <Text style={styles.copy}>Jour absent du mois : échéance au dernier jour.</Text>
-    {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-    {rule?.active ? <Button title="Arrêter la récurrence" variant="danger" onPress={() => { void stop(); }} disabled={saving} /> : null}
+    <SegmentedControl label={t("Répéter chaque")} options={frequencies} value={values.frequency} onChange={(v) => change('frequency', v)} disabled={!rule || saving} />
+    <FormField label={t("Prochaine échéance · JJ/MM/AAAA")} value={values.date} onChangeText={(v) => change('date', v)} maxLength={10} editable={!!rule && !saving} />
+    <Text style={styles.copy}>{t("Jour absent du mois : échéance au dernier jour.")}</Text>
+    {error ? <Text accessibilityRole="alert" style={styles.error}>{t(error)}</Text> : null}
+    {rule?.active ? <Button title={t("Arrêter la récurrence")} variant="danger" onPress={() => { void stop(); }} disabled={saving} /> : null}
   </SettingsPage>;
 }

@@ -1,3 +1,5 @@
+import { t } from '../../i18n/locale';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useState } from 'react';
 import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Check, Search, X } from 'lucide-react-native';
@@ -19,36 +21,37 @@ type Props = {
 };
 
 export function ExpenseSubcategoryPicker({ categories, categoryId, value, onChange, disabled = false, error }: Props) {
+  useLanguage();
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
   const selected = getExpenseSubcategory(value);
   const expenseCategories = categories.filter((category) => category.kind === 'expense');
-  const labels = new Map(expenseCategories.map((category) => [category.id, category.label]));
+  const labels = new Map(expenseCategories.map((category) => [category.id, t(category.label)]));
   const searching = query.trim().length > 0;
   const results = searching ? searchExpenseSubcategories(query, categoryId, expenseCategories) : [];
   const visible = expanded ? results : results.slice(0, 5);
 
   return <View style={styles.field}>
-    <FormField label="Sous-catégorie (facultatif)" leadingIcon={Search}
-      placeholder="Ex. Carburant, pharmacie, restaurant…" value={query}
+    <FormField label={t("Sous-catégorie (facultatif)")} leadingIcon={Search}
+      placeholder={t("Ex. Carburant, pharmacie, restaurant…")} value={query}
       onChangeText={(text) => { setQuery(text); setExpanded(false); }}
       editable={!disabled} maxLength={100} autoCorrect={false} autoCapitalize="none"
       returnKeyType="search" onSubmitEditing={() => Keyboard.dismiss()} error={error} />
     {selected ? <View style={styles.selection}>
       <View style={styles.copy}>
-        <Text style={styles.selectionLabel}>{selected.label}</Text>
+        <Text style={styles.selectionLabel}>{t(selected.label)}</Text>
         <Text style={styles.help}>{labels.get(selected.categoryId)}</Text>
       </View>
-      <IconButton icon={X} label={`Retirer la sous-catégorie ${selected.label}`} disabled={disabled}
+      <IconButton icon={X} label={t("Retirer la sous-catégorie {0}", [t(selected.label)])} disabled={disabled}
         onPress={() => onChange(categoryId, null)} />
     </View> : null}
     {searching ? <Text accessibilityLiveRegion="polite" style={styles.help}>
-      {results.length} résultat{results.length === 1 ? '' : 's'}
+      {results.length}{t(" résultat")}{results.length === 1 ? '' : 's'}
     </Text> : null}
-    {searching && results.length ? <View accessibilityRole="radiogroup" accessibilityLabel="Sous-catégorie" style={styles.results}>
+    {searching && results.length ? <View accessibilityRole="radiogroup" accessibilityLabel={t("Sous-catégorie")} style={styles.results}>
       {visible.map((subcategory) => <Pressable cssInterop={false} key={subcategory.id}
-        accessibilityRole="radio" accessibilityLabel={`${subcategory.label}, ${labels.get(subcategory.categoryId)}`}
+        accessibilityRole="radio" accessibilityLabel={`${t(subcategory.label)}, ${labels.get(subcategory.categoryId)}`}
         aria-checked={value === subcategory.id}
         accessibilityState={{ checked: value === subcategory.id, disabled }} disabled={disabled}
         onFocus={() => setFocused(subcategory.id)} onBlur={() => setFocused(null)}
@@ -62,14 +65,14 @@ export function ExpenseSubcategoryPicker({ categories, categoryId, value, onChan
             : value === subcategory.id ? theme.colors.primaryDark : theme.colors.controlBorder,
         }]}>
         <View style={styles.copy}>
-          <Text style={styles.resultLabel}>{subcategory.label}</Text>
+          <Text style={styles.resultLabel}>{t(subcategory.label)}</Text>
           {query.trim() ? <Text style={styles.help}>{labels.get(subcategory.categoryId)}</Text> : null}
         </View>
         {value === subcategory.id ? <Check size={theme.size.icon.small} color={theme.colors.primaryDark} {...decorativeIconProps} /> : null}
       </Pressable>)}
-    </View> : searching ? <Text style={styles.help}>Aucun résultat. Essayez un autre mot.</Text> : null}
+    </View> : searching ? <Text style={styles.help}>{t("Aucun résultat. Essayez un autre mot.")}</Text> : null}
     {results.length > 5 ? <Button variant="secondary" disabled={disabled}
-      title={expanded ? 'Réduire la liste' : `Afficher les ${results.length - 5} autres résultats`}
+      title={expanded ? t("Réduire la liste") : t("Afficher les {0} autres résultats", [results.length - 5])}
       onPress={() => setExpanded(!expanded)} /> : null}
   </View>;
 }

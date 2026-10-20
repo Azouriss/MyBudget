@@ -1,3 +1,5 @@
+import { t } from '../src/i18n/locale';
+import { useLanguage } from '../src/i18n/useLanguage';
 import '../global.css';
 import 'react-native-reanimated';
 import { useEffect, useState, type ReactNode } from 'react';
@@ -10,6 +12,7 @@ import { DatabaseProvider } from '../src/db/DatabaseProvider';
 import { ConfirmationProvider } from '../src/components/ConfirmationProvider';
 import { FinanceRuntime } from '../src/features/payday/FinanceRuntime';
 import { NoticeHost } from '../src/components/NoticeHost';
+import { LanguageRuntime } from '../src/i18n/LanguageRuntime';
 import { theme } from '../src/theme';
 
 const fonts = {
@@ -30,17 +33,19 @@ const navigationTheme = {
 };
 
 function FontGate({ children, retry }: { children: ReactNode; retry: () => void }) {
+  useLanguage();
   const [loaded, error] = useFonts(fonts);
   if (!loaded) return <View style={styles.loading}>
     {error ? <>
-      <Text style={styles.fallbackText}>Impossible de charger les polices de MyBudget.</Text>
-      <Pressable accessibilityRole="button" onPress={retry} style={styles.retry}><Text style={styles.fallbackText}>Réessayer</Text></Pressable>
-    </> : <ActivityIndicator color={theme.colors.primaryDark} accessibilityLabel="Chargement de MyBudget" />}
+      <Text style={styles.fallbackText}>{t("Impossible de charger les polices de MyBudget.")}</Text>
+      <Pressable accessibilityRole="button" onPress={retry} style={styles.retry}><Text style={styles.fallbackText}>{t("Réessayer")}</Text></Pressable>
+    </> : <ActivityIndicator color={theme.colors.primaryDark} accessibilityLabel={t("Chargement de MyBudget")} />}
   </View>;
   return children;
 }
 
 function Navigation() {
+  useLanguage();
   const [reducedMotion, setReducedMotion] = useState(true);
   useEffect(() => {
     let active = true;
@@ -53,6 +58,7 @@ function Navigation() {
     <StatusBar style="dark" />
     <ConfirmationProvider>
       <DatabaseProvider>
+        <LanguageRuntime />
         <Stack screenOptions={{ headerShown: false,
           contentStyle: { backgroundColor: theme.colors.background },
           animation: reducedMotion ? 'none' : 'slide_from_right',
@@ -61,6 +67,7 @@ function Navigation() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="transaction" options={{ presentation: 'modal', gestureEnabled: false }} />
           <Stack.Screen name="payday" options={{ presentation: 'modal', gestureEnabled: false }} />
+          <Stack.Screen name="profile" options={{ presentation: 'modal', gestureEnabled: false }} />
           <Stack.Screen name="recurring" />
           <Stack.Screen name="recurring-expense" options={{ presentation: 'modal', gestureEnabled: false }} />
           <Stack.Screen name="budget" options={{ presentation: 'modal', gestureEnabled: false }} />
@@ -74,6 +81,7 @@ function Navigation() {
 }
 
 export default function RootLayout() {
+  useLanguage();
   const [attempt, setAttempt] = useState(0);
   return <FontGate key={attempt} retry={() => setAttempt((value) => value + 1)}><Navigation /></FontGate>;
 }

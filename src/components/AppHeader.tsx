@@ -1,3 +1,5 @@
+import { t } from '../i18n/locale';
+import { useLanguage } from '../i18n/useLanguage';
 import { router } from 'expo-router';
 import { UserRound } from 'lucide-react-native';
 import { StyleSheet, Text, View } from 'react-native';
@@ -6,11 +8,12 @@ import { BrandMark } from './BrandMark';
 import { IconButton } from './IconButton';
 
 export function AppHeader({ profile = false }: { profile?: boolean }) {
+  useLanguage();
   return <View style={styles.row}>
     <View style={styles.brand} accessibilityRole="header" accessibilityLabel="MyBudget">
       <BrandMark /><Text style={styles.title}>MyBudget</Text>
     </View>
-    {profile ? <IconButton icon={UserRound} label="Ouvrir les paramètres" onPress={() => router.push('/settings')} /> : null}
+    {profile ? <IconButton icon={UserRound} label={t("Ouvrir les paramètres")} onPress={() => router.push('/settings')} /> : null}
   </View>;
 }
 

@@ -5,6 +5,8 @@ import migrations from './migrations/migrations';
 import { defaultCategories } from '../features/categories/defaults';
 import { migrateSafely } from './migrateSafely';
 import { catchUpExpenses } from '../features/recurring/repository';
+import { createProfileRepository } from '../features/profile/repository';
+import { setLanguage } from '../i18n/locale';
 
 export const DATABASE_NAME = 'clair-depenses.db';
 
@@ -21,6 +23,7 @@ async function initializeDatabase(): Promise<ExpoSQLiteDatabase<typeof schema>> 
       }
     });
     await catchUpExpenses(db);
+    setLanguage(createProfileRepository(db).get().language);
     return db;
   } catch (error) {
     try { await sqlite.closeAsync(); } catch { /* Preserve the original initialization error. */ }

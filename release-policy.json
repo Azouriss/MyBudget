@@ -72,6 +72,16 @@
         "breakpoints": true
       },
       "sha256": "85ec1bf7e9287aa952b11a2f47903c509b372330f9cc1fb564d9256aaa7836ca"
+    },
+    {
+      "entry": {
+        "idx": 7,
+        "version": "6",
+        "when": 1792507722081,
+        "tag": "0007_user_profile",
+        "breakpoints": true
+      },
+      "sha256": "667904bccf5d4a9773c750ae0bf0b33467c5e36cdc80261ad20d63c4a9d879b0"
     }
   ]
 }

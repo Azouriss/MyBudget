@@ -1,3 +1,5 @@
+import { t } from '../../i18n/locale';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
@@ -14,6 +16,7 @@ import { getExpenseSubcategory } from '../categories/subcategories';
 export function TransactionRow({ transaction, category, last = false, variant = 'default' }: {
   transaction: Transaction; category?: Category; last?: boolean; variant?: 'default' | 'history';
 }) {
+  useLanguage();
   const [focused, setFocused] = useState(false);
   const { width, fontScale } = useWindowDimensions();
   const history = variant === 'history';
@@ -23,9 +26,9 @@ export function TransactionRow({ transaction, category, last = false, variant = 
   const recurring = !!transaction.recurringExpenseId;
   const planned = !!transaction.isPlanned;
   const subcategory = getExpenseSubcategory(transaction.subcategoryId);
-  const categoryLabel = `${category?.label ?? 'Catégorie'}${subcategory ? ` · ${subcategory.label}` : ''}`;
+  const categoryLabel = `${t(category?.label ?? "Catégorie")}${subcategory ? ` · ${t(subcategory.label)}` : ''}`;
   return <Pressable cssInterop={false} accessibilityRole="button"
-    accessibilityLabel={`${transaction.label}, ${income ? 'revenu' : 'dépense'}${recurring ? ' récurrente' : ''}${planned ? ' prévue' : ''} de ${formatMoney(transaction.amountCents)}, ${categoryLabel}, ${shortDate(transaction.occurredOn)}. ${planned ? 'Gérer la récurrence.' : 'Modifier.'}`}
+    accessibilityLabel={t("{0}, {1}{2}{3} de {4}, {5}, {6}. {7}", [transaction.label, income ? t("revenu") : t("dépense"), recurring ? t(" récurrente") : '', planned ? t(" prévue") : '', formatMoney(transaction.amountCents), categoryLabel, shortDate(transaction.occurredOn), planned ? t("Gérer la récurrence.") : t("Modifier.")])}
     onPress={() => router.push(planned && transaction.recurringExpenseId
       ? { pathname: '/recurring-expense', params: { id: transaction.recurringExpenseId } }
       : { pathname: '/transaction', params: { id: transaction.id } })}
@@ -42,10 +45,10 @@ export function TransactionRow({ transaction, category, last = false, variant = 
       <View style={[styles.details, history && !stacked && styles.historyDetails, stacked && styles.stacked]}>
         <View style={[styles.copy, history && !stacked && styles.historyCopy]}>
           <Text style={[styles.label, history && styles.historyLabel]}>{transaction.label}</Text>
-          <Text style={styles.meta}>{categoryLabel}{income ? ' · Revenu' : ''}</Text>
+          <Text style={styles.meta}>{categoryLabel}{income ? t(" · Revenu") : ''}</Text>
           {recurring ? <View style={[styles.recurring, history && styles.recurringBadge]}>
             <Repeat2 size={theme.size.icon.small} color={theme.colors.textAction} {...decorativeIconProps} />
-            <Text style={styles.recurringLabel}>{planned ? 'Récurrente · Prévue' : 'Récurrente'}</Text>
+            <Text style={styles.recurringLabel}>{planned ? t("Récurrente · Prévue") : t("Récurrente")}</Text>
           </View> : null}
         </View>
         <View style={[styles.amountColumn, history && styles.historyAmountColumn]}><Text style={[styles.amount, history && styles.historyAmount, { color: income ? theme.colors.success : theme.colors.textPrimary }]}>

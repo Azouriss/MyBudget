@@ -1,3 +1,5 @@
+import { t } from '../../i18n/locale';
+
 export type ExpenseSubcategory = {
   id: string;
   categoryId: string;
@@ -137,7 +139,8 @@ export function searchExpenseSubcategories(query: string, categoryId: string, ca
   return expenseSubcategories.filter((subcategory) => {
     if (!labels.has(subcategory.categoryId)) return false;
     if (!words.length) return subcategory.categoryId === categoryId;
-    const text = normalizeCategorySearch(`${subcategory.label} ${subcategory.keywords} ${labels.get(subcategory.categoryId)}`);
+    const category = labels.get(subcategory.categoryId) ?? '';
+    const text = normalizeCategorySearch(`${subcategory.label} ${t(subcategory.label)} ${subcategory.keywords} ${category} ${t(category)}`);
     return words.every((word) => text.includes(word));
   });
 }

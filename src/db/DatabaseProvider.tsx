@@ -1,3 +1,5 @@
+import { t } from '../i18n/locale';
+import { useLanguage } from '../i18n/useLanguage';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 import { getDatabase, type AppDatabase } from './client';
@@ -9,6 +11,7 @@ import { RenewalRuntime } from '../features/renewals/RenewalRuntime';
 const DatabaseContext = createContext<AppDatabase | null>(null);
 
 export function DatabaseProvider({ children }: { children: ReactNode }) {
+  useLanguage();
   const [db, setDb] = useState<AppDatabase | null>(null);
   const [failed, setFailed] = useState(false);
   const [requiresUpdate, setRequiresUpdate] = useState(false);
@@ -28,15 +31,15 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
   if (db) return <DatabaseContext.Provider value={db}>{children}<RenewalRuntime db={db} /></DatabaseContext.Provider>;
   return <View style={styles.screen}>
     {failed ? <>
-      <Text accessibilityRole="header" style={styles.title}>{requiresUpdate ? 'Mise à jour nécessaire' : 'Ouverture impossible'}</Text>
+      <Text accessibilityRole="header" style={styles.title}>{requiresUpdate ? t("Mise à jour nécessaire") : t("Ouverture impossible")}</Text>
       <Text style={styles.copy}>{requiresUpdate
-        ? 'Cette version ne peut pas ouvrir vos données. Installez une version plus récente sans désinstaller l’application. Vos données n’ont pas été réinitialisées.'
-        : 'La base locale n’a pas pu être ouverte. Vos données n’ont pas été réinitialisées.'}</Text>
-      {Platform.OS === 'web' ? <Text style={styles.copy}>Si MyBudget est ouvert dans un autre onglet, fermez-le, puis rechargez cette page.</Text> : null}
-      <Button title="Réessayer" onPress={() => setAttempt((value) => value + 1)} />
+        ? t("Cette version ne peut pas ouvrir vos données. Installez une version plus récente sans désinstaller l’application. Vos données n’ont pas été réinitialisées.")
+        : t("La base locale n’a pas pu être ouverte. Vos données n’ont pas été réinitialisées.")}</Text>
+      {Platform.OS === 'web' ? <Text style={styles.copy}>{t("Si MyBudget est ouvert dans un autre onglet, fermez-le, puis rechargez cette page.")}</Text> : null}
+      <Button title={t("Réessayer")} onPress={() => setAttempt((value) => value + 1)} />
     </> : <>
       <ActivityIndicator color={theme.colors.primaryDark} size="large" />
-      <Text accessibilityLiveRegion="polite" style={styles.copy}>Ouverture de votre espace…</Text>
+      <Text accessibilityLiveRegion="polite" style={styles.copy}>{t("Ouverture de votre espace…")}</Text>
     </>}
   </View>;
 }

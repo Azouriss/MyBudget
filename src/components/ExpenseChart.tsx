@@ -1,3 +1,5 @@
+import { t } from '../i18n/locale';
+import { useLanguage } from '../i18n/useLanguage';
 import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 import type { Category } from '../db/schema';
@@ -9,6 +11,7 @@ import { decorativeIconProps } from './decorativeIconProps';
 export function ExpenseChart({ breakdown, categories, total }: {
   breakdown: { categoryId: string; amountCents: number }[]; categories: Category[]; total: number;
 }) {
+  useLanguage();
   const { width, fontScale } = useWindowDimensions();
   const stacked = Math.min(width, theme.layout.contentMaxWidth) < 360 || fontScale >= theme.layout.stackedFontScale;
   const size = 164;
@@ -17,7 +20,7 @@ export function ExpenseChart({ breakdown, categories, total }: {
   const circumference = 2 * Math.PI * radius;
   let offset = 0;
   return <View style={[styles.row, stacked && styles.stacked]}>
-    <View style={styles.chart} accessible accessibilityLabel={`Total des dépenses : ${formatMoney(total)}`}>
+    <View style={styles.chart} accessible accessibilityLabel={t("Total des dépenses : {0}", [formatMoney(total)])}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} {...decorativeIconProps}>
         <Circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={theme.colors.chartTrack} strokeWidth={stroke} />
         <G transform={`rotate(-90 ${size / 2} ${size / 2})`}>{breakdown.map((item) => {
@@ -31,7 +34,7 @@ export function ExpenseChart({ breakdown, categories, total }: {
         })}</G>
       </Svg>
       <View pointerEvents="none" style={styles.center}>
-        <Text style={styles.total}>{formatMoney(total)}</Text><Text style={styles.caption}>ce mois-ci</Text>
+        <Text style={styles.total}>{formatMoney(total)}</Text><Text style={styles.caption}>{t("ce mois-ci")}</Text>
       </View>
     </View>
     <View style={styles.legend}>
@@ -40,10 +43,10 @@ export function ExpenseChart({ breakdown, categories, total }: {
         const percent = item.amountCents / total * 100;
         return <View key={item.categoryId} style={styles.legendRow}>
           <View style={[styles.swatch, { backgroundColor: categoryVisual(category).chart }]} />
-          <Text style={styles.label}>{category?.label ?? 'Catégorie'}</Text>
+          <Text style={styles.label}>{t(category?.label ?? "Catégorie")}</Text>
           <Text style={styles.percent}>{percent > 0 && percent < 1 ? '< 1' : Math.round(percent)} %</Text>
         </View>;
-      }) : <Text style={styles.empty}>Votre répartition apparaîtra ici, dès votre première dépense.</Text>}
+      }) : <Text style={styles.empty}>{t("Votre répartition apparaîtra ici, dès votre première dépense.")}</Text>}
     </View>
   </View>;
 }

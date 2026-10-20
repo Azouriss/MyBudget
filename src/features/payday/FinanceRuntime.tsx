@@ -5,8 +5,10 @@ import { useDatabase } from '../../db/DatabaseProvider';
 import { useAppStore } from '../../stores/useAppStore';
 import { catchUpExpenses } from '../recurring/repository';
 import { observeSalaryNotification, syncSalaryNotifications } from './notifications';
+import { useLanguage } from '../../i18n/useLanguage';
 
 export function FinanceRuntime() {
+  const language = useLanguage();
   const db = useDatabase();
   const revision = useAppStore((state) => state.revision);
   useEffect(() => {
@@ -17,7 +19,7 @@ export function FinanceRuntime() {
       try { await syncSalaryNotifications(db); }
       catch { useAppStore.getState().showNotice('Le rappel téléphone n’a pas pu être programmé. Vérifiez les paramètres de paie.'); }
     })();
-  }, [db, revision]);
+  }, [db, revision, language]);
   useEffect(() => {
     let running = false;
     async function refresh() {

@@ -1,3 +1,5 @@
+import { getLocale } from '../i18n/locale';
+
 const pad = (value: number) => String(value).padStart(2, '0');
 
 export function isISODate(value: string): boolean {
@@ -35,7 +37,7 @@ export function shiftMonth(month: string, offset: number): string {
 
 export function monthLabel(month: string): string {
   const { start } = monthBounds(month);
-  return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+  return new Intl.DateTimeFormat(getLocale(), { month: 'long', year: 'numeric', timeZone: 'UTC' })
     .format(new Date(`${start}T12:00:00Z`));
 }
 
@@ -54,6 +56,6 @@ export function parseFrenchDate(value: string): string {
 
 export function shortDate(value: string): string {
   if (!isISODate(value)) throw new Error('Date invalide.');
-  return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', timeZone: 'UTC' })
+  return new Intl.DateTimeFormat(getLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' })
     .format(new Date(`${value}T12:00:00Z`));
 }

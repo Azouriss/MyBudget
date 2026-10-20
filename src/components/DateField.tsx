@@ -1,3 +1,5 @@
+import { getLocale, t } from '../i18n/locale';
+import { useLanguage } from '../i18n/useLanguage';
 import { forwardRef, useRef, useState } from 'react';
 import { Keyboard, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,13 +14,15 @@ import { decorativeIconProps } from './decorativeIconProps';
 type Props = { label: string; value: string; onChangeText: (value: string) => void;
   onBlur?: () => void; editable?: boolean; error?: string };
 
-const weekdays = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+const frenchWeekdays = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+const englishWeekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 function CalendarArrow({ previous = false, disabled, onPress }: { previous?: boolean; disabled: boolean; onPress: () => void }) {
+  useLanguage();
   const [focused, setFocused] = useState(false);
   const Icon = previous ? ChevronLeft : ChevronRight;
   return <Pressable cssInterop={false} accessibilityRole="button"
-    accessibilityLabel={previous ? 'Mois précédent du calendrier' : 'Mois suivant du calendrier'}
+    accessibilityLabel={previous ? t("Mois précédent du calendrier") : t("Mois suivant du calendrier")}
     disabled={disabled} accessibilityState={{ disabled }} aria-disabled={disabled}
     onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onPress={onPress}
     style={({ pressed }) => [styles.arrow, {
@@ -32,6 +36,7 @@ function CalendarArrow({ previous = false, disabled, onPress }: { previous?: boo
 export const DateField = forwardRef<TextInput, Props>(function DateField({
   label, value, onChangeText, onBlur, editable = true, error,
 }, ref) {
+  useLanguage();
   const [manual, setManual] = useState(false);
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(() => calendarSelection(value).slice(0, 7));
@@ -63,22 +68,22 @@ export const DateField = forwardRef<TextInput, Props>(function DateField({
 
   return <View style={styles.field}>
     {manual ? <FormField ref={ref} label={label} value={value} onChangeText={onChangeText} onBlur={onBlur}
-      placeholder="JJ/MM/AAAA" maxLength={10} editable={editable} error={error}
+      placeholder={t("JJ/MM/AAAA")} maxLength={10} editable={editable} error={error}
       autoFocus keyboardType="numbers-and-punctuation" autoCorrect={false} returnKeyType="done" /> : <>
       <Text style={styles.label}>{label}</Text>
-      <Pressable cssInterop={false} ref={trigger} accessibilityRole="button" accessibilityLabel="Ouvrir le calendrier"
-        accessibilityHint={`Date actuelle : ${value || 'non renseignée'}. Choisir un jour dans le calendrier.`}
+      <Pressable cssInterop={false} ref={trigger} accessibilityRole="button" accessibilityLabel={t("Ouvrir le calendrier")}
+        accessibilityHint={t("Date actuelle : {0}. Choisir un jour dans le calendrier.", [value || t("non renseignée")])}
         accessibilityState={{ disabled: !editable, expanded: open }} aria-expanded={open} disabled={!editable}
         onFocus={() => setFocused(true)} onBlur={() => { setFocused(false); onBlur?.(); }} onPress={showCalendar}
         style={({ pressed }) => [styles.input, { backgroundColor: !editable ? theme.colors.disabledBackground
           : pressed ? theme.colors.primaryLight : theme.colors.surface,
           borderColor: focused ? theme.colors.focusRing : error ? theme.colors.danger : theme.colors.controlBorder }]}>
         <CalendarDays size={theme.size.icon.medium} color={theme.colors.textSubtle} {...decorativeIconProps} />
-        <Text style={styles.value}>{value || 'JJ/MM/AAAA'}</Text>
+        <Text style={styles.value}>{value || t("JJ/MM/AAAA")}</Text>
       </Pressable>
-      {error ? <Text accessibilityLiveRegion="polite" style={styles.error}>{error}</Text> : null}
+      {error ? <Text accessibilityLiveRegion="polite" style={styles.error}>{t(error)}</Text> : null}
     </>}
-    <Button title={manual ? 'Choisir dans le calendrier' : 'Saisir au clavier'} variant="ghost"
+    <Button title={manual ? t("Choisir dans le calendrier") : t("Saisir au clavier")} variant="ghost"
       icon={manual ? CalendarDays : KeyboardIcon} disabled={!editable}
       onPress={manual ? showCalendar : () => setManual(true)} />
     <Modal visible={open && editable} transparent animationType="none" onRequestClose={closeCalendar}>
@@ -86,7 +91,7 @@ export const DateField = forwardRef<TextInput, Props>(function DateField({
         <Pressable accessible={false} importantForAccessibility="no" style={StyleSheet.absoluteFill} onPress={closeCalendar} />
         <View style={styles.dialog} accessibilityViewIsModal>
           <ScrollView contentContainerStyle={styles.dialogContent} keyboardShouldPersistTaps="handled">
-            <Text accessibilityRole="header" style={styles.title}>Choisir une date</Text>
+            <Text accessibilityRole="header" style={styles.title}>{t("Choisir une date")}</Text>
             <View style={styles.monthRow}>
               <CalendarArrow previous disabled={month === '1900-01'}
                 onPress={() => setMonth(shiftMonth(month, -1))} />
@@ -94,13 +99,13 @@ export const DateField = forwardRef<TextInput, Props>(function DateField({
               <CalendarArrow disabled={month === '2099-12'}
                 onPress={() => setMonth(shiftMonth(month, 1))} />
             </View>
-            {width < 384 ? <Text style={styles.help}>Balayez la semaine pour voir tous les jours.</Text> : null}
+            {width < 384 ? <Text style={styles.help}>{t("Balayez la semaine pour voir tous les jours.")}</Text> : null}
             <ScrollView horizontal contentContainerStyle={styles.horizontal} showsHorizontalScrollIndicator>
               <View style={{ width: gridWidth }}>
                 <View style={styles.weekdays} accessible={false} importantForAccessibility="no-hide-descendants">
-                  {weekdays.map((day, index) => <Text key={index} style={[styles.weekday, { width: gridWidth / 7 }]}>{day}</Text>)}
+                  {(getLocale() === 'fr-FR' ? frenchWeekdays : englishWeekdays).map((day, index) => <Text key={index} style={[styles.weekday, { width: gridWidth / 7 }]}>{day}</Text>)}
                 </View>
-                <View accessibilityRole="radiogroup" accessibilityLabel="Jour de la dépense" style={styles.days}>
+                <View accessibilityRole="radiogroup" accessibilityLabel={t("Jour de la dépense")} style={styles.days}>
                   {calendarDays(month).map((date, index) => date ? <Pressable cssInterop={false} key={date}
                     accessibilityRole="radio" accessibilityLabel={calendarDateLabel(date)}
                     accessibilityState={{ checked: date === selected }} aria-checked={date === selected}
@@ -113,8 +118,8 @@ export const DateField = forwardRef<TextInput, Props>(function DateField({
                 </View>
               </View>
             </ScrollView>
-            <Button title="Aujourd’hui" onPress={() => choose(today)} variant="secondary" />
-            <Button title="Annuler le choix de date" onPress={closeCalendar} variant="ghost" />
+            <Button title={t("Aujourd’hui")} onPress={() => choose(today)} variant="secondary" />
+            <Button title={t("Annuler le choix de date")} onPress={closeCalendar} variant="ghost" />
           </ScrollView>
         </View>
       </SafeAreaView>

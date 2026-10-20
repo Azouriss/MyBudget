@@ -1,3 +1,5 @@
+import { t } from '../../i18n/locale';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useRef, useState } from 'react';
 import { router, useNavigation } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
@@ -19,6 +21,7 @@ import { parseBudgetAmount } from './validation';
 export function BudgetForm({ month, categoryId, label, existingAmount, defaultAmount }: {
   month: string; categoryId?: string; label: string; existingAmount?: number; defaultAmount?: number;
 }) {
+  useLanguage();
   const repository = useBudgetRepository();
   const navigation = useNavigation();
   const confirm = useConfirmation();
@@ -35,7 +38,7 @@ export function BudgetForm({ month, categoryId, label, existingAmount, defaultAm
   usePreventRemove(amount !== initial, ({ data }) => {
     if (allowLeave.current) { navigation.dispatch(data.action); return; }
     if (busy.current) return;
-    void confirm({ title: 'Quitter sans enregistrer ?', message: 'Le montant saisi ne sera pas enregistré.', confirmLabel: 'Quitter' })
+    void confirm({ title: t("Quitter sans enregistrer ?"), message: t("Le montant saisi ne sera pas enregistré."), confirmLabel: t("Quitter") })
       .then((accepted) => { if (accepted) navigation.dispatch(data.action); });
   });
   function back() {
@@ -60,14 +63,14 @@ export function BudgetForm({ month, categoryId, label, existingAmount, defaultAm
       const current = repository.forMonth(month);
       const excess = budgetEnvelopeExcess(current, { amountCents, categoryId });
       if (excess > 0) {
-        const accepted = await confirm({ title: 'Limites supérieures au budget global',
-          message: `Les enveloppes dépassent le budget global de ${formatMoney(excess)}. Voulez-vous conserver cette répartition ? Aucun montant ne sera ajusté automatiquement.`,
-          confirmLabel: 'Conserver la répartition' });
+        const accepted = await confirm({ title: t("Limites supérieures au budget global"),
+          message: t("Les enveloppes dépassent le budget global de {0}. Voulez-vous conserver cette répartition ? Aucun montant ne sera ajusté automatiquement.", [formatMoney(excess)]),
+          confirmLabel: t("Conserver la répartition") });
         if (!accepted) { busy.current = false; setSaving(false); return; }
       }
       if (categoryId) repository.setCategory({ month, amountCents }, categoryId);
       else repository.setMonthly({ month, amountCents });
-      complete('Budget enregistré');
+      complete(t("Budget enregistré"));
     } catch {
       setError('Impossible d’enregistrer le budget. Votre saisie est conservée.');
       busy.current = false;
@@ -76,36 +79,36 @@ export function BudgetForm({ month, categoryId, label, existingAmount, defaultAm
   }
   async function remove() {
     if (busy.current) return;
-    const accepted = await confirm({ title: 'Supprimer cette limite ?',
-      message: categoryId ? 'Vos transactions et le budget global seront conservés.'
-        : 'Vos transactions et les limites par catégorie seront conservées. Le salaire net saisi pour ce mois sera utilisé par défaut, s’il est renseigné.', confirmLabel: 'Supprimer', destructive: true });
+    const accepted = await confirm({ title: t("Supprimer cette limite ?"),
+      message: categoryId ? t("Vos transactions et le budget global seront conservés.")
+        : 'Vos transactions et les limites par catégorie seront conservées. Le salaire net saisi pour ce mois sera utilisé par défaut, s’il est renseigné.', confirmLabel: t("Supprimer"), destructive: true });
     if (!accepted || busy.current) return;
     busy.current = true;
     setSaving(true);
     try {
       if (categoryId) repository.removeCategory(month, categoryId);
       else repository.removeMonthly(month);
-      complete('Limite supprimée');
+      complete(t("Limite supprimée"));
     } catch {
       setError('Impossible de supprimer cette limite. Vos données sont conservées.');
       busy.current = false;
       setSaving(false);
     }
   }
-  return <ScreenContainer inTabs={false} footer={<Button title="Enregistrer le budget" onPress={() => { void save(); }} loading={saving} />}>
+  return <ScreenContainer inTabs={false} footer={<Button title={t("Enregistrer le budget")} onPress={() => { void save(); }} loading={saving} />}>
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
-      <View style={styles.header}><IconButton icon={ArrowLeft} label="Fermer le budget" onPress={back} disabled={saving} />
-        <Text accessibilityRole="header" style={styles.headerTitle}>Mon budget</Text><View style={styles.spacer} /></View>
+      <View style={styles.header}><IconButton icon={ArrowLeft} label={t("Fermer le budget")} onPress={back} disabled={saving} />
+        <Text accessibilityRole="header" style={styles.headerTitle}>{t("Mon budget")}</Text><View style={styles.spacer} /></View>
       <View style={styles.intro}>
         <Text style={styles.period}>{monthLabel(month)}</Text>
-        <Text style={styles.title}>{label}</Text>
+        <Text style={styles.title}>{t(label)}</Text>
       </View>
-      <FormField label="Budget en euros" amount suffix="€" placeholder="0,00" keyboardType="decimal-pad"
+      <FormField label={t("Budget en euros")} amount suffix="€" placeholder="0,00" keyboardType="decimal-pad"
         value={amount} onChangeText={(value) => { setAmount(value); setError(''); }} error={error} editable={!saving}
         onSubmitEditing={() => { void save(); }} returnKeyType="done" />
-      <Text style={styles.note}>0 € : aucune dépense autorisée.</Text>
-      {!categoryId ? <Text style={styles.note}>Sans limite, le salaire net du mois sert de budget.</Text> : null}
-      {existingAmount !== undefined ? <Button title="Supprimer cette limite" variant="danger" icon={Trash2}
+      <Text style={styles.note}>{t("0 € : aucune dépense autorisée.")}</Text>
+      {!categoryId ? <Text style={styles.note}>{t("Sans limite, le salaire net du mois sert de budget.")}</Text> : null}
+      {existingAmount !== undefined ? <Button title={t("Supprimer cette limite")} variant="danger" icon={Trash2}
         onPress={() => { void remove(); }} disabled={saving} /> : null}
     </ScrollView>
   </ScreenContainer>;

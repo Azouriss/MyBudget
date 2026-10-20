@@ -1,3 +1,5 @@
+import { t } from '../src/i18n/locale';
+import { useLanguage } from '../src/i18n/useLanguage';
 import { useEffect, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
@@ -12,6 +14,7 @@ import { Button } from '../src/components/Button';
 import { theme } from '../src/theme';
 
 export default function BudgetScreen() {
+  useLanguage();
   const { month, categoryId } = useLocalSearchParams<{ month?: string; categoryId?: string }>();
   const repository = useBudgetRepository();
   const transactions = useTransactionRepository();
@@ -35,9 +38,9 @@ export default function BudgetScreen() {
     month={month} categoryId={categoryId} label={state.label} existingAmount={state.existingAmount} defaultAmount={state.defaultAmount} />;
   return <ScreenContainer inTabs={false}><View style={{ padding: theme.layout.gutter, gap: theme.spacing.lg }}>
     {state.loading ? <QueryState error={false} /> : <>
-      <EmptyState title="Budget indisponible" description="Le mois ou la catégorie n’a pas pu être chargé. Vos données sont conservées." />
-      <Button title="Réessayer" onPress={() => setAttempt((value) => value + 1)} />
-      <Button title="Revenir aux budgets" variant="secondary" onPress={() => router.replace('/budgets')} />
+      <EmptyState title={t("Budget indisponible")} description={t("Le mois ou la catégorie n’a pas pu être chargé. Vos données sont conservées.")} />
+      <Button title={t("Réessayer")} onPress={() => setAttempt((value) => value + 1)} />
+      <Button title={t("Revenir aux budgets")} variant="secondary" onPress={() => router.replace('/budgets')} />
     </>}
   </View></ScreenContainer>;
 }

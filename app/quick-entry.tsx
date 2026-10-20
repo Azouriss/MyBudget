@@ -1,3 +1,5 @@
+import { t } from '../src/i18n/locale';
+import { useLanguage } from '../src/i18n/useLanguage';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { SettingsPage, settingsStyles as s } from '../src/components/SettingsPage';
@@ -16,6 +18,7 @@ import { displayDate, localDateKey, parseFrenchDate } from '../src/lib/dates';
 import { ExpenseSubcategoryPicker } from '../src/features/categories/ExpenseSubcategoryPicker';
 
 export default function QuickEntryScreen() {
+  useLanguage();
   const db = useDatabase(), tools = createEntryToolsRepository(db), entries = createTransactionRepository(db);
   const query = useLocalQuery(() => ({ templates: tools.templates(), categories: entries.categories() }));
   const op = useOperation(), confirm = useConfirmation();
@@ -25,26 +28,26 @@ export default function QuickEntryScreen() {
   const [date, setDate] = useState(displayDate(localDateKey()));
   useDraftGuard(!!label || !!amount, op.busy);
   const draft = () => ({ kind, label, amountCents: parseAmountToCents(amount), categoryId, subcategoryId, occurredOn: parseFrenchDate(date) });
-  return <SettingsPage title="Favoris et saisie express">
+  return <SettingsPage title={t("Favoris et saisie express")}>
     {!query.data ? <QueryFeedback {...query} /> : <>
-      {query.data.templates.map((t) => <SurfaceCard key={t.id} style={s.card}>
-        <Button title={`${t.label} · ${formatMoney(t.amountCents)}`} variant="secondary" disabled={op.busy} onPress={() => {
-          setLabel(t.label); setAmount(centsToInput(t.amountCents)); setKind(t.kind); setCategory(t.categoryId); setSubcategory(t.subcategoryId); setDate(displayDate(localDateKey()));
+      {query.data.templates.map((template) => <SurfaceCard key={template.id} style={s.card}>
+        <Button title={`${template.label} · ${formatMoney(template.amountCents)}`} variant="secondary" disabled={op.busy} onPress={() => {
+          setLabel(template.label); setAmount(centsToInput(template.amountCents)); setKind(template.kind); setCategory(template.categoryId); setSubcategory(template.subcategoryId); setDate(displayDate(localDateKey()));
         }} />
-        <Button title={`Supprimer le favori ${t.label}`} variant="ghost" disabled={op.busy} onPress={() => void op.run(async () => {
-          if (await confirm({ title: 'Supprimer ce favori ?', message: 'Les transactions enregistrées sont conservées.', confirmLabel: 'Supprimer', destructive: true })) tools.removeTemplate(t.id);
+        <Button title={t("Supprimer le favori {0}", [template.label])} variant="ghost" disabled={op.busy} onPress={() => void op.run(async () => {
+          if (await confirm({ title: t("Supprimer ce favori ?"), message: t("Les transactions enregistrées sont conservées."), confirmLabel: t("Supprimer"), destructive: true })) tools.removeTemplate(template.id);
         })} />
       </SurfaceCard>)}
-      <SegmentedControl label="Type" value={kind} options={[{ value: 'expense', label: 'Dépense' }, { value: 'income', label: 'Revenu' }]} disabled={op.busy}
+      <SegmentedControl label={t("Type")} value={kind} options={[{ value: 'expense', label: t("Dépense") }, { value: 'income', label: t("Revenu") }]} disabled={op.busy}
         onChange={(v) => { setKind(v); setCategory(v === 'expense' ? 'food' : 'other-income'); setSubcategory(null); }} />
-      <FormField label="Libellé" value={label} onChangeText={setLabel} maxLength={80} editable={!op.busy} />
-      <FormField label="Montant en euros" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" editable={!op.busy} />
-      <View style={s.card}>{query.data.categories.filter((c) => c.kind === kind).map((c) => <Button key={c.id} title={c.label} variant={categoryId === c.id ? 'primary' : 'secondary'} disabled={op.busy} onPress={() => { setCategory(c.id); setSubcategory(null); }} />)}</View>
+      <FormField label={t("Libellé")} value={label} onChangeText={setLabel} maxLength={80} editable={!op.busy} />
+      <FormField label={t("Montant en euros")} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" editable={!op.busy} />
+      <View style={s.card}>{query.data.categories.filter((c) => c.kind === kind).map((c) => <Button key={c.id} title={t(c.label)} variant={categoryId === c.id ? 'primary' : 'secondary'} disabled={op.busy} onPress={() => { setCategory(c.id); setSubcategory(null); }} />)}</View>
       {kind === 'expense' ? <ExpenseSubcategoryPicker categories={query.data.categories} categoryId={categoryId} value={subcategoryId} disabled={op.busy}
         onChange={(category, sub) => { setCategory(category); setSubcategory(sub); }} /> : null}
-      <DateField label="Date · JJ/MM/AAAA" value={date} onChangeText={setDate} editable={!op.busy} />
-      <Button title="Enregistrer la transaction" loading={op.busy} disabled={!amount || !label} onPress={() => void op.run(() => { entries.create(draft()); setAmount(''); setLabel(''); }, 'Transaction enregistrée')} />
-      <Button title="Conserver comme favori" variant="secondary" disabled={op.busy || !amount || !label} onPress={() => void op.run(() => tools.saveTemplate(draft()), 'Favori enregistré')} />
+      <DateField label={t("Date · JJ/MM/AAAA")} value={date} onChangeText={setDate} editable={!op.busy} />
+      <Button title={t("Enregistrer la transaction")} loading={op.busy} disabled={!amount || !label} onPress={() => void op.run(() => { entries.create(draft()); setAmount(''); setLabel(''); }, t("Transaction enregistrée"))} />
+      <Button title={t("Conserver comme favori")} variant="secondary" disabled={op.busy || !amount || !label} onPress={() => void op.run(() => tools.saveTemplate(draft()), t("Favori enregistré"))} />
     </>}
     <OperationError message={op.error} />
   </SettingsPage>;
