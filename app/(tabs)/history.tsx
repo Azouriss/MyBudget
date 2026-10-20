@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Search, X } from 'lucide-react-native';
-import { SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ArrowDownLeft, ArrowUpRight, Repeat2, Search, X } from 'lucide-react-native';
+import { SectionList, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { AddTransactionButton } from '../../src/components/AddTransactionButton';
 import { MonthPicker } from '../../src/components/MonthPicker';
 import { ScreenHeading } from '../../src/components/ScreenHeading';
@@ -14,7 +14,7 @@ import { TransactionRow } from '../../src/features/transactions/TransactionRow';
 import { useMonthlyTransactions } from '../../src/features/transactions/hooks';
 import { useAppStore } from '../../src/stores/useAppStore';
 import { formatMoney } from '../../src/lib/money';
-import { displayDate, localDateKey } from '../../src/lib/dates';
+import { localDateKey } from '../../src/lib/dates';
 import { monthlySummary } from '../../src/lib/finance';
 import { theme } from '../../src/theme';
 import type { Transaction } from '../../src/features/transactions/types';
@@ -24,6 +24,7 @@ const filters = [
   { value: 'all', label: 'Toutes' }, { value: 'expense', label: 'Dépenses' }, { value: 'income', label: 'Revenus' },
 ] as const;
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr-FR');
+const historyDate = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
 
 export default function HistoryScreen() {
   const { transactions, categories, loading, error } = useMonthlyTransactions();
@@ -33,6 +34,9 @@ export default function HistoryScreen() {
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [focused, setFocused] = useState(false);
+  const { width, fontScale } = useWindowDimensions();
+  const stackedSummary = Math.min(width, theme.layout.contentMaxWidth) < theme.layout.compactContentWidth
+    || fontScale >= theme.layout.stackedFontScale;
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
   const visible = useMemo(() => transactions.filter((item) =>
     (filter === 'all' || item.kind === filter)
@@ -57,8 +61,31 @@ export default function HistoryScreen() {
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.page}
       ListHeaderComponent={<>
-        <ScreenHeading title="Mes dépenses" action={<IconButton icon={searchOpen ? X : Search}
+        <ScreenHeading title="Historique" action={<IconButton icon={searchOpen ? X : Search}
           label={searchOpen ? 'Fermer la recherche' : 'Rechercher une transaction'} onPress={() => { setSearchOpen(!searchOpen); setQuery(''); }} />} />
+        <MonthPicker />
+        {!loading && !error ? <View style={styles.overview}>
+          <View style={[styles.totals, stackedSummary && styles.stackedTotals]}>
+            {filter !== 'income' ? <View style={[styles.totalCard, styles.expenseCard, stackedSummary && styles.compactCard]}>
+              <View style={styles.totalLabel}>
+                <ArrowUpRight size={theme.size.icon.medium} color={theme.colors.dangerText} {...decorativeIconProps} />
+                <Text style={styles.totalTitle}>Dépenses</Text>
+              </View>
+              <Text style={[styles.totalAmount, styles.expenseAmount]}>{formatMoney(summary.expenseCents)}</Text>
+            </View> : null}
+            {filter !== 'expense' ? <View style={[styles.totalCard, styles.incomeCard, stackedSummary && styles.compactCard]}>
+              <View style={styles.totalLabel}>
+                <ArrowDownLeft size={theme.size.icon.medium} color={theme.colors.textAction} {...decorativeIconProps} />
+                <Text style={styles.totalTitle}>Revenus</Text>
+              </View>
+              <Text style={[styles.totalAmount, styles.incomeAmount]}>{formatMoney(summary.incomeCents)}</Text>
+            </View> : null}
+          </View>
+          {hasPlanned ? <View style={styles.planned}>
+            <Repeat2 size={theme.size.icon.small} color={theme.colors.textAction} {...decorativeIconProps} />
+            <Text style={styles.meta}>Échéances prévues incluses</Text>
+          </View> : null}
+        </View> : null}
         <View style={styles.tools}>
           <SegmentedControl label="Type de transactions" options={filters} value={filter} onChange={setFilter} />
           {searchOpen ? <View style={[styles.search, { borderColor: focused ? theme.colors.focusRing : theme.colors.controlBorder }]}>
@@ -70,17 +97,16 @@ export default function HistoryScreen() {
             {query ? <IconButton icon={X} label="Effacer la recherche" onPress={() => setQuery('')} /> : null}
           </View> : null}
         </View>
-        <MonthPicker />
-        {!loading && !error && visible.length ? <View style={styles.summary}>
-          <Text style={styles.meta}>{filtered ? 'Résultats filtrés' : 'Toutes les transactions'} · {visible.length}</Text>
-          {hasPlanned ? <Text style={styles.meta}>Échéances prévues incluses.</Text> : null}
-          {filter !== 'income' ? <Text style={styles.total}>Dépenses : {formatMoney(summary.expenseCents)}</Text> : null}
-          {filter !== 'expense' ? <Text style={styles.total}>Revenus : {formatMoney(summary.incomeCents)}</Text> : null}
+        {!loading && !error ? <View style={styles.listHeading}>
+          <Text accessibilityRole="header" style={styles.listTitle}>{filtered ? 'Résultats' : 'Opérations'}</Text>
+          <View style={styles.countBadge}><Text style={styles.count}>{visible.length}</Text></View>
+          <View style={styles.headingLine} />
         </View> : null}
       </>}
-      renderSectionHeader={({ section }) => <Text accessibilityRole="header" style={styles.date}>{section.date === localDateKey() ? 'Aujourd’hui' : displayDate(section.date)}</Text>}
+      renderSectionHeader={({ section }) => <Text accessibilityRole="header" style={styles.date}>{section.date === localDateKey() ? 'Aujourd’hui'
+        : historyDate.format(new Date(`${section.date}T12:00:00Z`))}</Text>}
       renderItem={({ item, index, section }) => <TransactionRow transaction={item}
-        category={categoryMap.get(item.categoryId)} last={index === section.data.length - 1} />}
+        category={categoryMap.get(item.categoryId)} last={index === section.data.length - 1} variant="history" />}
       ListEmptyComponent={loading || error ? <QueryState error={error} /> : <EmptyState
         title={filtered ? 'Aucun résultat' : 'Aucune transaction ce mois-ci'}
         description={filtered ? 'Essayez un autre mot ou effacez les filtres.'
@@ -99,9 +125,32 @@ const styles = StyleSheet.create({
     borderWidth: theme.size.focusWidth, borderRadius: theme.radius.medium, backgroundColor: theme.colors.surface },
   searchInput: { ...theme.typography.body, color: theme.colors.textPrimary, flex: 1, minWidth: 0,
     paddingVertical: theme.spacing.md },
-  summary: { gap: theme.spacing.xs, paddingBottom: theme.spacing.md },
-  meta: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
-  total: { ...theme.typography.bodySmall, ...theme.typography.amount, color: theme.colors.textPrimary },
-  date: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.semibold,
-    color: theme.colors.textSubtle, marginTop: theme.spacing.lg, marginBottom: theme.spacing.sm },
+  overview: { gap: theme.spacing.md, marginBottom: theme.spacing.xl },
+  totals: { flexDirection: 'row', gap: theme.spacing.md },
+  stackedTotals: { flexDirection: 'column' },
+  totalCard: { flex: 1, minWidth: 0, padding: theme.spacing.lg, gap: theme.spacing.sm,
+    borderRadius: theme.radius.large },
+  compactCard: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between',
+    flexGrow: 0, flexShrink: 0, flexBasis: 'auto' },
+  expenseCard: { backgroundColor: theme.colors.peachBackground },
+  incomeCard: { backgroundColor: theme.colors.primaryLight },
+  totalLabel: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm, flexShrink: 1 },
+  totalTitle: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.medium,
+    color: theme.colors.textPrimary, flexShrink: 1 },
+  totalAmount: { ...theme.typography.headingL, ...theme.typography.amount, flexShrink: 1 },
+  expenseAmount: { color: theme.colors.dangerText },
+  incomeAmount: { color: theme.colors.textAction },
+  planned: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
+  meta: { ...theme.typography.bodySmall, color: theme.colors.textSubtle, flexShrink: 1 },
+  listHeading: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm,
+    marginTop: theme.spacing.sm, marginBottom: theme.spacing.xs },
+  listTitle: { ...theme.typography.headingS, color: theme.colors.textPrimary, flexShrink: 1 },
+  countBadge: { minWidth: theme.spacing.xl, paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs, alignItems: 'center',
+    backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.full },
+  count: { ...theme.typography.caption, ...theme.typography.amount, color: theme.colors.textSubtle },
+  headingLine: { flex: 1, height: theme.size.borderWidth, backgroundColor: theme.colors.border,
+    marginLeft: theme.spacing.xs },
+  date: { ...theme.typography.caption, color: theme.colors.textSubtle, textTransform: 'capitalize',
+    marginTop: theme.spacing.lg, marginBottom: theme.spacing.sm },
 });

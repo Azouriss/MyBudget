@@ -1,5 +1,40 @@
 # Frontend version history
 
+## 0.5.5.0 - 2026-10-20
+
+- Redesign history with separate expense and income cards, prominent Inter
+  amounts, directional icons and a dedicated operation-count badge.
+- Group operations under readable day headings and use white transaction cards
+  with category icons and recurring badges. Remove repeated dates and let long
+  labels and large amounts wrap without squeezing the transaction description.
+- Preserve month navigation, accent-insensitive search, type filters, editing,
+  forecast navigation and the persistent Add expense action in empty results.
+
+**Threat impact:** Presentation only. Integer-cent calculations, validation,
+  financial records, protected migrations and Android identity are unchanged.
+  Keep accessible transaction descriptions, keyboard focus and 48 dp controls.
+
+**Sovereignty impact:** Existing bundled icons, fonts, components and theme
+  tokens are reused. No dependency, account, network service, telemetry, data
+  export or remote build is added.
+
+**Validation:** Windows `npm run check` initially passed in the shared directory.
+  Final `npm run release:check` passed on a temporary source export containing
+  HEAD plus only this UI change: TypeScript, 208 application tests, 23 release-tool
+  tests and seven protected migrations. The final shared-directory typecheck
+  encountered unrelated concurrent translation edits and an ignored source copy.
+  A fresh offline Expo web export and isolated Chrome acceptance passed empty,
+  income-only, mixed, filtered-empty, planned and large-amount history at
+  320/360/390/768 px. Verified search/reset, expense/income filters, editing,
+  recorded/planned recurrence navigation, dashboard rows and visible 48 dp add
+  controls, without page overflow or runtime exceptions. Reviewed screenshots
+  and summary/row wrapping with simulated 150% web text; native font scaling
+  and Android phone acceptance remain separate. Scoped diff and secret checks
+  passed. Concurrent profile and translation work is excluded from this commit.
+
+**Status:** `verification-pending` - Android phone and packaged APK acceptance
+  remain pending. No APK, push, tag, publication or deployment.
+
 ## 0.5.4.0 - 2026-10-20
 
 - Redesign the monthly budget overview with a prominent remaining balance,
