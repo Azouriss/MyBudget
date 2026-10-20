@@ -11,6 +11,7 @@ import { frequencies, type Frequency } from '../recurring/schedule';
 import { monthLabel } from '../../lib/dates';
 import type { Category } from '../../db/schema';
 import { Button } from '../../components/Button';
+import { Disclosure } from '../../components/Disclosure';
 import { CategoryIcon } from '../../components/CategoryIcon';
 import { FormField } from '../../components/FormField';
 import { DateField } from '../../components/DateField';
@@ -144,8 +145,7 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
       </View>
       <View style={styles.fields}>
         <SegmentedControl label="Type de transaction" options={kinds} value={kind} onChange={changeKind} disabled={saving || !!salaryMonth || !!existing?.recurringExpenseId} />
-        {salaryMonth ? <Text style={styles.label}>Salaire NET · {monthLabel(salaryMonth)}. Saisissez le montant réellement reçu.</Text>
-          : isSalary ? <Text style={styles.help}>Saisissez le salaire NET réellement reçu.</Text> : null}
+        {salaryMonth ? <Text style={styles.label}>Salaire net · {monthLabel(salaryMonth)}</Text> : null}
         <Controller control={control} name="amount" render={({ field: { ref, value, onChange, onBlur } }) =>
           <FormField ref={ref} label={isSalary ? 'Salaire NET en euros' : 'Montant en euros'} value={value} onChangeText={onChange} onBlur={onBlur}
             amount suffix="€" placeholder="0,00" keyboardType="decimal-pad" editable={!saving} error={errors.amount?.message} />
@@ -200,7 +200,10 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
           </View>
           {recurring ? <>
             <SegmentedControl label="Répéter chaque" options={frequencies} value={frequency} onChange={setFrequency} disabled={saving} />
-            <Text style={styles.help}>La date choisie est la première échéance. Les suivantes apparaissent comme prévues dans les mois futurs, puis sont enregistrées à leur date, à l’ouverture de l’app. Les jours absents d’un mois sont reportés à son dernier jour.</Text>
+            <Text style={styles.help}>Première échéance : date choisie.</Text>
+            <Disclosure title="Fonctionnement des récurrences">
+              <Text style={styles.help}>Les prochaines échéances sont prévues, puis enregistrées à leur date lors de l’ouverture de l’app. Jour absent du mois : dernier jour du mois.</Text>
+            </Disclosure>
           </> : null}
         </View> : null}
         {existing?.recurringExpenseId ? <View style={styles.categoryField}>

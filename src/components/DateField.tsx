@@ -94,7 +94,7 @@ export const DateField = forwardRef<TextInput, Props>(function DateField({
               <CalendarArrow disabled={month === '2099-12'}
                 onPress={() => setMonth(shiftMonth(month, 1))} />
             </View>
-            {width < 384 ? <Text style={styles.help}>Faites défiler la semaine horizontalement pour voir tous les jours.</Text> : null}
+            {width < 384 ? <Text style={styles.help}>Balayez la semaine pour voir tous les jours.</Text> : null}
             <ScrollView horizontal contentContainerStyle={styles.horizontal} showsHorizontalScrollIndicator>
               <View style={{ width: gridWidth }}>
                 <View style={styles.weekdays} accessible={false} importantForAccessibility="no-hide-descendants">

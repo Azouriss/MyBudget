@@ -99,14 +99,12 @@ export function BudgetForm({ month, categoryId, label, existingAmount, defaultAm
       <View style={styles.intro}>
         <Text style={styles.period}>{monthLabel(month)}</Text>
         <Text style={styles.title}>{label}</Text>
-        <Text style={styles.copy}>{categoryId ? 'Fixez le montant à ne pas dépasser pour cette catégorie.' : 'Choisissez votre limite de dépenses pour ce mois.'}</Text>
       </View>
       <FormField label="Budget en euros" amount suffix="€" placeholder="0,00" keyboardType="decimal-pad"
         value={amount} onChangeText={(value) => { setAmount(value); setError(''); }} error={error} editable={!saving}
         onSubmitEditing={() => { void save(); }} returnKeyType="done" />
-      <Text style={styles.note}>Un budget de 0 € signifie « Aucun montant autorisé ». Retirer une limite conserve vos dépenses.</Text>
-      {!categoryId ? <Text style={styles.note}>Sans budget global défini, le salaire net saisi pour ce mois est utilisé par défaut.</Text> : null}
-      <Text style={styles.note}>Cette limite s’applique uniquement à {monthLabel(month)}. Elle ne modifie aucune transaction.</Text>
+      <Text style={styles.note}>0 € : aucune dépense autorisée.</Text>
+      {!categoryId ? <Text style={styles.note}>Sans limite, le salaire net du mois sert de budget.</Text> : null}
       {existingAmount !== undefined ? <Button title="Supprimer cette limite" variant="danger" icon={Trash2}
         onPress={() => { void remove(); }} disabled={saving} /> : null}
     </ScrollView>
@@ -121,6 +119,5 @@ const styles = StyleSheet.create({
   intro: { gap: theme.spacing.sm },
   period: { ...theme.typography.bodySmall, color: theme.colors.textSubtle, textTransform: 'capitalize' },
   title: { ...theme.typography.editorial, color: theme.colors.textPrimary },
-  copy: { ...theme.typography.body, color: theme.colors.textSubtle },
   note: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
 });

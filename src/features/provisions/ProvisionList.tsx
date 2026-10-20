@@ -23,12 +23,11 @@ export function ProvisionList() {
   }, [revision, repository]);
   const today = localDateKey();
   return <View style={styles.group}>
-    <Text style={styles.note}>Préparez vos dépenses annuelles ou vos projets. Les réserves sont suivies séparément : elles ne créent ni dépense ni virement et ne diminuent pas automatiquement votre budget.</Text>
+    <Text style={styles.note}>Réserve indicative : aucun virement ni effet sur le budget.</Text>
     <Button title="Créer une provision" onPress={() => router.push('/provision')} />
     {state.revision !== revision ? <Text style={styles.note}>Chargement des provisions…</Text>
       : state.error ? <><Text accessibilityRole="alert" style={styles.error}>Impossible de lire les provisions.</Text><Button title="Réessayer" onPress={invalidate} /></>
-      : state.goals?.length === 0 ? <SurfaceCard style={styles.card}><Text style={styles.title}>Préparez la prochaine grosse dépense</Text>
-        <Text style={styles.copy}>Une assurance annuelle, l’entretien de la voiture ou un projet : fixez un montant et une échéance, puis suivez votre réserve.</Text></SurfaceCard>
+      : state.goals?.length === 0 ? <SurfaceCard style={styles.card}><Text style={styles.title}>Aucune provision</Text></SurfaceCard>
       : state.goals?.map((goal) => {
         const plan = provisionPlan(goal, goal.reservedCents, today);
         return <SurfaceCard key={goal.id} style={styles.card}>

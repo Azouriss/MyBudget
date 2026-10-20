@@ -22,7 +22,7 @@ export default function RenewalsScreen() {
   useDraftGuard(!!label || !!amount || !!due || !!cancelBy, op.busy);
   function reset() { setId(undefined); setLabel(''); setAmount(''); setDue(''); setCancelBy(''); setDays('7'); setEnabled(false); }
   return <SettingsPage title="Renouvellements">
-    <Text style={s.copy}>Suivez les dates limites de résiliation. Ces fiches ne créent aucune dépense ; utilisez les récurrences pour les paiements. Les dates sont renseignées par vous.</Text>
+    <Text style={s.copy}>Suivi des échéances, sans création de dépense.</Text>
     <FormField label="Abonnement ou contrat" value={label} onChangeText={setLabel} maxLength={80} editable={!op.busy} />
     <FormField label="Coût du renouvellement en euros" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" editable={!op.busy} />
     <DateField label="Prochain renouvellement · JJ/MM/AAAA" value={due} onChangeText={setDue} editable={!op.busy} />
@@ -44,8 +44,8 @@ export default function RenewalsScreen() {
     {!query.data ? <QueryFeedback {...query} /> : query.data.length === 0 ? <Text style={s.copy}>Aucun renouvellement suivi.</Text> : query.data.map((r) => <SurfaceCard key={r.id} style={s.card}>
       <Text style={s.label}>{r.label} · {formatMoney(r.amountCents)}</Text>
       <Text style={s.copy}>Renouvellement : {displayDate(r.dueOn)} · Résiliation au plus tard : {displayDate(r.cancelBy)}{r.cancelBy < localDateKey() ? ' · Date limite passée' : ''}</Text>
-      <Text style={s.copy}>{r.notificationsEnabled ? `Rappel demandé ${r.remindDays} jours avant, vers 9 h. Son affichage dépend des autorisations et réglages Android.` : 'Rappel désactivé.'}</Text>
-      <Button title="Modifier ou préparer la prochaine échéance" variant="secondary" disabled={op.busy} onPress={() => {
+      <Text style={s.copy}>{r.notificationsEnabled ? `Rappel demandé : ${r.remindDays} j avant, vers 9 h (si autorisé par Android).` : 'Rappel désactivé.'}</Text>
+      <Button title="Modifier l’échéance" variant="secondary" disabled={op.busy} onPress={() => {
         setId(r.id); setLabel(r.label); setAmount(centsToInput(r.amountCents)); setDue(displayDate(r.dueOn)); setCancelBy(displayDate(r.cancelBy)); setDays(String(r.remindDays)); setEnabled(r.notificationsEnabled);
       }} />
       <Button title="Supprimer ce suivi" variant="ghost" disabled={op.busy} onPress={() => void op.run(async () => {

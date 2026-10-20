@@ -1,5 +1,41 @@
 # Frontend version history
 
+## 0.5.3.0 - 2026-10-20
+
+- Shorten interface copy across all tabs, transaction and budget forms,
+  recurring expenses, provisions, reminders and data tools. Remove repeated
+  instructions and promotional empty-state text; retain financial context.
+- Put detailed help behind accessible, initially collapsed controls in Settings,
+  payday, forecasts, provisions, recurring entry, transfers and monthly reviews.
+  Keep optional CSV category rules in a collapsed section.
+- Preserve net salary labels, zero-budget semantics, forecast qualifications,
+  plaintext file warnings, restore notices and destructive confirmations.
+
+**Threat impact:** Presentation only. Calculations, validation, database identity
+  and protected migrations are unchanged. Disclosure controls expose their state,
+  support keyboard activation and retain 48 dp touch targets and focus indicators.
+  Browser acceptance uses an isolated profile and synthetic data only.
+
+**Sovereignty impact:** Existing theme tokens and local components are reused.
+  No dependency, account, telemetry, service or remote build is added.
+
+**Validation:** Windows `npm run release:check` passed: TypeScript, 208 application
+  tests, 23 release-tool tests and seven protected migrations. Final copy changes
+  also passed `npm run typecheck` and a fresh local Expo web export.
+  Isolated Chrome acceptance passed 26 views/states at 320, 390 and 768 px,
+  including all nine help sections with simulated 150% web text, keyboard
+  activation and all five calendar consumers. Verified salary entry/editing,
+  payday guards, recurring expenses, provisions, favorites, splits, partial
+  reimbursements, period budgets, renewals, JSON backup, CSV export/import
+  and confirmed restoration with synthetic data. No page overflow, clipped
+  enlarged text in the help sections or runtime exceptions were detected.
+  One transient lock during repeated web reloads recovered through the existing
+  retry action without resetting the database. Screenshots were reviewed;
+  `git diff --check` and the scoped credential/private-path scan passed.
+
+**Status:** `verification-pending` - Android phone and packaged APK acceptance
+  remain pending. No APK, push, tag, publication or deployment.
+
 ## 0.5.2.0 - 2026-10-20
 
 - Remove the dashboard greeting, motivational quote and repeated local-storage

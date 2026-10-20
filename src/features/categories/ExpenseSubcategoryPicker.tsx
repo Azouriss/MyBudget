@@ -30,12 +30,11 @@ export function ExpenseSubcategoryPicker({ categories, categoryId, value, onChan
   const visible = expanded ? results : results.slice(0, 5);
 
   return <View style={styles.field}>
-    <FormField label="Rechercher une sous-catégorie" leadingIcon={Search}
+    <FormField label="Sous-catégorie (facultatif)" leadingIcon={Search}
       placeholder="Ex. Carburant, pharmacie, restaurant…" value={query}
       onChangeText={(text) => { setQuery(text); setExpanded(false); }}
       editable={!disabled} maxLength={100} autoCorrect={false} autoCapitalize="none"
       returnKeyType="search" onSubmitEditing={() => Keyboard.dismiss()} error={error} />
-    <Text style={styles.help}>Facultatif · La recherche couvre les six grandes catégories.</Text>
     {selected ? <View style={styles.selection}>
       <View style={styles.copy}>
         <Text style={styles.selectionLabel}>{selected.label}</Text>
@@ -68,7 +67,7 @@ export function ExpenseSubcategoryPicker({ categories, categoryId, value, onChan
         </View>
         {value === subcategory.id ? <Check size={theme.size.icon.small} color={theme.colors.primaryDark} {...decorativeIconProps} /> : null}
       </Pressable>)}
-    </View> : searching ? <Text style={styles.help}>Aucune sous-catégorie trouvée. Essayez un autre mot ou gardez uniquement la catégorie principale.</Text> : null}
+    </View> : searching ? <Text style={styles.help}>Aucun résultat. Essayez un autre mot.</Text> : null}
     {results.length > 5 ? <Button variant="secondary" disabled={disabled}
       title={expanded ? 'Réduire la liste' : `Afficher les ${results.length - 5} autres résultats`}
       onPress={() => setExpanded(!expanded)} /> : null}

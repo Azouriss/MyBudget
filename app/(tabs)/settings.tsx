@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Database, Wallet, WifiOff } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import { ScreenHeading } from '../../src/components/ScreenHeading';
 import { ScreenContainer } from '../../src/components/ScreenContainer';
 import { SurfaceCard } from '../../src/components/SurfaceCard';
-import { SectionHeader } from '../../src/components/SectionHeader';
 import { Button } from '../../src/components/Button';
+import { Disclosure } from '../../src/components/Disclosure';
 import { AppHeader } from '../../src/components/AppHeader';
 import { useDatabase } from '../../src/db/DatabaseProvider';
 import { createPaydayRepository } from '../../src/features/payday/repository';
@@ -25,7 +24,7 @@ export default function SettingsScreen() {
     try {
       const settings = createPaydayRepository(db).settings();
       setPayday(settings?.day ?? null);
-      setPaydayStatus('Aucun jour de paie défini.');
+      setPaydayStatus('Jour de paie non défini.');
     } catch {
       setPayday(null);
       setPaydayStatus('Le jour de paie n’a pas pu être chargé. Rouvrez les paramètres pour réessayer.');
@@ -40,38 +39,14 @@ export default function SettingsScreen() {
         <SurfaceCard style={{ gap: theme.spacing.md }}>
           <Text style={styles.label}>Paie & abonnements</Text>
           <Text accessibilityLiveRegion="polite" style={payday === null ? styles.body : styles.payday}>
-            {payday === null ? paydayStatus : `Jour de paie : le ${payday === 1 ? '1er' : payday} de chaque mois.`}
+            {payday === null ? paydayStatus : `Paie le ${payday === 1 ? '1er' : payday} du mois.`}
           </Text>
           <Button title="Jour de paie et rappels" variant="secondary" onPress={() => router.push('/payday')} />
           <Button title="Dépenses récurrentes" variant="ghost" onPress={() => router.push('/recurring')} />
         </SurfaceCard>
-        <View>
-          <SectionHeader title="Au quotidien" />
-          <SurfaceCard style={styles.rows}>
-            <View style={styles.row}><Wallet color={theme.colors.primaryDark} size={theme.size.icon.default} />
-              <View style={styles.copy}><Text style={styles.label}>Devise</Text><Text style={styles.body}>Euro · EUR</Text></View>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.row}><WifiOff color={theme.colors.primaryDark} size={theme.size.icon.default} />
-              <View style={styles.copy}><Text style={styles.label}>{web ? 'Aperçu sur ordinateur' : 'Disponible hors ligne'}</Text>
-                <Text style={styles.body}>{web ? 'Le serveur local doit rester lancé pour ouvrir cet aperçu.'
-                  : 'L’application installée fonctionne sans Internet ni service distant.'}</Text></View>
-            </View>
-          </SurfaceCard>
-        </View>
-        <View>
-          <SectionHeader title="Vos données" />
-          <SurfaceCard style={styles.row}><Database color={theme.colors.primaryDark} size={theme.size.icon.default} />
-            <View style={styles.copy}><Text style={styles.label}>Conservation locale</Text>
-              <Text style={styles.body}>{web
-                ? 'Effacer les données du navigateur supprime les transactions de test. Cet aperçu ne synchronise pas vos données avec Android.'
-                : 'Une mise à jour signée avec la même clé conserve vos transactions. Désinstaller l’application ou effacer ses données supprime la base locale.'}</Text>
-            </View>
-          </SurfaceCard>
-        </View>
         <SurfaceCard style={{ gap: theme.spacing.md }}>
           <Text style={styles.label}>Vos outils</Text>
-          <Button title="Sauvegarder, restaurer et exporter" variant="secondary" onPress={() => router.push('/data-transfer')} />
+          <Button title="Sauvegardes et exports" variant="secondary" onPress={() => router.push('/data-transfer')} />
           <Button title="Importer un relevé CSV" variant="secondary" onPress={() => router.push('/csv-import')} />
           <Button title="Favoris et saisie express" variant="secondary" onPress={() => router.push('/quick-entry')} />
           <Button title="Budget de paie à paie" variant="secondary" onPress={() => router.push('/pay-cycle')} />
@@ -79,8 +54,16 @@ export default function SettingsScreen() {
           <Button title="Comprendre mon mois" variant="secondary" onPress={() => router.push('/month-review')} />
           <Button title="Renouvellements" variant="secondary" onPress={() => router.push('/renewals')} />
         </SurfaceCard>
+        <Disclosure title="À propos et données">
+          <Text style={styles.body}>{web ? 'Aperçu web · Euro (EUR)' : 'Hors ligne · Euro (EUR)'}</Text>
+          <Text style={styles.body}>{web
+            ? 'Cet aperçu nécessite le serveur local. Ses données sont séparées de celles d’Android.'
+            : 'Vos données restent sur ce téléphone. Les mises à jour conservent vos données.'}</Text>
+          <Text style={styles.body}>{web
+            ? 'Effacer les données du navigateur supprime les transactions de test.'
+            : 'Désinstaller l’app ou effacer ses données supprime vos transactions. Pensez aux sauvegardes.'}</Text>
+        </Disclosure>
         <View style={styles.about}>
-          <Text style={styles.label}>MyBudget</Text>
           <Text style={styles.body}>Version {Constants.expoConfig?.version ?? 'indisponible'}</Text>
         </View>
 
@@ -95,9 +78,5 @@ const styles = StyleSheet.create({
   body: { ...theme.typography.body, color: theme.colors.textSubtle },
   payday: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, color: theme.colors.primaryDark },
   label: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, color: theme.colors.textPrimary, marginBottom: theme.spacing.xs },
-  rows: { gap: theme.spacing.lg },
-  row: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.spacing.lg },
-  copy: { flex: 1, minWidth: 0 },
-  divider: { height: theme.size.borderWidth, backgroundColor: theme.colors.border },
   about: { alignItems: 'center', paddingVertical: theme.spacing.sm },
 });

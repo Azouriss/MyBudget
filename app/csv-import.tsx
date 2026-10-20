@@ -4,6 +4,7 @@ import { Switch, Text, View } from 'react-native';
 import { SettingsPage, settingsStyles as s } from '../src/components/SettingsPage';
 import { SurfaceCard } from '../src/components/SurfaceCard';
 import { Button } from '../src/components/Button';
+import { Disclosure } from '../src/components/Disclosure';
 import { FormField } from '../src/components/FormField';
 import { SegmentedControl } from '../src/components/SegmentedControl';
 import { useConfirmation } from '../src/components/ConfirmationProvider';
@@ -27,7 +28,7 @@ export default function CsvImportScreen() {
   function invalidatePreview() { setPreview([]); setSelected(new Set()); setPage(0); }
   function changeMapping(next: CsvMapping) { setMapping(next); invalidatePreview(); }
   return <SettingsPage title="Importer un relevé CSV">
-    <Text style={s.copy}>Choisissez un fichier exporté par votre banque. Tout est traité sur cet appareil. Limites : 8 Mo, 1 000 opérations. Les doublons possibles restent décochés pour votre vérification.</Text>
+    <Text style={s.copy}>Traitement local · 8 Mo maximum · 1 000 opérations.</Text>
     <Button title="Choisir un fichier CSV" disabled={op.busy} onPress={() => void op.run(async () => {
       const content = await readUserFile(); if (content === null) return; setText(content); setRows([]); invalidatePreview();
     })} />
@@ -37,7 +38,7 @@ export default function CsvImportScreen() {
       <Button title="Lire les colonnes" variant="secondary" disabled={op.busy} onPress={() => void op.run(() => { invalidatePreview(); setRows(parseCsv(text, delimiter)); })} />
     </> : null}
     {rows.length ? <>
-      <Text style={s.copy}>Première ligne utilisée comme en-tête. Vérifiez les colonnes et le format des dates.</Text>
+      <Text style={s.copy}>Première ligne : en-têtes. Vérifiez les colonnes et les dates.</Text>
       <SegmentedControl label="Montants" value={mapping.mode} options={[{ value: 'signed', label: 'Signé (+ revenu)' }, { value: 'separate', label: 'Débit / crédit' }]}
         disabled={op.busy} onChange={(mode) => changeMapping({ ...mapping, mode })} />
       <SegmentedControl label="Dates" value={mapping.dateFormat} options={[{ value: 'fr', label: 'JJ/MM/AAAA' }, { value: 'iso', label: 'AAAA-MM-JJ' }]}
@@ -55,11 +56,12 @@ export default function CsvImportScreen() {
     </> : null}
     {preview.length ? <>
       <Text style={s.label}>{selected.size} sélectionnées · {preview.filter((r) => r.error).length} invalides · {preview.filter((r) => r.imported).length} déjà importées</Text>
+      <Text style={s.copy}>Vérifiez montants et catégories. Doublons possibles décochés.</Text>
       <Button title="Tout décocher" variant="ghost" disabled={op.busy} onPress={() => setSelected(new Set())} />
       {preview.slice(page * 25, (page + 1) * 25).map((row) => <SurfaceCard key={row.line} style={s.card}>
         <Text style={s.label}>Ligne {row.line} · {row.draft?.label ?? 'Ligne invalide'}</Text>
         <Text style={s.copy}>{row.draft ? `${row.draft.occurredOn} · ${row.draft.kind === 'expense' ? 'Dépense' : 'Revenu'} · ${formatMoney(row.draft.amountCents)}` : row.error}</Text>
-        <Text style={s.copy}>{row.imported ? 'Déjà importée : exclue.' : row.possibleDuplicate || row.labelMatch ? 'Doublon possible : vérifiez avant de cocher.' : row.ambiguousRule ? 'Plusieurs règles : choisissez une catégorie.' : 'Vérifiez le montant et la catégorie.'}</Text>
+        {row.imported || row.possibleDuplicate || row.labelMatch || row.ambiguousRule ? <Text style={s.copy}>{row.imported ? 'Déjà importée : exclue.' : row.possibleDuplicate || row.labelMatch ? 'Doublon possible : vérifiez avant de cocher.' : 'Plusieurs règles : choisissez une catégorie.'}</Text> : null}
         {row.draft && !row.imported ? <>
           <Switch accessibilityLabel={`Importer la ligne ${row.line}`} value={selected.has(row.line)} disabled={op.busy} onValueChange={(enabled) => setSelected((previous) => { const next = new Set(previous); if (enabled) next.add(row.line); else next.delete(row.line); return next; })} />
           {query.data?.categories.filter((c) => c.kind === row.draft!.kind).map((c) => <Button key={c.id} title={c.label} variant={row.draft!.categoryId === c.id ? 'primary' : 'secondary'} disabled={op.busy}
@@ -75,18 +77,19 @@ export default function CsvImportScreen() {
       }, 'Import terminé')} />
     </> : null}
     <OperationError message={op.error} />
-    <Text accessibilityRole="header" style={s.label}>Règles locales de catégorisation</Text>
-    <Text style={s.copy}>Le libellé contient ce texte, sans distinction de majuscules. Une règle propose une catégorie dans l’aperçu ; elle ne modifie pas votre historique.</Text>
-    {!query.data ? <QueryFeedback {...query} /> : <>
-      <FormField label="Texte à reconnaître" value={pattern} onChangeText={setPattern} maxLength={80} editable={!op.busy} />
-      {query.data.categories.map((c) => <Button key={c.id} title={c.label} variant={categoryId === c.id ? 'primary' : 'secondary'} disabled={op.busy} onPress={() => setCategoryId(c.id)} />)}
-      <Button title="Ajouter cette règle" disabled={op.busy || !pattern.trim()} onPress={() => void op.run(() => { repository.saveRule(pattern, categoryId); setPattern(''); invalidatePreview(); }, 'Règle enregistrée')} />
-      {query.data.rules.map((r) => <SurfaceCard key={r.id} style={s.card}>
-        <Text style={s.copy}>{r.pattern} → {query.data!.categories.find((c) => c.id === r.categoryId)?.label}</Text>
-        <Button title={`Supprimer la règle ${r.pattern}`} variant="ghost" disabled={op.busy} onPress={() => void op.run(async () => {
-          if (await confirm({ title: 'Supprimer cette règle ?', message: 'Les transactions existantes sont conservées.', confirmLabel: 'Supprimer', destructive: true })) { repository.removeRule(r.id); invalidatePreview(); }
-        })} />
-      </SurfaceCard>)}
-    </>}
+    <Disclosure title="Règles de catégorisation">
+      <Text style={s.copy}>Propose une catégorie selon le libellé, sans modifier l’historique ni distinguer les majuscules.</Text>
+      {!query.data ? <QueryFeedback {...query} /> : <>
+        <FormField label="Texte à reconnaître" value={pattern} onChangeText={setPattern} maxLength={80} editable={!op.busy} />
+        {query.data.categories.map((c) => <Button key={c.id} title={c.label} variant={categoryId === c.id ? 'primary' : 'secondary'} disabled={op.busy} onPress={() => setCategoryId(c.id)} />)}
+        <Button title="Ajouter cette règle" disabled={op.busy || !pattern.trim()} onPress={() => void op.run(() => { repository.saveRule(pattern, categoryId); setPattern(''); invalidatePreview(); }, 'Règle enregistrée')} />
+        {query.data.rules.map((r) => <SurfaceCard key={r.id} style={s.card}>
+          <Text style={s.copy}>{r.pattern} → {query.data!.categories.find((c) => c.id === r.categoryId)?.label}</Text>
+          <Button title={`Supprimer la règle ${r.pattern}`} variant="ghost" disabled={op.busy} onPress={() => void op.run(async () => {
+            if (await confirm({ title: 'Supprimer cette règle ?', message: 'Les transactions existantes sont conservées.', confirmLabel: 'Supprimer', destructive: true })) { repository.removeRule(r.id); invalidatePreview(); }
+          })} />
+        </SurfaceCard>)}
+      </>}
+    </Disclosure>
   </SettingsPage>;
 }

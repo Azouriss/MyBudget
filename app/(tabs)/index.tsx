@@ -38,7 +38,7 @@ export default function DashboardScreen() {
       <SurfaceCard style={styles.summaryCard}>
         <View pointerEvents="none" style={styles.cornerLeaf}><BotanicalSprig size={64} /></View>
         <Text style={styles.meta}>{hasPlanned ? 'Dépenses prévues ce mois-ci' : 'Dépenses ce mois-ci'}</Text>
-        {hasPlanned ? <Text style={styles.caption}>Les totaux incluent les échéances récurrentes prévues.</Text> : null}
+        {hasPlanned ? <Text style={styles.caption}>Échéances prévues incluses.</Text> : null}
         <View style={styles.expenseLine}>
           <Text accessibilityLabel={`Dépenses du mois : ${formatMoney(summary.expenseCents)}`} style={styles.expenses}>{formatMoney(summary.expenseCents)}</Text>
           {!budgets.loading && !budgets.error ? <View style={styles.limitCopy}><Text style={styles.caption}>Sur un budget de</Text>

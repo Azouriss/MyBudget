@@ -26,7 +26,6 @@ export function SalaryReminder() {
   if (!month) return null;
   return <SurfaceCard featured style={{ gap: theme.spacing.md, marginBottom: theme.spacing.lg }}>
     <Text style={{ ...theme.typography.headingM, color: theme.colors.textPrimary }}>Votre salaire · {monthLabel(month)}</Text>
-    <Text style={{ ...theme.typography.bodySmall, color: theme.colors.textSubtle }}>Le jour de paie est arrivé. Ajoutez le montant net reçu pour actualiser votre budget.</Text>
     <Button title="Saisir mon salaire net" onPress={() => router.push({ pathname: '/transaction', params: { salaryMonth: month } })} />
   </SurfaceCard>;
 }

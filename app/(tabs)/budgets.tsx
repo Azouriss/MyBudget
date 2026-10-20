@@ -46,7 +46,7 @@ export default function BudgetsScreen() {
         actionLabel="Réessayer" onAdd={() => useAppStore.getState().invalidate()} /> : <QueryState error={false} />}
     </> : <View style={styles.sections}>
       <SurfaceCard>
-        {hasPlanned ? <Text style={styles.meta}>Les totaux incluent les échéances récurrentes prévues.</Text> : null}
+        {hasPlanned ? <Text style={styles.meta}>Échéances prévues incluses.</Text> : null}
         <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.heading}>Vue d’ensemble</Text>
           <IconButton icon={SlidersHorizontal} label="Modifier le budget global" onPress={() => edit()} /></View>
         {budgets.monthlySource === 'salary' ? <Text style={styles.meta}>Salaire net utilisé par défaut.</Text> : null}
@@ -62,7 +62,7 @@ export default function BudgetsScreen() {
           <BudgetProgress spent={summary.expenseCents} limit={budgets.monthly.amountCents} />
         </> : <View style={styles.intro}>
           <Text style={styles.total}>{formatMoney(summary.expenseCents)}</Text>
-          <Text style={styles.copy}>{hasPlanned ? 'de dépenses prévues' : 'de dépenses'} ce mois-ci. Définissez votre budget pour suivre ce qu’il vous reste.</Text>
+          <Text style={styles.copy}>{hasPlanned ? 'de dépenses prévues' : 'de dépenses'} ce mois-ci.</Text>
           <Button title="Définir mon budget" icon={Plus} onPress={() => edit()} />
         </View>}
         {budgets.monthly?.amountCents === 0 ? <Text style={styles.meta}>Aucun montant autorisé pour ce mois.</Text> : null}

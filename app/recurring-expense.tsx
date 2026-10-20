@@ -83,7 +83,7 @@ export default function RecurringExpenseScreen() {
     } catch { setError('Impossible d’arrêter cette récurrence. Réessayez.'); busy.current = false; setSaving(false); }
   }
   return <SettingsPage title="Gérer la récurrence" footer={rule ? <Button title={rule.active ? 'Enregistrer la récurrence' : 'Reprendre la récurrence'} onPress={() => { void save(); }} loading={saving} /> : undefined}>
-    <Text style={styles.copy}>{rule?.active ? 'Les changements concernent les prochaines échéances. L’historique reste conservé.' : 'Cette récurrence est arrêtée. Choisissez une prochaine date pour la reprendre.'}</Text>
+    <Text style={styles.copy}>{rule?.active ? 'Modifie les prochaines échéances. Historique conservé.' : 'Récurrence arrêtée. Choisissez une date pour la reprendre.'}</Text>
     <FormField label="Libellé de la récurrence" value={values.label} onChangeText={(v) => change('label', v)} maxLength={80} editable={!!rule && !saving} />
     <FormField label="Montant récurrent en euros" value={values.amount} onChangeText={(v) => change('amount', v)} keyboardType="decimal-pad" suffix="€" editable={!!rule && !saving} />
     <Text style={styles.label}>Catégorie</Text>
@@ -94,7 +94,7 @@ export default function RecurringExpenseScreen() {
       onChange={(categoryId, subcategoryId) => setValues((old) => ({ ...old, categoryId, subcategoryId }))} /> : null}
     <SegmentedControl label="Répéter chaque" options={frequencies} value={values.frequency} onChange={(v) => change('frequency', v)} disabled={!rule || saving} />
     <FormField label="Prochaine échéance · JJ/MM/AAAA" value={values.date} onChangeText={(v) => change('date', v)} maxLength={10} editable={!!rule && !saving} />
-    <Text style={styles.copy}>Cette date fixe le jour des échéances suivantes. Un 31 est reporté au dernier jour des mois plus courts.</Text>
+    <Text style={styles.copy}>Jour absent du mois : échéance au dernier jour.</Text>
     {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
     {rule?.active ? <Button title="Arrêter la récurrence" variant="danger" onPress={() => { void stop(); }} disabled={saving} /> : null}
   </SettingsPage>;

@@ -4,6 +4,7 @@ import { usePreventRemove } from 'expo-router/react-navigation';
 import { ArrowLeft } from 'lucide-react-native';
 import { ScrollView, Text, View } from 'react-native';
 import { Button } from '../../components/Button';
+import { Disclosure } from '../../components/Disclosure';
 import { DateField } from '../../components/DateField';
 import { FormField } from '../../components/FormField';
 import { IconButton } from '../../components/IconButton';
@@ -89,20 +90,20 @@ export function ProvisionForm({ repository, initial, initialMovements }: {
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
       <View style={styles.header}><IconButton icon={ArrowLeft} label="Retour aux prévisions" onPress={back} disabled={saving} />
         <Text accessibilityRole="header" style={styles.title}>{initial ? 'Ma provision' : 'Nouvelle provision'}</Text></View>
-      <Text style={styles.note}>Suivez l’argent que vous choisissez de réserver. Ce suivi ne déplace pas d’argent et ne modifie pas les dépenses du mois.</Text>
+      <Text style={styles.note}>Suivi de réserve, sans virement ni effet sur les dépenses.</Text>
       <FormField label="Nom de la provision" value={label} onChangeText={setLabel} maxLength={80} editable={!saving} />
       <FormField label="Montant cible en euros" suffix="€" keyboardType="decimal-pad" value={target} onChangeText={setTarget} editable={!saving} />
       <DateField label="Échéance" value={dueOn} onChangeText={setDueOn} editable={!saving} />
-      <FormField label="Jour mensuel de contribution (1 à 31)" keyboardType="number-pad" value={day} onChangeText={setDay} maxLength={2} editable={!saving} />
-      <Text style={styles.note}>Les mois plus courts utilisent leur dernier jour. L’effort indicatif compte les prochaines dates jusqu’à l’échéance incluse ; aucune contribution n’est automatique.</Text>
+      <FormField label="Jour de contribution (1 à 31)" keyboardType="number-pad" value={day} onChangeText={setDay} maxLength={2} editable={!saving} />
+      <Text style={styles.note}>Aucun ajout automatique. Mois plus court : dernier jour du mois.</Text>
       {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
       {initial && plan ? <SurfaceCard style={styles.card}>
         <Text style={styles.title}>Réserve suivie</Text>
         <Text style={styles.amount}>{formatMoney(reserved)}</Text>
-        <Text style={styles.note}>{formatMoney(plan.remainingCents)} restent à réserver pour l’objectif enregistré.</Text>
-        {plan.monthlyCents !== null && plan.remainingCents > 0 ? <Text style={styles.copy}>Repère : {formatMoney(plan.monthlyCents)} par contribution sur {plan.contributions} dates restantes. Ajustez la dernière contribution au montant restant.</Text> : null}
+        <Text style={styles.note}>{formatMoney(plan.remainingCents)} à réserver.</Text>
+        {plan.monthlyCents !== null && plan.remainingCents > 0 ? <Text style={styles.copy}>{formatMoney(plan.monthlyCents)} par contribution · {plan.contributions} dates restantes</Text> : null}
         {plan.overdue ? <Text style={styles.error}>L’échéance de cet objectif est dépassée.</Text> : null}
-        {dirty ? <Text style={styles.note}>Enregistrez les modifications de l’objectif avant d’ajuster sa réserve.</Text> : null}
+        {dirty ? <Text style={styles.note}>Enregistrez l’objectif avant d’ajuster la réserve.</Text> : null}
         <FormField label="Montant à ajouter ou libérer en euros" suffix="€" keyboardType="decimal-pad" value={movement} onChangeText={setMovement} editable={!saving && !dirty} />
         <Button title="Ajouter à la réserve" onPress={() => { void move(1); }} disabled={dirty || saving || movement === ''} />
         <Button title="Libérer une réserve" variant="secondary" onPress={() => { void move(-1); }} disabled={dirty || saving || movement === ''} />
@@ -111,8 +112,11 @@ export function ProvisionForm({ repository, initial, initialMovements }: {
         {movements.length === 0 ? <Text style={styles.note}>Aucun mouvement enregistré.</Text> : movements.map((entry) => <Text key={entry.id} style={styles.copy}>
           {displayDate(localDateKey(new Date(entry.createdAt)))} · {entry.amountCents > 0 ? '+' : '−'} {formatMoney(Math.abs(entry.amountCents))}
         </Text>)}
-        <Text style={styles.note}>Quand la facture est payée, enregistrez la dépense puis libérez la réserve correspondante. La réserve n’est jamais soustraite une seconde fois de la marge.</Text>
       </SurfaceCard> : null}
+      <Disclosure title="Fonctionnement des provisions">
+        <Text style={styles.note}>Le repère mensuel répartit le montant restant sur les dates de contribution jusqu’à l’échéance incluse. Ajustez la dernière contribution au montant restant.</Text>
+        <Text style={styles.note}>Après paiement, enregistrez la dépense puis libérez la réserve correspondante. La réserve n’est pas déduite de la marge.</Text>
+      </Disclosure>
       {initial ? <Button title="Supprimer la provision" variant="danger" onPress={() => { void remove(); }} disabled={saving} /> : null}
     </ScrollView>
   </ScreenContainer>;

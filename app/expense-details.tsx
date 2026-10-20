@@ -30,8 +30,8 @@ export default function ExpenseDetailsScreen() {
   const storedParts = query.data?.splits.filter((s) => s.transactionId === id) ?? [];
   return <SettingsPage title="Répartition et remboursements">
     {!query.data ? <QueryFeedback {...query} /> : <>
-      <FormField label="Rechercher une dépense enregistrée" value={search} onChangeText={setSearch} editable={!op.busy} />
-      <Text style={s.copy}>Les 30 premières correspondances sont proposées. Précisez le libellé ou la date AAAA-MM-JJ pour retrouver une dépense.</Text>
+      <FormField label="Rechercher une dépense" placeholder="Libellé ou AAAA-MM-JJ" value={search} onChangeText={setSearch} editable={!op.busy} />
+      <Text style={s.copy}>30 premiers résultats.</Text>
       {query.data.entries.filter((t) => `${t.label} ${t.occurredOn}`.toLocaleLowerCase('fr').includes(search.toLocaleLowerCase('fr'))).slice(0, 30).map((t) =>
         <Button key={t.id} title={`${displayDate(t.occurredOn)} · ${t.label} · ${formatMoney(t.amountCents)}`} variant={id === t.id ? 'primary' : 'secondary'} disabled={op.busy}
           onPress={() => { setId(t.id); setExpected(''); setLabel(''); setReceived(''); setParts([]); }} />)}
@@ -39,7 +39,7 @@ export default function ExpenseDetailsScreen() {
         <Text style={s.label}>Dépense sélectionnée : {entry.label} · {formatMoney(entry.amountCents)}</Text>
         <SurfaceCard style={s.card}>
           <Text accessibilityRole="header" style={s.label}>Répartir le ticket</Text>
-          <Text style={s.copy}>Le total payé reste inchangé. Les graphiques et limites par catégorie utilisent la répartition.</Text>
+          <Text style={s.copy}>Répartition par catégorie, sans changer le total payé.</Text>
           {storedParts.map((p) => <Text key={p.id} style={s.copy}>{query.data!.categories.find((c) => c.id === p.categoryId)?.label} : {formatMoney(p.amountCents)}</Text>)}
           <Button title="Préparer la répartition" variant="secondary" disabled={op.busy} onPress={() => setParts(storedParts.length ? storedParts.map((p) => ({ categoryId: p.categoryId, amount: centsToInput(p.amountCents) }))
             : [{ categoryId: entry.categoryId, amount: '' }, { categoryId: 'other-expense', amount: '' }])} />
@@ -60,7 +60,7 @@ export default function ExpenseDetailsScreen() {
         </SurfaceCard>
         <SurfaceCard style={s.card}>
           <Text accessibilityRole="header" style={s.label}>Suivre un remboursement</Text>
-          <Text style={s.copy}>Un montant attendu ne compte pas comme revenu. Enregistrez chaque versement uniquement après sa réception.</Text>
+          <Text style={s.copy}>Seuls les versements reçus comptent comme revenus.</Text>
           {claim ? <>
             <Text style={s.label}>{claim.label} · Attendu : {formatMoney(claim.expectedCents)} · Reçu : {formatMoney(claim.receivedCents)} · Restant : {formatMoney(claim.outstandingCents)}</Text>
             <Text style={s.copy}>Coût net de cet achat à ce jour : {formatMoney(entry.amountCents - claim.receivedCents)}.</Text>
@@ -84,7 +84,7 @@ export default function ExpenseDetailsScreen() {
           <FormField label="Montant total attendu en euros" value={expected} onChangeText={setExpected} keyboardType="decimal-pad" editable={!op.busy} />
           <Button title={claim ? 'Mettre à jour le montant attendu' : 'Créer le suivi du remboursement'} disabled={op.busy || !expected || !label} onPress={() => void op.run(() => { repository.claim(id, parseAmountToCents(expected), label); setExpected(''); setLabel(''); }, 'Suivi enregistré')} />
         </SurfaceCard>
-      </> : <Text style={s.copy}>Sélectionnez une dépense pour la répartir ou suivre un remboursement.</Text>}
+      </> : <Text style={s.copy}>Sélectionnez une dépense.</Text>}
     </>}
     <OperationError message={op.error} />
   </SettingsPage>;

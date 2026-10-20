@@ -3,6 +3,7 @@ import { Text } from 'react-native';
 import { SettingsPage, settingsStyles as s } from '../src/components/SettingsPage';
 import { SurfaceCard } from '../src/components/SurfaceCard';
 import { Button } from '../src/components/Button';
+import { Disclosure } from '../src/components/Disclosure';
 import { FormField } from '../src/components/FormField';
 import { DateField } from '../src/components/DateField';
 import { useConfirmation } from '../src/components/ConfirmationProvider';
@@ -20,7 +21,7 @@ export default function PayCycleScreen() {
   const [id, setId] = useState<string | undefined>(), [start, setStart] = useState(''), [end, setEnd] = useState(''), [amount, setAmount] = useState('');
   useDraftGuard(!!start || !!end || !!amount, op.busy);
   return <SettingsPage title="De paie à paie">
-    <Text style={s.copy}>Un budget complémentaire pour une période de votre choix. Il ne s’ajoute pas aux budgets mensuels. Les revenus affichés sont enregistrés ; aucun salaire attendu n’est ajouté à la marge.</Text>
+    <Text style={s.copy}>Un budget de période, indépendant du budget mensuel.</Text>
     <Button title="Préparer la période actuelle" variant="secondary" disabled={op.busy} onPress={() => void op.run(() => {
       const day = createPaydayRepository(db).settings()?.day;
       if (!day) throw new Error('Définissez votre jour de paie dans les paramètres.');
@@ -38,12 +39,17 @@ export default function PayCycleScreen() {
       <Text style={s.label}>{displayDate(r.cycle.startOn)} → {displayDate(r.cycle.endOn)} (fin exclue)</Text>
       <Text style={s.copy}>Budget : {formatMoney(r.cycle.budgetCents)} · Dépenses saisies : {formatMoney(r.expenseCents)} · Charges prévues : {formatMoney(r.plannedCents)}</Text>
       <Text style={s.label}>Marge budgétaire : {formatMoney(r.marginCents)}</Text>
-      <Text style={s.copy}>Revenus enregistrés à ce jour : {formatMoney(r.incomeCents)}. La marge n’est pas un solde bancaire et n’inclut pas les dépenses variables à venir.</Text>
+      <Text style={s.copy}>Revenus enregistrés : {formatMoney(r.incomeCents)}</Text>
+      <Text style={s.copy}>Marge indicative, hors solde bancaire et dépenses variables à venir.</Text>
       {r.planned.map((p, i) => <Text key={i} style={s.copy}>{displayDate(p.occurredOn)} · {p.label} · {formatMoney(p.amountCents)} prévu</Text>)}
       <Button title="Modifier cette période" variant="secondary" disabled={op.busy} onPress={() => { setId(r.cycle.id); setStart(displayDate(r.cycle.startOn)); setEnd(displayDate(r.cycle.endOn)); setAmount(centsToInput(r.cycle.budgetCents)); }} />
       <Button title="Supprimer ce budget de période" variant="ghost" disabled={op.busy} onPress={() => void op.run(async () => {
         if (await confirm({ title: 'Supprimer cette période ?', message: 'Vos transactions et budgets mensuels sont conservés.', confirmLabel: 'Supprimer', destructive: true })) repository.remove(r.cycle.id);
       })} />
     </SurfaceCard>)}
+    <Disclosure title="Détail du budget de période">
+      <Text style={s.copy}>Marge = budget de la période moins dépenses saisies et charges prévues. Aucun salaire attendu n’est ajouté.</Text>
+      <Text style={s.copy}>La date de début est incluse, celle de la prochaine paie est exclue. Les budgets mensuels restent indépendants.</Text>
+    </Disclosure>
   </SettingsPage>;
 }

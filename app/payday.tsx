@@ -4,6 +4,7 @@ import { router, useNavigation } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
 import { useDatabase } from '../src/db/DatabaseProvider';
 import { Button } from '../src/components/Button';
+import { Disclosure } from '../src/components/Disclosure';
 import { FormField } from '../src/components/FormField';
 import { SettingsPage, settingsStyles as styles } from '../src/components/SettingsPage';
 import { SurfaceCard } from '../src/components/SurfaceCard';
@@ -78,25 +79,28 @@ export default function PaydayScreen() {
     } catch { setError('Impossible de terminer la désactivation des rappels. Réessayez.'); }
     finally { busy.current = false; setSaving(false); }
   }
-  return <SettingsPage title="Jour de paie" footer={<Button title="Enregistrer le jour de paie" onPress={() => { void save(); }} loading={saving} disabled={!initial} />}>
-    <Text style={styles.copy}>Un rappel pour saisir le salaire net réellement reçu chaque mois.</Text>
-    <FormField label="Jour du mois" value={day} onChangeText={setDay} placeholder="Ex. 28" keyboardType="number-pad" maxLength={2} editable={!!initial && !saving} />
-    <Text style={styles.copy}>Du 1 au 31. Si le jour choisi n’existe pas, le rappel tombe le dernier jour du mois.</Text>
+  return <SettingsPage title="Jour de paie" footer={<Button title="Enregistrer" onPress={() => { void save(); }} loading={saving} disabled={!initial} />}>
+    <View style={{ gap: theme.spacing.sm }}>
+      <FormField label="Jour du mois (1 à 31)" value={day} onChangeText={setDay} placeholder="Ex. 28" keyboardType="number-pad" maxLength={2} editable={!!initial && !saving} />
+      <Text style={styles.copy}>Mois plus court : dernier jour du mois.</Text>
+    </View>
     <SurfaceCard style={styles.card}>
       <View style={styles.row}><Text style={[styles.label, { flex: 1 }]}>Notification téléphone</Text>
         <Switch accessibilityLabel="Notification téléphone" value={enabled} onValueChange={setEnabled} disabled={!initial || saving}
           thumbColor={theme.colors.surface} trackColor={{ false: theme.colors.controlBorder, true: theme.colors.primaryDark }} /></View>
-      <Text style={styles.copy}>Vers 9 h, même si l’app est fermée. Aucun montant n’est affiché dans la notification. Les rappels sont préparés pour les 12 prochains mois et renouvelés à l’ouverture de l’app.</Text>
-      {!phoneNotificationsAvailable ? <Text style={styles.copy}>À utiliser sur Android. Dans cet aperçu, le rappel reste visible dans l’accueil.</Text> : null}
       {status ? <Text accessibilityLiveRegion="polite" style={styles.copy}>{status}</Text> : null}
     </SurfaceCard>
     <SurfaceCard style={styles.card}>
-      <Text style={styles.label}>Salaire · {monthLabel(currentMonth())}</Text>
-      <Text style={styles.copy}>L’accueil vous le rappellera à partir du jour de paie, jusqu’à son enregistrement. Aucun revenu n’est ajouté automatiquement.</Text>
-      <Button title={hasSalary ? 'Modifier mon salaire net du mois' : 'Saisir mon salaire net du mois'} variant="secondary" disabled={saving}
+      <Text style={styles.label}>Salaire net · {monthLabel(currentMonth())}</Text>
+      <Button title={hasSalary ? 'Modifier mon salaire net' : 'Saisir mon salaire net'} variant="secondary" disabled={saving}
         onPress={() => router.push({ pathname: '/transaction', params: { salaryMonth: currentMonth() } })} />
     </SurfaceCard>
+    <Disclosure title="Fonctionnement des rappels">
+      <Text style={styles.copy}>L’accueil affiche un rappel dès le jour de paie, jusqu’à la saisie du salaire net reçu. Aucun revenu n’est ajouté automatiquement.</Text>
+      <Text style={styles.copy}>Sur Android : notification vers 9 h, même si l’app est fermée, sans afficher de montant.</Text>
+      <Text style={styles.copy}>Les rappels couvrent les 12 prochains mois et sont renouvelés à l’ouverture de l’app.</Text>
+    </Disclosure>
     {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-    {initial?.day ? <Button title="Désactiver les rappels de paie" variant="ghost" onPress={() => { void remove(); }} disabled={saving} /> : null}
+    {initial?.day ? <Button title="Désactiver les rappels" variant="ghost" onPress={() => { void remove(); }} disabled={saving} /> : null}
   </SettingsPage>;
 }

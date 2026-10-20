@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { SettingsPage, settingsStyles as s } from '../src/components/SettingsPage';
 import { SurfaceCard } from '../src/components/SurfaceCard';
 import { Button } from '../src/components/Button';
@@ -26,7 +26,6 @@ export default function QuickEntryScreen() {
   useDraftGuard(!!label || !!amount, op.busy);
   const draft = () => ({ kind, label, amountCents: parseAmountToCents(amount), categoryId, subcategoryId, occurredOn: parseFrenchDate(date) });
   return <SettingsPage title="Favoris et saisie express">
-    <Text style={s.copy}>Un favori préremplit le formulaire. Vérifiez le montant et la date avant d’enregistrer une transaction.</Text>
     {!query.data ? <QueryFeedback {...query} /> : <>
       {query.data.templates.map((t) => <SurfaceCard key={t.id} style={s.card}>
         <Button title={`${t.label} · ${formatMoney(t.amountCents)}`} variant="secondary" disabled={op.busy} onPress={() => {

@@ -73,7 +73,7 @@ export default function HistoryScreen() {
         <MonthPicker />
         {!loading && !error && visible.length ? <View style={styles.summary}>
           <Text style={styles.meta}>{filtered ? 'Résultats filtrés' : 'Toutes les transactions'} · {visible.length}</Text>
-          {hasPlanned ? <Text style={styles.meta}>Les totaux incluent les échéances récurrentes prévues.</Text> : null}
+          {hasPlanned ? <Text style={styles.meta}>Échéances prévues incluses.</Text> : null}
           {filter !== 'income' ? <Text style={styles.total}>Dépenses : {formatMoney(summary.expenseCents)}</Text> : null}
           {filter !== 'expense' ? <Text style={styles.total}>Revenus : {formatMoney(summary.incomeCents)}</Text> : null}
         </View> : null}
@@ -83,8 +83,8 @@ export default function HistoryScreen() {
         category={categoryMap.get(item.categoryId)} last={index === section.data.length - 1} />}
       ListEmptyComponent={loading || error ? <QueryState error={error} /> : <EmptyState
         title={filtered ? 'Aucun résultat' : 'Aucune transaction ce mois-ci'}
-        description={filtered ? 'Essayez un autre mot ou retirez les filtres pour retrouver vos transactions.'
-          : 'Ajoutez une dépense ou un revenu pour commencer.'}
+        description={filtered ? 'Essayez un autre mot ou effacez les filtres.'
+          : 'Ajoutez une première transaction.'}
         actionLabel="Effacer les filtres"
         onAdd={filtered ? () => { setQuery(''); setFilter('all'); } : undefined} />}
     />
