@@ -1,6 +1,6 @@
 import { t } from '../../i18n/locale';
 import { useLanguage } from '../../i18n/useLanguage';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Check, Search, X } from 'lucide-react-native';
 import type { Category } from '../../db/schema';
@@ -24,18 +24,25 @@ export function ExpenseSubcategoryPicker({ categories, categoryId, value, onChan
   useLanguage();
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(false);
+  const [browsing, setBrowsing] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
+  useEffect(() => {
+    setQuery('');
+    setExpanded(false);
+    setBrowsing(false);
+    setFocused(null);
+  }, [categoryId]);
   const selected = getExpenseSubcategory(value);
   const expenseCategories = categories.filter((category) => category.kind === 'expense');
   const labels = new Map(expenseCategories.map((category) => [category.id, t(category.label)]));
   const searching = query.trim().length > 0;
-  const results = searching ? searchExpenseSubcategories(query, categoryId, expenseCategories) : [];
+  const results = searching || browsing ? searchExpenseSubcategories(query, categoryId, expenseCategories) : [];
   const visible = expanded ? results : results.slice(0, 5);
 
   return <View style={styles.field}>
     <FormField label={t("Sous-catégorie (facultatif)")} leadingIcon={Search}
       placeholder={t("Ex. Carburant, pharmacie, restaurant…")} value={query}
-      onChangeText={(text) => { setQuery(text); setExpanded(false); }}
+      onChangeText={(text) => { setQuery(text); setExpanded(false); setBrowsing(false); }}
       editable={!disabled} maxLength={100} autoCorrect={false} autoCapitalize="none"
       returnKeyType="search" onSubmitEditing={() => Keyboard.dismiss()} error={error} />
     {selected ? <View style={styles.selection}>
@@ -46,10 +53,13 @@ export function ExpenseSubcategoryPicker({ categories, categoryId, value, onChan
       <IconButton icon={X} label={t("Retirer la sous-catégorie {0}", [t(selected.label)])} disabled={disabled}
         onPress={() => onChange(categoryId, null)} />
     </View> : null}
-    {searching ? <Text accessibilityLiveRegion="polite" style={styles.help}>
+    {!searching ? <Button variant="secondary" disabled={disabled}
+      title={browsing ? t("Masquer les sous-catégories") : t("Parcourir les sous-catégories")}
+      onPress={() => { setBrowsing(!browsing); setExpanded(false); }} /> : null}
+    {searching || browsing ? <Text accessibilityLiveRegion="polite" style={styles.help}>
       {results.length}{t(" résultat")}{results.length === 1 ? '' : 's'}
     </Text> : null}
-    {searching && results.length ? <View accessibilityRole="radiogroup" accessibilityLabel={t("Sous-catégorie")} style={styles.results}>
+    {(searching || browsing) && results.length ? <View accessibilityRole="radiogroup" accessibilityLabel={t("Sous-catégorie")} style={styles.results}>
       {visible.map((subcategory) => <Pressable cssInterop={false} key={subcategory.id}
         accessibilityRole="radio" accessibilityLabel={`${t(subcategory.label)}, ${labels.get(subcategory.categoryId)}`}
         aria-checked={value === subcategory.id}
@@ -57,7 +67,7 @@ export function ExpenseSubcategoryPicker({ categories, categoryId, value, onChan
         onFocus={() => setFocused(subcategory.id)} onBlur={() => setFocused(null)}
         onPress={() => {
           onChange(subcategory.categoryId, subcategory.id);
-          setQuery(''); setExpanded(false); Keyboard.dismiss();
+          setQuery(''); setExpanded(false); setBrowsing(false); Keyboard.dismiss();
         }}
         style={({ pressed }) => [styles.result, {
           backgroundColor: value === subcategory.id || pressed ? theme.colors.primaryLight : theme.colors.surface,

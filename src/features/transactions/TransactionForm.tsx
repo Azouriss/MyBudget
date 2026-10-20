@@ -30,6 +30,7 @@ import { useTransactionRepository } from './hooks';
 import type { Transaction, TransactionKind } from './types';
 import { formToDraft, transactionFormSchema, type TransactionFormValues } from './validation';
 import { ExpenseSubcategoryPicker } from '../categories/ExpenseSubcategoryPicker';
+import { detectExpenseSubcategory, getExpenseSubcategory } from '../categories/subcategories';
 
 const kinds = [{ value: 'expense', label: 'Dépense' }, { value: 'income', label: 'Revenu' }] as const;
 
@@ -50,17 +51,22 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
   const [focusedCategory, setFocusedCategory] = useState<string | null>(null);
   const busy = useRef(false);
   const allowLeave = useRef(false);
+  const manualClassification = useRef(!!existing);
+  const automaticClassification = useRef(false);
+  const defaultExpenseCategory = categories.find((category) => category.kind === 'expense' && category.id === 'other-expense')
+    ?? categories.find((category) => category.kind === 'expense');
   const { control, handleSubmit, setValue, watch, formState: { errors, isDirty } } = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema), reValidateMode: 'onChange',
     defaultValues: {
       kind: existing?.kind ?? (salaryMonth ? 'income' : 'expense'), amount: existing ? centsToInput(existing.amountCents) : '',
-      label: existing?.label ?? (salaryMonth ? t("Salaire net") : ''), categoryId: existing?.categoryId ?? (salaryMonth ? 'salary' : categories.find((item) => item.kind === 'expense')?.id ?? ''),
+      label: existing?.label ?? (salaryMonth ? t("Salaire net") : ''), categoryId: existing?.categoryId ?? (salaryMonth ? 'salary' : defaultExpenseCategory?.id ?? ''),
       subcategoryId: existing?.subcategoryId ?? null,
       date: displayDate(existing?.occurredOn ?? (salaryMonth && salaryMonth !== localDateKey().slice(0, 7) ? `${salaryMonth}-01` : localDateKey())),
     },
   });
   const kind = watch('kind');
   const categoryId = watch('categoryId');
+  const subcategory = getExpenseSubcategory(watch('subcategoryId'));
   const isSalary = kind === 'income' && categoryId === 'salary';
   const { width, fontScale } = useWindowDimensions();
   const columns = width < 360 || fontScale >= theme.layout.stackedFontScale ? 2 : 3;
@@ -80,9 +86,23 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
   }
 
   function changeKind(next: TransactionKind) {
+    manualClassification.current = !!existing;
+    automaticClassification.current = false;
     setValue('kind', next, { shouldDirty: true });
-    setValue('categoryId', categories.find((category) => category.kind === next)?.id ?? '', { shouldDirty: true, shouldValidate: true });
+    setValue('categoryId', (next === 'expense' ? defaultExpenseCategory : categories.find((category) => category.kind === next))?.id ?? '',
+      { shouldDirty: true, shouldValidate: true });
     setValue('subcategoryId', null, { shouldDirty: true, shouldValidate: true });
+  }
+
+  function classifyLabel(label: string) {
+    if (kind !== 'expense' || manualClassification.current) return;
+    const suggestion = detectExpenseSubcategory(label, categories.filter((category) => category.kind === 'expense'));
+    if (suggestion || automaticClassification.current) {
+      setValue('categoryId', suggestion?.categoryId ?? defaultExpenseCategory?.id ?? '',
+        { shouldDirty: true, shouldValidate: true });
+      setValue('subcategoryId', suggestion?.id ?? null, { shouldDirty: true, shouldValidate: true });
+    }
+    automaticClassification.current = !!suggestion;
   }
 
   async function save(values: TransactionFormValues) {
@@ -153,6 +173,15 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
           <FormField ref={ref} label={isSalary ? t("Salaire NET en euros") : t("Montant en euros")} value={value} onChangeText={onChange} onBlur={onBlur}
             amount suffix="€" placeholder="0,00" keyboardType="decimal-pad" editable={!saving} error={errors.amount?.message} />
         } />
+        <Controller control={control} name="label" render={({ field: { ref, value, onChange, onBlur } }) =>
+          <FormField ref={ref} label={t("Libellé")} placeholder={kind === 'expense' ? t("Ex. Courses de la semaine") : t("Ex. Salaire")}
+            value={value} onChangeText={(text) => { onChange(text); classifyLabel(text); }} onBlur={onBlur}
+            maxLength={80} editable={!saving} error={errors.label?.message} returnKeyType="done"
+            onSubmitEditing={() => { void handleSubmit(save)(); }} />
+        } />
+        {automaticClassification.current && subcategory ? <Text accessibilityLiveRegion="polite" style={styles.help}>
+          {t("Suggestion : {0}", [t(subcategory.label)])}
+        </Text> : null}
         <View style={styles.categoryField}>
           <Text style={styles.label}>{t("Catégorie")}</Text>
           <Controller control={control} name="categoryId" render={({ field: { value, onChange } }) =>
@@ -162,6 +191,8 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
                 aria-checked={value === category.id}
                 accessibilityState={{ checked: value === category.id, disabled: saving }} disabled={saving}
                 onPress={() => {
+                  manualClassification.current = true;
+                  automaticClassification.current = false;
                   if (value !== category.id) setValue('subcategoryId', null, { shouldDirty: true, shouldValidate: true });
                   onChange(category.id);
                 }} onFocus={() => setFocusedCategory(category.id)} onBlur={() => setFocusedCategory(null)}
@@ -182,6 +213,8 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
             <ExpenseSubcategoryPicker key={categoryId} categories={categories} categoryId={categoryId} value={value}
               disabled={saving} error={errors.subcategoryId?.message}
               onChange={(parentId, subcategoryId) => {
+                manualClassification.current = true;
+                automaticClassification.current = false;
                 setValue('categoryId', parentId, { shouldDirty: true, shouldValidate: true });
                 setValue('subcategoryId', subcategoryId, { shouldDirty: true, shouldValidate: true });
               }} />
@@ -190,11 +223,6 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
         <Controller control={control} name="date" render={({ field: { ref, value, onChange, onBlur } }) =>
           <DateField ref={ref} label={t("Date · JJ/MM/AAAA")} value={value}
             onChangeText={onChange} onBlur={onBlur} editable={!saving} error={errors.date?.message} />
-        } />
-        <Controller control={control} name="label" render={({ field: { ref, value, onChange, onBlur } }) =>
-          <FormField ref={ref} label={t("Libellé")} placeholder={kind === 'expense' ? t("Ex. Courses de la semaine") : t("Ex. Salaire")}
-            value={value} onChangeText={onChange} onBlur={onBlur} maxLength={80} editable={!saving}
-            error={errors.label?.message} returnKeyType="done" onSubmitEditing={() => { void handleSubmit(save)(); }} />
         } />
         {kind === 'expense' && !existing?.recurringExpenseId ? <View style={styles.categoryField}>
           <View style={styles.recurringRow}><Text style={styles.label}>{t("Dépense récurrente")}</Text>

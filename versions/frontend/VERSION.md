@@ -1,5 +1,44 @@
 # Frontend version history
 
+## 0.7.0.0 - 2026-10-20
+
+- Suggest expense categories and subcategories from the label as it is typed,
+  before category selection. Distinguish mobile plans from home Internet and
+  device purchases; ambiguous provider names keep a neutral expense category.
+- Add 35 bundled subcategories for communications, subscriptions, transport,
+  household, family and health expenses, with French and English labels.
+- Rank catalogue searches using contextual aliases, token specificity, accents,
+  punctuation, prefixes and bounded typo matching. Reuse the normalized index.
+  Approximate matches never trigger automatic classification.
+- Let users explicitly browse their current category. Hide results after a
+  choice and preserve manual classifications, removals and existing entries.
+- Keep all historical subcategory IDs valid without rewriting saved expenses,
+  recurring rules, backups or database migrations.
+
+**Threat impact:** Classification remains advisory and editable. Require exact
+  evidence, full token coverage and separation from competing matches before
+  suggesting a classification. Preserve integer cents, validation, parameterized
+  persistence, expense/income separation and existing data. No schema change.
+
+**Sovereignty impact:** All matching, aliases and translations are bundled and
+  run on the device. No dependency, account, network service, telemetry, remote
+  inference or remote build is added.
+
+**Validation:** Windows `npm run release:check` passed: TypeScript, 289
+  application tests (63 catalogue/detection cases), 23 release-tool tests and
+  eight protected migrations. Isolated Chrome with synthetic data verified
+  mobile/fibre detection, ambiguity, manual override/removal, income/edit
+  protection, search, browsing, saving/reloading and recurring persistence.
+  The shared picker also passed recurrence editing and quick entry at 320 px.
+  Checked overflow at 320/360/390/768 px and reviewed 320 px screenshots,
+  including simulated 150% web text. Native font scaling and phone acceptance remain separate. A browser
+  automation navigation initially retained a SQLite lock; explicit page teardown
+  between full navigations passed without deleting or resetting any database.
+  Scoped diff and secret checks passed.
+
+**Status:** `verification-pending` - Android phone and packaged APK acceptance
+  remain pending. No APK, push, tag, publication or deployment.
+
 ## 0.6.1.0 - 2026-10-20
 
 - Redesign all three Forecast views with white cards, sage balance panels,
