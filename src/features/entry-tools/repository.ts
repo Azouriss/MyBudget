@@ -16,7 +16,31 @@ export function attachSplits(db: AppDatabase, entries: Transaction[]): Transacti
   const parts = db.select().from(transactionSplits).all();
   const byId = new Map<string, typeof parts>();
   for (const part of parts) byId.set(part.transactionId, [...(byId.get(part.transactionId) ?? []), part]);
-  return entries.map((entry) => ({ ...entry, splits: byId.get(entry.id) }));
+  const refunds = new Map<string, NonNullable<Transaction['reimbursement']>>();
+  const originals = new Map(db.select().from(transactions).all().map((e) => [e.id, e]));
+  const remaining = new Map<string, { categoryId: string; amountCents: number }[]>();
+  // Allocate partial receipts against the remaining original cost, never above it.
+  const receipts = db.select().from(reimbursementReceipts).all().sort((a, b) => {
+    const x = originals.get(a.incomeId)!, y = originals.get(b.incomeId)!;
+    return x.occurredOn.localeCompare(y.occurredOn) || x.createdAt - y.createdAt || a.incomeId.localeCompare(b.incomeId);
+  });
+  for (const receipt of receipts) {
+    const expense = originals.get(receipt.expenseId), income = originals.get(receipt.incomeId);
+    if (!expense || !income) throw new Error('Remboursement incohérent.');
+    const capacities = remaining.get(expense.id) ?? (byId.get(expense.id) ?? [{ categoryId: expense.categoryId, amountCents: expense.amountCents }])
+      .map((p) => ({ categoryId: p.categoryId, amountCents: p.amountCents }));
+    const total = capacities.reduce((n, p) => n + p.amountCents, 0);
+    if (income.amountCents > total) throw new Error('Remboursement excédentaire.');
+    const allocated = capacities.map((p) => ({ categoryId: p.categoryId,
+      amountCents: Number(BigInt(income.amountCents) * BigInt(p.amountCents) / BigInt(total)) }));
+    let remainder = income.amountCents - allocated.reduce((n, p) => n + p.amountCents, 0);
+    for (let i = 0; remainder > 0; i = (i + 1) % capacities.length) {
+      if (allocated[i]!.amountCents < capacities[i]!.amountCents) { allocated[i]!.amountCents++; remainder--; }
+    }
+    remaining.set(expense.id, capacities.map((p, i) => ({ ...p, amountCents: p.amountCents - allocated[i]!.amountCents })));
+    refunds.set(income.id, { expenseId: expense.id, parts: allocated.filter((p) => p.amountCents > 0) });
+  }
+  return entries.map((entry) => ({ ...entry, splits: byId.get(entry.id), reimbursement: refunds.get(entry.id) }));
 }
 
 export function assertEditable(db: AppDatabase, id: string, draft: TransactionDraft) {
@@ -89,7 +113,7 @@ export function createEntryToolsRepository(db: AppDatabase) {
         if (occurredOn < claim.expense.occurredOn) throw new Error('Le remboursement précède la dépense.');
         const id = randomUUID(), now = Date.now();
         db.insert(transactions).values({ id, kind: 'income', label: `Remboursement · ${claim.label}`.slice(0, 80),
-          categoryId: 'other-income', amountCents, occurredOn, createdAt: now, updatedAt: now }).run();
+          categoryId: 'reimbursements', amountCents, occurredOn, createdAt: now, updatedAt: now }).run();
         db.insert(reimbursementReceipts).values({ incomeId: id, expenseId }).run();
       });
     },
@@ -101,10 +125,12 @@ export function createEntryToolsRepository(db: AppDatabase) {
       });
     },
     removeClaim(expenseId: string) {
-      // Received income remains in the ledger; removing tracking never invents a cash movement.
+      // Close outstanding expectations while preserving the accounting identity of receipts.
       db.transaction(() => {
-        db.delete(reimbursementReceipts).where(eq(reimbursementReceipts.expenseId, expenseId)).run();
-        db.delete(reimbursementClaims).where(eq(reimbursementClaims.expenseId, expenseId)).run();
+        const claim = this.claims().find((c) => c.expenseId === expenseId);
+        if (claim?.receivedCents) db.update(reimbursementClaims).set({ expectedCents: claim.receivedCents })
+          .where(eq(reimbursementClaims.expenseId, expenseId)).run();
+        else db.delete(reimbursementClaims).where(eq(reimbursementClaims.expenseId, expenseId)).run();
       });
     },
   };

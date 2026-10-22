@@ -20,8 +20,10 @@ const schemas = {
   categories: z.object({ id, label, kind, color: z.string().regex(/^#[0-9a-fA-F]{6}$/), icon: z.string().min(1).max(40), position: z.number().int().min(0).max(10000) }).strict(),
   recurring_expenses: z.object({ id, label, amount_cents: cents, category_id: id, subcategory_id: id.nullable(), category_kind: z.literal('expense'),
     frequency: z.enum(['weekly', 'monthly', 'yearly']), start_on: date, next_index: z.number().int().min(0).max(100000), active: flag, ...times }).strict(),
+  recurring_incomes: z.object({ id, label, amount_cents: cents, category_id: id, subcategory_id: z.null(), category_kind: z.literal('income'),
+    frequency: z.enum(['weekly', 'monthly', 'yearly']), start_on: date, next_index: z.number().int().min(0).max(100000), active: flag, ...times }).strict(),
   transactions: z.object({ id, kind, amount_cents: cents, label, category_id: id, subcategory_id: id.nullable(), occurred_on: date,
-    recurring_expense_id: id.nullable(), recurring_occurrence_on: date.nullable(), ...times }).strict(),
+    recurring_expense_id: id.nullable(), recurring_occurrence_on: date.nullable(), recurring_income_id: id.nullable(), recurring_income_on: date.nullable(), ...times }).strict(),
   monthly_budgets: z.object({ month, amount_cents: zeroCents, ...times }).strict(),
   category_budgets: z.object({ month, category_id: id, category_kind: z.literal('expense'), amount_cents: zeroCents, ...times }).strict(),
   payday_settings: z.object({ id: z.literal(1), day: z.number().int().min(1).max(31), notifications_enabled: flag }).strict(),
@@ -47,13 +49,25 @@ export function parseBackup(text: string): Backup {
   const envelope = z.object({ format: z.literal('mybudget'), version: z.literal(1), migrations: z.array(z.string()),
     exportedAt: z.iso.datetime(), tables: z.record(z.string(), z.array(z.unknown()).max(50000)) }).strict().parse(JSON.parse(text));
   const migrations = journal.entries.map((e) => e.tag);
-  const beforeProfile = migrations.slice(0, migrations.indexOf('0007_user_profile'));
-  const legacy = JSON.stringify(envelope.migrations) === JSON.stringify(beforeProfile);
-  if (!legacy && JSON.stringify(envelope.migrations) !== JSON.stringify(migrations)) throw new Error('Sauvegarde créée avec une autre version du schéma. Utilisez la version correspondante de MyBudget.');
-  const expectedTables = legacy ? backupTables.filter((table) => table !== 'user_profile') : backupTables;
+  const historyLength = envelope.migrations.length;
+  const beforeProfile = migrations.indexOf('0007_user_profile');
+  const beforeIncome = migrations.indexOf('0008_recurring_income');
+  if (![beforeProfile, beforeIncome, migrations.length].includes(historyLength)
+    || JSON.stringify(envelope.migrations) !== JSON.stringify(migrations.slice(0, historyLength))) {
+    throw new Error('Sauvegarde créée avec une autre version du schéma. Utilisez la version correspondante de MyBudget.');
+  }
+  const hasProfile = historyLength > beforeProfile, hasIncome = historyLength > beforeIncome;
+  const expectedTables = backupTables.filter((table) => (hasProfile || table !== 'user_profile') && (hasIncome || table !== 'recurring_incomes'));
   if (Object.keys(envelope.tables).sort().join('|') !== [...expectedTables].sort().join('|')) throw new Error('Tables manquantes ou inconnues.');
-  const tables = Object.fromEntries(backupTables.map((table) => [table,
-    (legacy && table === 'user_profile' ? [] : envelope.tables[table]!).map((r) => schemas[table].parse(r))])) as unknown as Backup['tables'];
+  const tables = Object.fromEntries(backupTables.map((table) => [table, (envelope.tables[table] ?? []).map((source) => {
+    if (!hasIncome && table === 'transactions' && source && typeof source === 'object'
+      && ('recurring_income_id' in source || 'recurring_income_on' in source)) throw new Error('Champs de récurrence inconnus dans une ancienne sauvegarde.');
+    const row = !hasIncome && table === 'transactions' ? { ...(source as Row), recurring_income_id: null, recurring_income_on: null } : source;
+    return schemas[table].parse(row);
+  })])) as unknown as Backup['tables'];
+  if (!hasIncome) for (const category of defaultCategories.filter((c) => ['benefits', 'reimbursements'].includes(c.id))) {
+    if (!tables.categories.some((c) => c.id === category.id)) tables.categories.push(category);
+  }
   if (tables.user_profile.length > 1) throw new Error('Profil invalide.');
   const categories = new Map(tables.categories.map((c) => [c.id, c]));
   for (const c of defaultCategories) if (categories.get(c.id)?.kind !== c.kind) throw new Error('Catégories requises absentes.');
@@ -64,8 +78,16 @@ export function parseBackup(text: string): Backup {
   }
   for (const row of tables.recurring_expenses) if (categories.get(row.category_id)?.kind !== 'expense'
     || !isValidExpenseSubcategory({ kind: 'expense', categoryId: String(row.category_id), subcategoryId: row.subcategory_id as string | null })) throw new Error('Récurrence invalide.');
+  for (const row of tables.recurring_incomes) if (categories.get(row.category_id)?.kind !== 'income'
+    || row.category_id === 'reimbursements') throw new Error('Récurrence de revenu invalide.');
   for (const row of tables.import_rules) if (categories.get(row.category_id)?.kind !== row.kind) throw new Error('Règle invalide.');
   const entries = new Map(tables.transactions.map((t) => [t.id, t]));
+  const incomeRules = new Map(tables.recurring_incomes.map((r) => [r.id, r]));
+  for (const row of tables.transactions) {
+    const linked = row.recurring_income_id !== null || row.recurring_income_on !== null;
+    if (linked && (row.kind !== 'income' || !row.recurring_income_id || !row.recurring_income_on
+      || !incomeRules.has(row.recurring_income_id) || row.recurring_expense_id !== null)) throw new Error('Échéance de revenu invalide.');
+  }
   const splitIds = new Set(tables.transaction_splits.map((s) => s.transaction_id));
   for (const transactionId of splitIds) {
     const parts = tables.transaction_splits.filter((s) => s.transaction_id === transactionId), entry = entries.get(transactionId);

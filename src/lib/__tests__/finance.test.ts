@@ -5,13 +5,13 @@ const expense = (amountCents: number, occurredOn = '2026-10-15', categoryId = 'f
 
 describe('calculs indépendants de l’interface', () => {
   it('retourne un bilan nul pour un mois vide', () => {
-    expect(monthlySummary([], '2026-10')).toEqual({ incomeCents: 0, expenseCents: 0, netCents: 0, count: 0 });
+    expect(monthlySummary([], '2026-10')).toEqual({ incomeCents: 0, expenseCents: 0, netCents: 0, count: 0, grossExpenseCents: 0, reimbursementCents: 0, plannedIncomeCents: 0 });
   });
 
   it('ne perd aucun centime et accepte un bilan négatif', () => {
     const entries = [expense(10), expense(20), { ...expense(29), kind: 'income' as const }];
     expect(monthlySummary(entries, '2026-10')).toEqual({
-      incomeCents: 29, expenseCents: 30, netCents: -1, count: 3,
+      incomeCents: 29, expenseCents: 30, netCents: -1, count: 3, grossExpenseCents: 30, reimbursementCents: 0, plannedIncomeCents: 0,
     });
   });
 

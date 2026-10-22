@@ -52,7 +52,10 @@ describe('profil privé sur SQLite isolé', () => {
     const entries = createTransactionRepository(test.db);
     entries.create({ kind: 'expense', label: 'Courses fictives', amountCents: 1234, categoryId: 'food', occurredOn: '2026-10-20' });
     const legacy = JSON.parse(makeBackup(test.db));
-    legacy.migrations.pop();
+    legacy.migrations = legacy.migrations.slice(0, 7);
+    delete legacy.tables.recurring_incomes;
+    for (const row of legacy.tables.transactions) { delete row.recurring_income_id; delete row.recurring_income_on; }
+    legacy.tables.categories = legacy.tables.categories.filter((c: { id: string }) => !['benefits', 'reimbursements'].includes(c.id));
     delete legacy.tables.user_profile;
     repo().save(profile);
     restoreBackup(test.db, JSON.stringify(legacy));

@@ -221,9 +221,8 @@ describe('récurrences et paie sur SQLite réel', () => {
     const updated = repository.find(rule.id)!;
     expect(occurrenceOn(updated.startOn, updated.frequency, updated.nextIndex + 1)).toBe('2027-03-31');
   });
-  it('refuse revenus, catégories incompatibles et activation multiple de la même transaction', () => {
+  it('refuse les catégories incompatibles et l’activation multiple de la même transaction', () => {
     const recurring = createRecurringRepository(db);
-    expect(() => recurring.saveTransaction({ ...draft, kind: 'income', categoryId: 'salary' }, 'monthly')).toThrow();
     expect(() => recurring.saveTransaction({ ...draft, categoryId: 'salary' }, 'monthly')).toThrow();
     const id = createTransactionRepository(db).create(draft);
     recurring.saveTransaction(draft, 'monthly', id);

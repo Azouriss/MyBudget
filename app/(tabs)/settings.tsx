@@ -66,7 +66,7 @@ export default function SettingsScreen() {
             {payday === null ? t(paydayStatus) : t("Paie le {0} du mois.", [payday === 1 ? t("1er") : payday])}
           </Text>
           <Button title={t("Jour de paie et rappels")} variant="secondary" onPress={() => router.push('/payday')} />
-          <Button title={t("Dépenses récurrentes")} variant="ghost" onPress={() => router.push('/recurring')} />
+          <Button title={t("Revenus et dépenses récurrents")} variant="ghost" onPress={() => router.push('/recurring')} />
         </SurfaceCard>
         <SurfaceCard style={{ gap: theme.spacing.md }}>
           <Text style={styles.label}>{t("Vos outils")}</Text>

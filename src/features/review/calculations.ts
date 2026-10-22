@@ -2,12 +2,12 @@ import type { Transaction } from '../transactions/types';
 import { monthBounds, shiftMonth } from '../../lib/dates';
 import { expenseByCategory, monthlySummary } from '../../lib/finance';
 
-export function monthlyReview(entries: Transaction[], month: string) {
+export function monthlyReview(entries: Transaction[], month: string, periodForMonth = monthBounds) {
   const previousMonth = shiftMonth(month, -1);
   const recorded = entries.filter((e) => !e.isPlanned);
-  const filter = (m: string) => { const b = monthBounds(m); return recorded.filter((e) => e.occurredOn >= b.start && e.occurredOn < b.end); };
+  const filter = (m: string) => { const b = periodForMonth(m); return recorded.filter((e) => e.occurredOn >= b.start && e.occurredOn < b.end); };
   const current = filter(month), previous = filter(previousMonth);
-  const currentSummary = monthlySummary(current, month), previousSummary = monthlySummary(previous, previousMonth);
+  const currentSummary = monthlySummary(current, month, periodForMonth(month)), previousSummary = monthlySummary(previous, previousMonth, periodForMonth(previousMonth));
   const a = new Map(expenseByCategory(current).map((c) => [c.categoryId, c.amountCents]));
   const b = new Map(expenseByCategory(previous).map((c) => [c.categoryId, c.amountCents]));
   const contributions = [...new Set([...a.keys(), ...b.keys()])].map((categoryId) => ({ categoryId,

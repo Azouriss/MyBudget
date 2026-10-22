@@ -18,6 +18,7 @@ import { SurfaceCard } from '../../components/SurfaceCard';
 import { monthLabel, shortDate } from '../../lib/dates';
 import { formatMoney } from '../../lib/money';
 import { expenseByCategory } from '../../lib/finance';
+import { recurringId } from '../transactions/types';
 import { useAppStore } from '../../stores/useAppStore';
 import { theme } from '../../theme';
 import { parseBudgetAmount } from '../budgets/validation';
@@ -56,18 +57,18 @@ function Margin({ data }: { data: ForecastData }) {
   const [purchase, setPurchase] = useState('0');
   const [reserve, setReserve] = useState('0');
   const budget = data.budgets.monthly?.amountCents ?? null;
-  const editBudget = () => router.push({ pathname: '/budget', params: { month: data.today.slice(0, 7) } });
+  const editBudget = () => router.push({ pathname: '/budget', params: { month: data.month } });
   let simulation: ReturnType<typeof budgetForecast> | undefined;
   let error = '';
-  try { simulation = budgetForecast(data.entries, budget, data.today, { purchaseCents: parseBudgetAmount(purchase), reserveCents: parseBudgetAmount(reserve) }); }
+  try { simulation = budgetForecast(data.entries, budget, data.today, { purchaseCents: parseBudgetAmount(purchase), reserveCents: parseBudgetAmount(reserve) }, data.period); }
   catch { error = t('Saisissez des montants entre 0,00 et 9 999 999,99 €, avec au plus deux décimales.'); }
-  const base = budgetForecast(data.entries, budget, data.today);
+  const base = budgetForecast(data.entries, budget, data.today, undefined, data.period);
   return <View style={styles.group}>
     <SurfaceCard style={styles.card}>
       <View style={styles.cardHeading}>
         <View style={styles.headingCopy}>
           <Text accessibilityRole="header" style={styles.title}>{t('Marge après charges')}</Text>
-          <Text style={styles.note}>{monthLabel(data.today.slice(0, 7))}</Text>
+          <Text style={styles.note}>{shortDate(data.period.start)} → {data.period.end === '2100-01-01' ? '01/01/2100' : shortDate(data.period.end)}{t(" · fin exclue")}</Text>
         </View>
         {budget !== null ? <IconButton icon={SlidersHorizontal} label={t('Modifier le budget du mois')} onPress={editBudget} /> : null}
       </View>
@@ -89,6 +90,7 @@ function Margin({ data }: { data: ForecastData }) {
         {[
           { label: t('Budget'), value: budget === null ? t('non défini') : formatMoney(budget) },
           { label: t('Dépenses enregistrées'), value: formatMoney(base.recordedCents) },
+          { label: t('Remboursements reçus'), value: formatMoney(base.reimbursementCents) },
           { label: t('Échéances non enregistrées'), value: formatMoney(base.plannedCents) },
         ].map((item) => <View key={item.label} style={styles.detailRow}>
           <Text style={styles.detailLabel}>{item.label}</Text><Text style={styles.detailAmount}>{item.value}</Text>
@@ -111,7 +113,7 @@ function Margin({ data }: { data: ForecastData }) {
       <Button title={t('Réinitialiser la simulation')} variant="ghost" onPress={() => { setPurchase('0'); setReserve('0'); }} />
     </SurfaceCard>
     {data.budgets.categories.map((limit) => {
-      const spent = expenseByCategory(data.entries.filter((entry) => entry.occurredOn.slice(0, 7) === data.today.slice(0, 7)))
+      const spent = expenseByCategory(data.entries.filter((entry) => entry.occurredOn >= data.period.start && entry.occurredOn < data.period.end))
         .find((part) => part.categoryId === limit.categoryId)?.amountCents ?? 0;
       if (spent <= limit.amountCents) return null;
       return <Text key={limit.categoryId} style={styles.error}>{data.categories.find((category) => category.id === limit.categoryId)?.label}{t(' : les dépenses et charges connues dépassent l’enveloppe de ')}{formatMoney(spent - limit.amountCents)}.</Text>;
@@ -125,6 +127,7 @@ function Agenda({ data }: { data: ForecastData }) {
   const [focused, setFocused] = useState<string | null>(null);
   const end = horizonEnd(data.today, Number(days));
   const entries = data.entries.filter((entry) => entry.kind === 'expense' && entry.occurredOn >= data.today && entry.occurredOn < end);
+  const incomes = data.entries.filter((entry) => entry.kind === 'income' && !entry.reimbursement && entry.categoryId !== 'reimbursements' && entry.occurredOn >= data.today && entry.occurredOn < end);
   const months = [...new Set(entries.map((entry) => entry.occurredOn.slice(0, 7)))];
   return <View style={styles.group}>
     <SurfaceCard style={styles.card}>
@@ -133,6 +136,14 @@ function Agenda({ data }: { data: ForecastData }) {
       <SegmentedControl label={t('Période de l’agenda')} options={[{ value: '7', label: t('7 jours') }, { value: '30', label: t('30 jours') }]} value={days} onChange={setDays} />
       <Text style={styles.note}>{t('Aujourd’hui inclus · « Enregistré » ne confirme pas le débit bancaire.')}</Text>
     </SurfaceCard>
+    {incomes.length ? <SurfaceCard style={styles.card}>
+      <Text accessibilityRole="header" style={styles.title}>{t('Revenus à venir')}</Text>
+      {incomes.map((entry) => <View key={entry.id}>
+        <Button title={`${shortDate(entry.occurredOn)} · ${entry.label} · ${formatMoney(entry.amountCents)}`} variant="ghost"
+          onPress={() => router.push({ pathname: entry.isPlanned ? '/recurring-expense' : '/transaction', params: { id: entry.isPlanned ? recurringId(entry)! : entry.id } })} />
+        <Text style={styles.note}>{entry.isPlanned ? t('Prévu, hors revenus reçus') : t('Enregistré')}</Text>
+      </View>)}
+    </SurfaceCard> : null}
     {entries.length === 0 ? <View style={styles.empty}>
       <Text style={styles.emptyTitle}>{t('Aucune charge connue sur cette période')}</Text>
     </View> : null}

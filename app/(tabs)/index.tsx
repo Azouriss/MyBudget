@@ -18,7 +18,7 @@ import { SectionHeader } from '../../src/components/SectionHeader';
 import { SurfaceCard } from '../../src/components/SurfaceCard';
 import { useMonthlyBudgets } from '../../src/features/budgets/hooks';
 import { TransactionRow } from '../../src/features/transactions/TransactionRow';
-import { useMonthlyTransactions } from '../../src/features/transactions/hooks';
+import { useMonthlyTransactions, useBudgetPeriod } from '../../src/features/transactions/hooks';
 import { expenseByCategory, monthlySummary } from '../../src/lib/finance';
 import { formatMoney } from '../../src/lib/money';
 import { useAppStore } from '../../src/stores/useAppStore';
@@ -29,10 +29,11 @@ export default function DashboardScreen() {
   const month = useAppStore((state) => state.month);
   const data = useMonthlyTransactions();
   const budgets = useMonthlyBudgets();
-  const summary = useMemo(() => monthlySummary(data.transactions, month), [data.transactions, month]);
-  const breakdown = useMemo(() => expenseByCategory(data.transactions), [data.transactions]);
+  const period = useBudgetPeriod(month);
+  const summary = useMemo(() => monthlySummary(data.transactions, month, period), [data.transactions, month, period]);
+  const breakdown = useMemo(() => expenseByCategory(data.transactions, false), [data.transactions]);
   const categories = useMemo(() => new Map(data.categories.map((category) => [category.id, category])), [data.categories]);
-  const hasPlanned = data.transactions.some((item) => item.isPlanned);
+  const hasPlanned = data.transactions.some((item) => item.isPlanned && item.kind === 'expense');
   return <ScreenContainer><ScrollView contentContainerStyle={styles.page}>
     <AppHeader profile />
     <SalaryReminder />
@@ -40,7 +41,7 @@ export default function DashboardScreen() {
     {data.loading || data.error ? <QueryState error={data.error} /> : <View style={styles.sections}>
       <SurfaceCard style={styles.summaryCard}>
         <View pointerEvents="none" style={styles.cornerLeaf}><BotanicalSprig size={64} /></View>
-        <Text style={styles.meta}>{hasPlanned ? t("Dépenses prévues ce mois-ci") : t("Dépenses ce mois-ci")}</Text>
+        <Text style={styles.meta}>{hasPlanned ? t("Dépenses nettes prévues") : t("Dépenses nettes de la période")}</Text>
         {hasPlanned ? <Text style={styles.caption}>{t("Échéances prévues incluses.")}</Text> : null}
         <View style={styles.expenseLine}>
           <Text accessibilityLabel={t("Dépenses du mois : {0}", [formatMoney(summary.expenseCents)])} style={styles.expenses}>{formatMoney(summary.expenseCents)}</Text>
@@ -52,14 +53,16 @@ export default function DashboardScreen() {
         {budgets.monthly && !budgets.error && !budgets.loading ? <BudgetProgress spent={summary.expenseCents} limit={budgets.monthly.amountCents} /> : null}
         {budgets.monthlySource === 'salary' && !budgets.error && !budgets.loading
           ? <Text style={styles.caption}>{t("Salaire net utilisé par défaut.")}</Text> : null}
+        {summary.reimbursementCents > 0 ? <Text style={styles.caption}>{t("Remboursements reçus : {0} · déduits des dépenses", [formatMoney(summary.reimbursementCents)])}</Text> : null}
+        {summary.plannedIncomeCents > 0 ? <Text style={styles.caption}>{t("Revenus prévus : {0} · hors revenus reçus", [formatMoney(summary.plannedIncomeCents)])}</Text> : null}
         <View style={styles.financialDetails}>
           <View style={styles.financialItem}><Text style={styles.caption}>{t("Revenus")}</Text><Text style={styles.income}>{formatMoney(summary.incomeCents)}</Text></View>
-          <View style={styles.financialItem}><Text style={styles.caption}>{t("Solde du mois")}</Text><Text style={styles.balance}>{formatMoney(summary.netCents)}</Text></View>
+          <View style={styles.financialItem}><Text style={styles.caption}>{t("Écart revenus / dépenses")}</Text><Text style={styles.balance}>{formatMoney(summary.netCents)}</Text></View>
         </View>
       </SurfaceCard>
       <View>
-        <SectionHeader title={t("Dépenses par catégorie")} />
-        <ExpenseChart breakdown={breakdown} categories={data.categories} total={summary.expenseCents} />
+        <SectionHeader title={t("Dépenses brutes par catégorie")} />
+        <ExpenseChart breakdown={breakdown} categories={data.categories} total={summary.grossExpenseCents} />
       </View>
       <Button title={t("Ajouter une dépense")} icon={Plus} onPress={() => router.push('/transaction')} />
       {data.transactions.length ? <View>

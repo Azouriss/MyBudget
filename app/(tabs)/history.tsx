@@ -13,7 +13,7 @@ import { IconButton } from '../../src/components/IconButton';
 import { EmptyState } from '../../src/components/EmptyState';
 import { QueryState } from '../../src/components/QueryState';
 import { TransactionRow } from '../../src/features/transactions/TransactionRow';
-import { useMonthlyTransactions } from '../../src/features/transactions/hooks';
+import { useMonthlyTransactions, useBudgetPeriod } from '../../src/features/transactions/hooks';
 import { useAppStore } from '../../src/stores/useAppStore';
 import { formatMoney } from '../../src/lib/money';
 import { localDateKey } from '../../src/lib/dates';
@@ -55,7 +55,8 @@ export default function HistoryScreen() {
     }
     return [...dates].map(([date, data]) => ({ date, data }));
   }, [visible]);
-  const summary = useMemo(() => monthlySummary(visible, month), [visible, month]);
+  const period = useBudgetPeriod(month);
+  const summary = useMemo(() => monthlySummary(visible, month, period), [visible, month, period]);
   const hasPlanned = visible.some((item) => item.isPlanned);
   const filtered = filter !== 'all' || query.trim().length > 0;
   const showAdd = !loading && !error;
@@ -85,6 +86,8 @@ export default function HistoryScreen() {
               <Text style={[styles.totalAmount, styles.incomeAmount]}>{formatMoney(summary.incomeCents)}</Text>
             </View> : null}
           </View>
+          {summary.reimbursementCents > 0 ? <Text style={styles.meta}>{t("Remboursements reçus : {0} · déduits des dépenses", [formatMoney(summary.reimbursementCents)])}</Text> : null}
+          {summary.plannedIncomeCents > 0 ? <Text style={styles.meta}>{t("Revenus prévus : {0} · hors revenus reçus", [formatMoney(summary.plannedIncomeCents)])}</Text> : null}
           {hasPlanned ? <View style={styles.planned}>
             <Repeat2 size={theme.size.icon.small} color={theme.colors.textAction} {...decorativeIconProps} />
             <Text style={styles.meta}>{t("Échéances prévues incluses")}</Text>

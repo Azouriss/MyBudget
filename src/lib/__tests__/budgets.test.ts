@@ -14,7 +14,10 @@ describe('budgets mensuels', () => {
   it('affiche une progression nulle quand aucun montant n’est dépensé', () => {
     expect(budgetProgress(0, 1)).toMatchObject({ percent: 0, remainingCents: 1, exceeded: false });
   });
-  test.each([-1, 1.5, NaN, Number.MAX_SAFE_INTEGER + 1])('refuse une dépense invalide %s', (amount) => {
+  it('affiche un crédit net sans progression négative', () => {
+    expect(budgetProgress(-2000, 10000)).toMatchObject({ ratio: 0, remainingCents: 12000, exceeded: false });
+  });
+  test.each([1.5, NaN, Number.MAX_SAFE_INTEGER + 1])('refuse une dépense invalide %s', (amount) => {
     expect(() => budgetProgress(amount, 10_000)).toThrow();
   });
   test.each([-1, 1.5, Infinity])('refuse une limite invalide %s', (amount) => {

@@ -10,4 +10,6 @@ export const defaultCategories: Category[] = [
   { id: 'other-expense', label: 'Autres dépenses', kind: 'expense', color: colors.textSecondary, icon: 'wallet', position: 5 },
   { id: 'salary', label: 'Salaire', kind: 'income', color: colors.success, icon: 'briefcase', position: 6 },
   { id: 'other-income', label: 'Autres revenus', kind: 'income', color: colors.infoText, icon: 'wallet', position: 7 },
+  { id: 'benefits', label: 'CAF et aides', kind: 'income', color: colors.success, icon: 'home', position: 8 },
+  { id: 'reimbursements', label: 'Remboursements', kind: 'income', color: colors.textSecondary, icon: 'wallet', position: 9 },
 ];

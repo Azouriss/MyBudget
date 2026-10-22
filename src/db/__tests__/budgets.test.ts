@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { drizzle } from 'drizzle-orm/expo-sqlite/driver';
 import * as schema from '../schema';
+import journal from '../migrations/meta/_journal.json';
 import { createBudgetRepository } from '../../features/budgets/repository';
 import { budgetEnvelopeExcess, budgetProgress } from '../../lib/budgets';
 
@@ -17,10 +18,7 @@ describe('migration et dépôt des budgets sur une vraie base SQLite', () => {
     sqlite.prepare('INSERT INTO categories VALUES (?, ?, ?, ?, ?, ?)').run('salary', 'Salaire', 'income', '#32765B', 'briefcase', 1);
     sqlite.prepare('INSERT INTO transactions (id, kind, amount_cents, label, category_id, occurred_on, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
       .run('preserved', 'expense', 29, 'Transaction existante', 'food', '2026-10-16', 1, 1);
-    sqlite.exec(readFileSync(join(__dirname, '../migrations/0001_monthly_budgets.sql'), 'utf8'));
-    sqlite.exec(readFileSync(join(__dirname, '../migrations/0002_zero_budgets.sql'), 'utf8'));
-    sqlite.exec(readFileSync(join(__dirname, '../migrations/0003_recurring_and_payday.sql'), 'utf8'));
-    sqlite.exec(readFileSync(join(__dirname, '../migrations/0004_expense_subcategories.sql'), 'utf8'));
+    for (const entry of journal.entries.slice(1)) sqlite.exec(readFileSync(join(__dirname, '../migrations', `${entry.tag}.sql`), 'utf8'));
     // Adapt the actual Node SQLite driver to the two synchronous methods used by Drizzle's Expo adapter.
     const client = {
       prepareSync(sql: string) {

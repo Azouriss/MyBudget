@@ -17,7 +17,7 @@ import { ScreenContainer } from '../../src/components/ScreenContainer';
 import { SectionHeader } from '../../src/components/SectionHeader';
 import { SurfaceCard } from '../../src/components/SurfaceCard';
 import { useMonthlyBudgets } from '../../src/features/budgets/hooks';
-import { useMonthlyTransactions } from '../../src/features/transactions/hooks';
+import { useMonthlyTransactions, useBudgetPeriod } from '../../src/features/transactions/hooks';
 import { budgetProgress } from '../../src/lib/budgets';
 import { expenseByCategory, monthlySummary } from '../../src/lib/finance';
 import { formatMoney } from '../../src/lib/money';
@@ -33,8 +33,9 @@ export default function BudgetsScreen() {
   const { width, fontScale } = useWindowDimensions();
   const stacked = Math.min(width, theme.layout.contentMaxWidth) - 2 * theme.layout.gutter <= theme.layout.compactTransactionWidth
     || fontScale >= theme.layout.stackedFontScale;
-  const summary = useMemo(() => monthlySummary(data.transactions, month), [data.transactions, month]);
-  const hasPlanned = data.transactions.some((item) => item.isPlanned);
+  const period = useBudgetPeriod(month);
+  const summary = useMemo(() => monthlySummary(data.transactions, month, period), [data.transactions, month, period]);
+  const hasPlanned = data.transactions.some((item) => item.isPlanned && item.kind === 'expense');
   const spending = useMemo(() => new Map(expenseByCategory(data.transactions).map((item) => [item.categoryId, item.amountCents])), [data.transactions]);
   const limits = useMemo(() => new Map(budgets.categories.map((item) => [item.categoryId, item.amountCents])), [budgets.categories]);
   const progress = budgets.monthly ? budgetProgress(summary.expenseCents, budgets.monthly.amountCents) : undefined;

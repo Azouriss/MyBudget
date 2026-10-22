@@ -8,7 +8,7 @@ import { CategoryIcon } from '../../components/CategoryIcon';
 import { formatMoney } from '../../lib/money';
 import { shortDate } from '../../lib/dates';
 import { theme } from '../../theme';
-import type { Transaction } from './types';
+import { recurringId, type Transaction } from './types';
 import { ChevronRight, Repeat2 } from 'lucide-react-native';
 import { decorativeIconProps } from '../../components/decorativeIconProps';
 import { getExpenseSubcategory } from '../categories/subcategories';
@@ -23,14 +23,15 @@ export function TransactionRow({ transaction, category, last = false, variant = 
   const stacked = Math.min(width, theme.layout.contentMaxWidth) - 2 * theme.layout.gutter < theme.layout.compactTransactionWidth
     || fontScale >= theme.layout.stackedFontScale;
   const income = transaction.kind === 'income';
-  const recurring = !!transaction.recurringExpenseId;
+  const ruleId = recurringId(transaction);
+  const recurring = !!ruleId;
   const planned = !!transaction.isPlanned;
   const subcategory = getExpenseSubcategory(transaction.subcategoryId);
   const categoryLabel = `${t(category?.label ?? "Catégorie")}${subcategory ? ` · ${t(subcategory.label)}` : ''}`;
   return <Pressable cssInterop={false} accessibilityRole="button"
     accessibilityLabel={t("{0}, {1}{2}{3} de {4}, {5}, {6}. {7}", [transaction.label, income ? t("revenu") : t("dépense"), recurring ? t(" récurrente") : '', planned ? t(" prévue") : '', formatMoney(transaction.amountCents), categoryLabel, shortDate(transaction.occurredOn), planned ? t("Gérer la récurrence.") : t("Modifier.")])}
-    onPress={() => router.push(planned && transaction.recurringExpenseId
-      ? { pathname: '/recurring-expense', params: { id: transaction.recurringExpenseId } }
+    onPress={() => router.push(planned && ruleId
+      ? { pathname: '/recurring-expense', params: { id: ruleId } }
       : { pathname: '/transaction', params: { id: transaction.id } })}
     onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
     style={({ pressed }) => [styles.row, history && styles.historyRow, {
@@ -45,7 +46,7 @@ export function TransactionRow({ transaction, category, last = false, variant = 
       <View style={[styles.details, history && !stacked && styles.historyDetails, stacked && styles.stacked]}>
         <View style={[styles.copy, history && !stacked && styles.historyCopy]}>
           <Text style={[styles.label, history && styles.historyLabel]}>{transaction.label}</Text>
-          <Text style={styles.meta}>{categoryLabel}{income ? t(" · Revenu") : ''}</Text>
+          <Text style={styles.meta}>{categoryLabel}{transaction.reimbursement || transaction.categoryId === 'reimbursements' ? t(" · Remboursement reçu") : income ? t(" · Revenu") : ''}</Text>
           {recurring ? <View style={[styles.recurring, history && styles.recurringBadge]}>
             <Repeat2 size={theme.size.icon.small} color={theme.colors.textAction} {...decorativeIconProps} />
             <Text style={styles.recurringLabel}>{planned ? t("Récurrente · Prévue") : t("Récurrente")}</Text>

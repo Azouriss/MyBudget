@@ -1,5 +1,50 @@
 # Frontend version history
 
+## 0.8.0.0 - 2026-10-22
+
+- Allow recurring income, including CAF benefits, with editable schedules,
+  planned occurrences and idempotent recording when due. Add the CAF/benefits
+  and reimbursement categories while preserving the existing bank-fee tag.
+- Apply the configured payday to dashboard, history, budgets, category limits,
+  forecasts and period comparisons. A period includes its starting payday and
+  excludes the next one. Recorded salary dates override the usual payday;
+  missing days use the month's last day. Without a payday, retain calendar months.
+- Link received reimbursements to their original expenses. Deduct actual receipts
+  from net expenses on their receipt dates, without inflating earned income or
+  anticipating unreceived amounts. Preserve partial-payment caps, exact cent
+  allocations, existing links and history when closing outstanding expectations.
+- Keep planned income separate from received income and the spending margin.
+  Show period boundaries and upcoming income in French and English.
+- Add an additive migration for recurring income and its transaction references,
+  preserving expense rules, splits, imports and reimbursement relations. Accept
+  backups from the preceding schemas without resetting financial records.
+
+**Threat impact:** Preserve integer cents, civil dates, Zod validation,
+parameterized queries, recurrence identities, explicit zero budgets and atomic
+migrations. Limit reimbursements to the original cost and retain their accounting
+identity. Received credits can create negative net spending for a later period;
+progress bars remain bounded. No destructive database rebuild is introduced.
+
+**Sovereignty impact:** All schedules, calculations, categories, translations and
+backup conversion run locally. No dependency, account, telemetry, network service,
+remote build or data collection is added. Database and Android identity are kept.
+
+**Validation:** Windows `npm run release:check` passed: TypeScript, 305 application
+tests, 23 release-tool tests and nine protected migrations. SQLite tests cover
+payday boundaries, salary overrides, leap years, year transitions, recurring
+income forecasts/edits/idempotency/rollback, partial and later reimbursements,
+exact allocations, legacy backups and retained dependent records after upgrades.
+Isolated Chrome acceptance with synthetic data and a fixed test date passed:
+payday/salary dates, net bank-fee reimbursement without income inflation, recurring
+CAF creation/editing/forecasts, future-period history, persistence across fresh
+page loads and the English profile. Reviewed screenshots and checked overflow at
+320/360/390/768 px and with simulated 150% web text. The web export was compared
+with the current source/schema files. Scoped diff and secret-pattern checks passed.
+Native Android rendering, font scaling and retained-device-data checks are separate.
+
+**Status:** `verification-pending` - Android phone and packaged APK acceptance
+remain pending. No APK, push, tag, publication or deployment.
+
 ## 0.7.0.0 - 2026-10-20
 
 - Suggest expense categories and subcategories from the label as it is typed,

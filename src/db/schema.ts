@@ -46,6 +46,27 @@ export const paydaySettings = sqliteTable('payday_settings', {
   check('payday_settings_notifications_check', sql`${table.notificationsEnabled} IN (0, 1)`),
 ]);
 
+// Income rules are additive: preserve existing expense rules and their references.
+export const recurringIncomes = sqliteTable('recurring_incomes', {
+  id: text('id').primaryKey(), label: text('label').notNull(),
+  amountCents: integer('amount_cents').notNull(),
+  categoryId: text('category_id').notNull(), subcategoryId: text('subcategory_id'),
+  categoryKind: text('category_kind').notNull().default('income'),
+  frequency: text('frequency', { enum: ['weekly', 'monthly', 'yearly'] }).notNull(),
+  startOn: text('start_on').notNull(), nextIndex: integer('next_index').notNull(),
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at').notNull(), updatedAt: integer('updated_at').notNull(),
+}, (table) => [
+  foreignKey({ columns: [table.categoryId, table.categoryKind], foreignColumns: [categories.id, categories.kind] }).onDelete('restrict'),
+  check('recurring_incomes_kind_check', sql`${table.categoryKind} = 'income'`),
+  check('recurring_incomes_subcategory_check', sql`${table.subcategoryId} IS NULL`),
+  check('recurring_incomes_amount_check', sql`typeof(${table.amountCents}) = 'integer' AND ${table.amountCents} BETWEEN 1 AND 999999999`),
+  check('recurring_incomes_label_check', sql`length(trim(${table.label})) BETWEEN 1 AND 80`),
+  check('recurring_incomes_frequency_check', sql`${table.frequency} IN ('weekly', 'monthly', 'yearly')`),
+  check('recurring_incomes_index_check', sql`typeof(${table.nextIndex}) = 'integer' AND ${table.nextIndex} >= 0`),
+  check('recurring_incomes_active_check', sql`${table.active} IN (0, 1)`),
+]);
+
 export const userProfile = sqliteTable('user_profile', {
   id: integer('id').primaryKey(),
   firstName: text('first_name').notNull(),
@@ -70,7 +91,11 @@ export const transactions = sqliteTable('transactions', {
   updatedAt: integer('updated_at').notNull(),
   recurringExpenseId: text('recurring_expense_id').references(() => recurringExpenses.id, { onDelete: 'restrict' }),
   recurringOccurrenceOn: text('recurring_occurrence_on'),
+  recurringIncomeId: text('recurring_income_id').references(() => recurringIncomes.id, { onDelete: 'restrict' }),
+  recurringIncomeOn: text('recurring_income_on'),
 }, (table) => [
+  uniqueIndex('transactions_recurring_income_unique').on(table.recurringIncomeId, table.recurringIncomeOn),
+  check('transactions_recurring_income_check', sql`(${table.recurringIncomeId} IS NULL AND ${table.recurringIncomeOn} IS NULL) OR (${table.recurringIncomeId} IS NOT NULL AND ${table.recurringIncomeOn} IS NOT NULL AND ${table.kind} = 'income' AND ${table.recurringExpenseId} IS NULL)`),
   uniqueIndex('transactions_recurring_occurrence_unique').on(table.recurringExpenseId, table.recurringOccurrenceOn),
   check('transactions_recurring_check', sql`(${table.recurringExpenseId} IS NULL AND ${table.recurringOccurrenceOn} IS NULL) OR (${table.recurringExpenseId} IS NOT NULL AND ${table.recurringOccurrenceOn} IS NOT NULL AND ${table.kind} = 'expense')`),
   index('transactions_date_index').on(table.occurredOn),

@@ -67,13 +67,20 @@ function seed(sqlite: DatabaseSync, count: number) {
     sqlite.prepare('INSERT INTO provision_goals VALUES (?, ?, ?, ?, ?, ?, ?)').run('annual', 'Assurance', 60000, '2027-04-15', 20, 13, 14);
     sqlite.prepare('INSERT INTO provision_movements VALUES (?, ?, ?, ?)').run('reserved', 'annual', 15000, 15);
   }
+  if (count >= 7) {
+    sqlite.prepare('INSERT INTO transaction_splits VALUES (?, ?, ?, ?)').run('part-a', 'expense', 'food', 10);
+    sqlite.prepare('INSERT INTO transaction_splits VALUES (?, ?, ?, ?)').run('part-b', 'expense', 'food', 19);
+    sqlite.prepare('INSERT INTO reimbursement_claims VALUES (?, ?, ?)').run('expense', 29, 'Partage fictif');
+    sqlite.prepare('INSERT INTO reimbursement_receipts VALUES (?, ?)').run('income', 'expense');
+    sqlite.prepare('INSERT INTO import_records VALUES (?, ?, ?)').run('imported', 'synthetic-fingerprint', 'expense');
+  }
   if (count >= 8) {
     sqlite.prepare('INSERT INTO user_profile VALUES (?, ?, ?, ?)').run(1, 'Élise', 'Martin', 'en');
   }
 }
 
 function snapshot(sqlite: DatabaseSync) {
-  const tables = ['categories', 'transactions', 'monthly_budgets', 'category_budgets', 'recurring_expenses', 'payday_settings', 'provision_goals', 'provision_movements', 'user_profile', '__drizzle_migrations'];
+  const tables = ['categories', 'transactions', 'monthly_budgets', 'category_budgets', 'recurring_expenses', 'payday_settings', 'provision_goals', 'provision_movements', 'user_profile', 'recurring_incomes', 'transaction_splits', 'reimbursement_claims', 'reimbursement_receipts', 'import_records', '__drizzle_migrations'];
   return Object.fromEntries(tables.filter((table) => sqlite.prepare('SELECT name FROM sqlite_master WHERE name = ?').get(table))
     .map((table) => [table, sqlite.prepare(`SELECT * FROM "${table}" ORDER BY rowid`).all()]));
 }

@@ -13,6 +13,7 @@ import { SurfaceCard } from '../src/components/SurfaceCard';
 import { useConfirmation } from '../src/components/ConfirmationProvider';
 import { createPaydayRepository } from '../src/features/payday/repository';
 import { phoneNotificationsAvailable, requestSalaryNotificationPermission, syncSalaryNotifications } from '../src/features/payday/notifications';
+import { createPeriodRepository } from '../src/features/payday/period';
 import { currentMonth, monthLabel } from '../src/lib/dates';
 import { useAppStore } from '../src/stores/useAppStore';
 import { theme } from '../src/theme';
@@ -60,6 +61,7 @@ export default function PaydayScreen() {
       }
       createPaydayRepository(db).save(Number(day), enabled);
       setInitial({ day, enabled });
+      useAppStore.getState().setMonth(createPeriodRepository(db).monthForDate());
       useAppStore.getState().invalidate();
       try { setStatus(await syncSalaryNotifications(db)); }
       catch { setStatus('Jour de paie enregistré. La programmation téléphone a échoué ; réessayez.'); }
@@ -71,10 +73,11 @@ export default function PaydayScreen() {
   }
   async function remove() {
     if (busy.current || !initial) return;
-    if (!await confirm({ title: t("Désactiver les rappels de paie ?"), message: t("Votre salaire et vos transactions restent conservés."), confirmLabel: t("Désactiver") })) return;
+    if (!await confirm({ title: t("Retirer le jour de paie ?"), message: t("Les budgets reviendront aux mois calendaires. Votre salaire et vos transactions seront conservés."), confirmLabel: t("Désactiver") })) return;
     busy.current = true; setSaving(true);
     try {
       createPaydayRepository(db).remove();
+      useAppStore.getState().setMonth(currentMonth());
       useAppStore.getState().invalidate();
       await syncSalaryNotifications(db);
       allowLeave.current = true;
@@ -83,6 +86,7 @@ export default function PaydayScreen() {
     finally { busy.current = false; setSaving(false); }
   }
   return <SettingsPage title={t("Jour de paie")} footer={<Button title={t("Enregistrer")} onPress={() => { void save(); }} loading={saving} disabled={!initial} />}>
+    <Text style={styles.copy}>{t("Le budget commence à la paie et se termine à la suivante, fin exclue. La date du salaire saisi prime sur le jour habituel.")}</Text>
     <View style={{ gap: theme.spacing.sm }}>
       <FormField label={t("Jour du mois (1 à 31)")} value={day} onChangeText={setDay} placeholder={t("Ex. 28")} keyboardType="number-pad" maxLength={2} editable={!!initial && !saving} />
       <Text style={styles.copy}>{t("Mois plus court : dernier jour du mois.")}</Text>
@@ -104,6 +108,6 @@ export default function PaydayScreen() {
       <Text style={styles.copy}>{t("Les rappels couvrent les 12 prochains mois et sont renouvelés à l’ouverture de l’app.")}</Text>
     </Disclosure>
     {error ? <Text accessibilityRole="alert" style={styles.error}>{t(error)}</Text> : null}
-    {initial?.day ? <Button title={t("Désactiver les rappels")} variant="ghost" onPress={() => { void remove(); }} disabled={saving} /> : null}
+    {initial?.day ? <Button title={t("Retirer le jour de paie")} variant="ghost" onPress={() => { void remove(); }} disabled={saving} /> : null}
   </SettingsPage>;
 }

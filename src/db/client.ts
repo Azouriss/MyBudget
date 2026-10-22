@@ -7,6 +7,8 @@ import { migrateSafely } from './migrateSafely';
 import { catchUpExpenses } from '../features/recurring/repository';
 import { createProfileRepository } from '../features/profile/repository';
 import { setLanguage } from '../i18n/locale';
+import { createPeriodRepository } from '../features/payday/period';
+import { useAppStore } from '../stores/useAppStore';
 
 export const DATABASE_NAME = 'clair-depenses.db';
 
@@ -23,6 +25,7 @@ async function initializeDatabase(): Promise<ExpoSQLiteDatabase<typeof schema>> 
       }
     });
     await catchUpExpenses(db);
+    useAppStore.getState().setMonth(createPeriodRepository(db).monthForDate());
     setLanguage(createProfileRepository(db).get().language);
     return db;
   } catch (error) {

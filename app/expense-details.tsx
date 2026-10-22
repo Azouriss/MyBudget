@@ -63,7 +63,7 @@ export default function ExpenseDetailsScreen() {
         </SurfaceCard>
         <SurfaceCard style={s.card}>
           <Text accessibilityRole="header" style={s.label}>{t("Suivre un remboursement")}</Text>
-          <Text style={s.copy}>{t("Seuls les versements reçus comptent comme revenus.")}</Text>
+          <Text style={s.copy}>{t("Les versements reçus réduisent les dépenses nettes, sans augmenter les revenus gagnés.")}</Text>
           {claim ? <>
             <Text style={s.label}>{claim.label}{t(" · Attendu : ")}{formatMoney(claim.expectedCents)}{t(" · Reçu : ")}{formatMoney(claim.receivedCents)}{t(" · Restant : ")}{formatMoney(claim.outstandingCents)}</Text>
             <Text style={s.copy}>{t("Coût net de cet achat à ce jour : ")}{formatMoney(entry.amountCents - claim.receivedCents)}.</Text>
@@ -80,10 +80,10 @@ export default function ExpenseDetailsScreen() {
             </> : null}
             <Button title={t("Modifier le montant attendu")} variant="secondary" disabled={op.busy} onPress={() => { setExpected(centsToInput(claim.expectedCents)); setLabel(claim.label); }} />
             <Button title={t("Arrêter le suivi du remboursement")} variant="ghost" disabled={op.busy} onPress={() => void op.run(async () => {
-              if (await confirm({ title: t("Arrêter ce suivi ?"), message: t("La dépense et les revenus déjà reçus restent dans votre historique. Le montant restant ne sera plus suivi."), confirmLabel: t("Arrêter le suivi"), destructive: true })) repository.removeClaim(id);
+              if (await confirm({ title: t("Arrêter ce suivi ?"), message: t("La dépense et les remboursements reçus restent liés dans votre historique. Le montant restant ne sera plus attendu."), confirmLabel: t("Arrêter le suivi"), destructive: true })) repository.removeClaim(id);
             })} />
           </> : null}
-          <FormField label={t("Objet ou personne à rembourser")} value={label} onChangeText={setLabel} maxLength={80} editable={!op.busy} />
+          <FormField label={t("Objet ou organisme qui rembourse")} value={label} onChangeText={setLabel} maxLength={80} editable={!op.busy} />
           <FormField label={t("Montant total attendu en euros")} value={expected} onChangeText={setExpected} keyboardType="decimal-pad" editable={!op.busy} />
           <Button title={claim ? t("Mettre à jour le montant attendu") : t("Créer le suivi du remboursement")} disabled={op.busy || !expected || !label} onPress={() => void op.run(() => { repository.claim(id, parseAmountToCents(expected), label); setExpected(''); setLabel(''); }, t("Suivi enregistré"))} />
         </SurfaceCard>

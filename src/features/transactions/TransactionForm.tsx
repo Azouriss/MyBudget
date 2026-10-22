@@ -10,6 +10,9 @@ import { ArrowLeft, Check, Trash2 } from 'lucide-react-native';
 import { useDatabase } from '../../db/DatabaseProvider';
 import { createRecurringRepository } from '../recurring/repository';
 import { frequencies, type Frequency } from '../recurring/schedule';
+import { createPeriodRepository } from '../payday/period';
+import { createPaydayRepository } from '../payday/repository';
+import { paydayOn } from '../payday/schedule';
 import { monthLabel } from '../../lib/dates';
 import type { Category } from '../../db/schema';
 import { Button } from '../../components/Button';
@@ -27,7 +30,7 @@ import { centsToInput, formatMoney } from '../../lib/money';
 import { theme } from '../../theme';
 import { useAppStore } from '../../stores/useAppStore';
 import { useTransactionRepository } from './hooks';
-import type { Transaction, TransactionKind } from './types';
+import { recurringId, type Transaction, type TransactionKind } from './types';
 import { formToDraft, transactionFormSchema, type TransactionFormValues } from './validation';
 import { ExpenseSubcategoryPicker } from '../categories/ExpenseSubcategoryPicker';
 import { detectExpenseSubcategory, getExpenseSubcategory } from '../categories/subcategories';
@@ -39,6 +42,8 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
   const repository = useTransactionRepository();
   const db = useDatabase();
   const recurringRepository = useMemo(() => createRecurringRepository(db), [db]);
+  const linkedRule = existing ? recurringId(existing) : undefined;
+  const refund = !!existing?.reimbursement;
   const [recurring, setRecurring] = useState(initiallyRecurring);
   const [frequency, setFrequency] = useState<Frequency>('monthly');
   const navigation = useNavigation();
@@ -61,7 +66,7 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
       kind: existing?.kind ?? (salaryMonth ? 'income' : 'expense'), amount: existing ? centsToInput(existing.amountCents) : '',
       label: existing?.label ?? (salaryMonth ? t("Salaire net") : ''), categoryId: existing?.categoryId ?? (salaryMonth ? 'salary' : defaultExpenseCategory?.id ?? ''),
       subcategoryId: existing?.subcategoryId ?? null,
-      date: displayDate(existing?.occurredOn ?? (salaryMonth && salaryMonth !== localDateKey().slice(0, 7) ? `${salaryMonth}-01` : localDateKey())),
+      date: displayDate(existing?.occurredOn ?? (salaryMonth && salaryMonth !== localDateKey().slice(0, 7) ? paydayOn(salaryMonth, createPaydayRepository(db).settings()?.day ?? 1) : localDateKey())),
     },
   });
   const kind = watch('kind');
@@ -118,11 +123,11 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
           throw new Error(`Choisissez une date en ${monthLabel(salaryMonth)}.`);
         }
         repository.saveSalary(salaryMonth, draft);
-      } else if (recurring && kind === 'expense' && !existing?.recurringExpenseId) {
+      } else if (recurring && categoryId !== 'reimbursements' && !linkedRule) {
         recurringRepository.saveTransaction(draft, frequency, existing?.id);
       } else if (existing) repository.update(existing.id, draft);
       else repository.create(draft);
-      setMonth(parseFrenchDate(values.date).slice(0, 7));
+      setMonth(createPeriodRepository(db).monthForDate(parseFrenchDate(values.date)));
       invalidate();
       allowLeave.current = true;
       showNotice(existing ? 'Transaction modifiée' : kind === 'expense' ? 'Dépense enregistrée' : 'Revenu enregistré');
@@ -138,7 +143,7 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
   async function remove() {
     if (!existing || busy.current) return;
     const confirmed = await confirm({ title: t("Supprimer cette transaction ?"),
-      message: t("{0} · {1} · {2}. Cette suppression est définitive.{3}", [existing.label, formatMoney(existing.amountCents), displayDate(existing.occurredOn), existing.recurringExpenseId ? t(" La récurrence reste active pour les prochaines échéances.") : '']),
+      message: t("{0} · {1} · {2}. Cette suppression est définitive.{3}", [existing.label, formatMoney(existing.amountCents), displayDate(existing.occurredOn), linkedRule ? t(" La récurrence reste active pour les prochaines échéances.") : '']),
       confirmLabel: t("Supprimer"), destructive: true });
     if (!confirmed || busy.current) return;
     busy.current = true;
@@ -158,8 +163,8 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
   }
 
   return <ScreenContainer inTabs={false} footer={<Button
-    title={saving ? t("Enregistrement…") : existing ? t("Enregistrer les modifications") : kind === 'expense' ? t("Enregistrer la dépense") : t("Enregistrer le revenu")}
-    onPress={() => { void handleSubmit(save)(); }} loading={saving} />}>
+    title={categoryId === 'reimbursements' && !refund ? t("Relier à une dépense") : saving ? t("Enregistrement…") : existing ? t("Enregistrer les modifications") : kind === 'expense' ? t("Enregistrer la dépense") : t("Enregistrer le revenu")}
+    onPress={() => { if (categoryId === 'reimbursements' && !refund) router.push('/expense-details'); else void handleSubmit(save)(); }} loading={saving} />}>
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
       <View style={styles.header}>
         <IconButton icon={ArrowLeft} label={t("Fermer le formulaire")} onPress={back} disabled={saving} />
@@ -167,11 +172,11 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
         <View style={styles.headerSpacer} />
       </View>
       <View style={styles.fields}>
-        <SegmentedControl label={t("Type de transaction")} options={kinds} value={kind} onChange={changeKind} disabled={saving || !!salaryMonth || !!existing?.recurringExpenseId} />
+        <SegmentedControl label={t("Type de transaction")} options={kinds} value={kind} onChange={changeKind} disabled={saving || !!salaryMonth || !!linkedRule || refund} />
         {salaryMonth ? <Text style={styles.label}>{t("Salaire net · ")}{monthLabel(salaryMonth)}</Text> : null}
         <Controller control={control} name="amount" render={({ field: { ref, value, onChange, onBlur } }) =>
           <FormField ref={ref} label={isSalary ? t("Salaire NET en euros") : t("Montant en euros")} value={value} onChangeText={onChange} onBlur={onBlur}
-            amount suffix="€" placeholder="0,00" keyboardType="decimal-pad" editable={!saving} error={errors.amount?.message} />
+            amount suffix="€" placeholder="0,00" keyboardType="decimal-pad" editable={!saving && !refund} error={errors.amount?.message} />
         } />
         <Controller control={control} name="label" render={({ field: { ref, value, onChange, onBlur } }) =>
           <FormField ref={ref} label={t("Libellé")} placeholder={kind === 'expense' ? t("Ex. Courses de la semaine") : t("Ex. Salaire")}
@@ -189,7 +194,7 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
               {categories.filter((category) => category.kind === kind && (!salaryMonth || category.id === 'salary')).map((category) => <Pressable cssInterop={false}
                 key={category.id} accessibilityRole="radio" accessibilityLabel={t(category.label)}
                 aria-checked={value === category.id}
-                accessibilityState={{ checked: value === category.id, disabled: saving }} disabled={saving}
+                accessibilityState={{ checked: value === category.id, disabled: saving || refund }} disabled={saving || refund}
                 onPress={() => {
                   manualClassification.current = true;
                   automaticClassification.current = false;
@@ -222,11 +227,11 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
         </View>
         <Controller control={control} name="date" render={({ field: { ref, value, onChange, onBlur } }) =>
           <DateField ref={ref} label={t("Date · JJ/MM/AAAA")} value={value}
-            onChangeText={onChange} onBlur={onBlur} editable={!saving} error={errors.date?.message} />
+            onChangeText={onChange} onBlur={onBlur} editable={!saving && !refund} error={errors.date?.message} />
         } />
-        {kind === 'expense' && !existing?.recurringExpenseId ? <View style={styles.categoryField}>
-          <View style={styles.recurringRow}><Text style={styles.label}>{t("Dépense récurrente")}</Text>
-            <Switch accessibilityLabel={t("Dépense récurrente")} value={recurring} onValueChange={setRecurring} disabled={saving}
+        {!salaryMonth && !refund && categoryId !== 'reimbursements' && !linkedRule ? <View style={styles.categoryField}>
+          <View style={styles.recurringRow}><Text style={styles.label}>{t(kind === 'income' ? "Revenu récurrent" : "Dépense récurrente")}</Text>
+            <Switch accessibilityLabel={t(kind === 'income' ? "Revenu récurrent" : "Dépense récurrente")} value={recurring} onValueChange={setRecurring} disabled={saving}
               thumbColor={theme.colors.surface} trackColor={{ false: theme.colors.controlBorder, true: theme.colors.primaryDark }} />
           </View>
           {recurring ? <>
@@ -237,9 +242,16 @@ export function TransactionForm({ existing, categories, salaryMonth, initiallyRe
             </Disclosure>
           </> : null}
         </View> : null}
-        {existing?.recurringExpenseId ? <View style={styles.categoryField}>
+        {kind === 'expense' && existing ? <Button title={t("Suivre un remboursement")} variant="secondary" disabled={saving}
+          onPress={() => router.push({ pathname: '/expense-details', params: { id: existing.id } })} /> : null}
+        {categoryId === 'reimbursements' || refund ? <View style={styles.categoryField}>
+          <Text style={styles.help}>{t("Un remboursement reçu réduit la dépense d’origine, sans compter comme revenu gagné.")}</Text>
+          <Button title={t("Voir les remboursements")} variant="secondary" disabled={saving}
+            onPress={() => router.push(refund ? { pathname: '/expense-details', params: { id: existing!.reimbursement!.expenseId } } : '/expense-details')} />
+        </View> : null}
+        {linkedRule ? <View style={styles.categoryField}>
           <Text style={styles.help}>{t("Cette modification concerne cette échéance uniquement.")}</Text>
-          <Button title={t("Gérer cette récurrence")} variant="secondary" disabled={saving} onPress={() => router.push({ pathname: '/recurring-expense', params: { id: existing.recurringExpenseId! } })} />
+          <Button title={t("Gérer cette récurrence")} variant="secondary" disabled={saving} onPress={() => router.push({ pathname: '/recurring-expense', params: { id: linkedRule } })} />
         </View> : null}
         {operationError ? <View style={styles.errorCard}><Text accessibilityRole="alert" style={styles.error}>{t(operationError)}</Text></View> : null}
         {existing ? <View style={styles.delete}><Button title={t("Supprimer la transaction")} onPress={() => { void remove(); }} variant="danger" icon={Trash2} disabled={saving} /></View> : null}

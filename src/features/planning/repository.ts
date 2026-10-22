@@ -3,10 +3,13 @@ import { randomUUID } from 'expo-crypto';
 import { z } from 'zod';
 import type { AppDatabase } from '../../db/client';
 import { payCycles } from '../../db/planningSchema';
-import { recurringExpenses, transactions } from '../../db/schema';
+import { transactions } from '../../db/schema';
 import { isISODate, localDateKey, shiftMonth } from '../../lib/dates';
 import { MAX_AMOUNT_CENTS } from '../../lib/money';
 import { paydayOn } from '../payday/schedule';
+import { createRecurringRepository } from '../recurring/repository';
+import { attachSplits } from '../entry-tools/repository';
+import { monthlySummary } from '../../lib/finance';
 import { occurrenceOn, occurrencesForMonth } from '../recurring/schedule';
 
 export function cycleBounds(today: string, day: number) {
@@ -40,9 +43,9 @@ export function createCycleRepository(db: AppDatabase) {
       if (!isISODate(today)) throw new Error('Date invalide.');
       const cycle = this.all().find((c) => c.id === id);
       if (!cycle) throw new Error('Période absente.');
-      const entries = db.select().from(transactions).all();
+      const entries = attachSplits(db, db.select().from(transactions).all());
       const inPeriod = entries.filter((t) => t.occurredOn >= cycle.startOn && t.occurredOn < cycle.endOn);
-      const rules = db.select().from(recurringExpenses).where(eq(recurringExpenses.active, true)).all();
+      const rules = createRecurringRepository(db).all().filter((r) => r.active && r.categoryKind === 'expense');
       if (rules.some((r) => { const next = occurrenceOn(r.startOn, r.frequency, r.nextIndex); return next && next <= today; })) {
         throw new Error('Les échéances doivent être actualisées. Réessayez dans un instant.');
       }
@@ -56,8 +59,8 @@ export function createCycleRepository(db: AppDatabase) {
         }
       }
       const sum = (values: { amountCents: number }[]) => values.reduce((n, v) => { const total = n + v.amountCents; if (!Number.isSafeInteger(total)) throw new Error('Total hors limites.'); return total; }, 0);
-      const expenseCents = sum(inPeriod.filter((e) => e.kind === 'expense'));
-      const incomeCents = sum(inPeriod.filter((e) => e.kind === 'income' && e.occurredOn <= today));
+      const totals = monthlySummary(inPeriod.filter((e) => e.kind === 'expense' || e.occurredOn <= today), cycle.startOn.slice(0, 7), { start: cycle.startOn, end: cycle.endOn });
+      const { expenseCents, incomeCents } = totals;
       const plannedCents = sum(planned);
       return { cycle, entries: inPeriod, planned, expenseCents, incomeCents, plannedCents,
         marginCents: cycle.budgetCents - expenseCents - plannedCents };

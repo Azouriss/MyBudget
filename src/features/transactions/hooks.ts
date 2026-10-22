@@ -4,6 +4,7 @@ import { useAppStore } from '../../stores/useAppStore';
 import { createTransactionRepository } from './repository';
 import type { Transaction } from './types';
 import type { Category } from '../../db/schema';
+import { createPeriodRepository } from '../payday/period';
 
 export function useTransactionRepository() {
   const db = useDatabase();
@@ -21,7 +22,7 @@ export function useMonthlyTransactions() {
 
   useEffect(() => {
     try {
-      setState({ month, revision, transactions: repository.withPlannedForMonth(month),
+      setState({ month, revision, transactions: repository.withPlannedForBudgetMonth(month),
         categories: repository.categories(), error: false, loading: false });
     } catch {
       setState({ month, revision, transactions: [], categories: [], error: true, loading: false });
@@ -32,4 +33,10 @@ export function useMonthlyTransactions() {
     return { transactions: [], categories: [], error: false, loading: true };
   }
   return state;
+}
+
+export function useBudgetPeriod(month: string) {
+  const db = useDatabase();
+  const revision = useAppStore((state) => state.revision);
+  return useMemo(() => createPeriodRepository(db).forMonth(month), [db, month, revision]);
 }

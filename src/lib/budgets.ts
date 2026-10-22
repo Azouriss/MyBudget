@@ -1,9 +1,9 @@
 export function budgetProgress(spentCents: number, limitCents: number) {
-  if (!Number.isSafeInteger(spentCents) || spentCents < 0
+  if (!Number.isSafeInteger(spentCents)
     || !Number.isSafeInteger(limitCents) || limitCents < 0) {
     throw new Error('Montants de budget invalides.');
   }
-  const ratio = limitCents === 0 ? (spentCents === 0 ? 0 : 1) : spentCents / limitCents;
+  const ratio = limitCents === 0 ? (spentCents <= 0 ? 0 : 1) : Math.max(0, spentCents / limitCents);
   return {
     ratio, percent: limitCents === 0 ? null : Math.round(ratio * 100),
     remainingCents: limitCents - spentCents,

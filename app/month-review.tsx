@@ -14,18 +14,19 @@ import { monthlyReview } from '../src/features/review/calculations';
 import { QueryFeedback, useLocalQuery } from '../src/features/entry-tools/ui';
 import { useAppStore } from '../src/stores/useAppStore';
 import { formatMoney } from '../src/lib/money';
-import { currentMonth, monthLabel } from '../src/lib/dates';
+import { createPeriodRepository } from '../src/features/payday/period';
+import { monthLabel } from '../src/lib/dates';
 
 export default function MonthReviewScreen() {
   useLanguage();
   const db = useDatabase(), month = useAppStore((s) => s.month);
   const query = useLocalQuery(() => ({ entries: attachSplits(db, db.select().from(transactions).all()), categories: db.select().from(categories).all(), claims: createEntryToolsRepository(db).claims() }));
   let result: ReturnType<typeof monthlyReview> | undefined;
-  try { if (query.data) result = monthlyReview(query.data.entries, month); } catch { /* Earliest supported month has no comparison. */ }
+  try { if (query.data) result = monthlyReview(query.data.entries, month, (m) => createPeriodRepository(db).forMonth(m)); } catch { /* Earliest supported month has no comparison. */ }
   return <SettingsPage title={t("Comprendre mon mois")}>
     <MonthPicker />
-    <Text style={s.copy}>{t("Dépenses enregistrées comparées au mois précédent complet.")}</Text>
-    {month >= currentMonth() ? <Text style={s.copy}>{t("Mois incomplet : écart provisoire.")}</Text> : null}
+    <Text style={s.copy}>{t("Dépenses nettes comparées à la période précédente complète.")}</Text>
+    {month >= createPeriodRepository(db).monthForDate() ? <Text style={s.copy}>{t("Mois incomplet : écart provisoire.")}</Text> : null}
     {!query.data ? <QueryFeedback {...query} /> : !result ? <Text style={s.copy}>{t("Comparaison indisponible pour cette période.")}</Text> : <>
       <SurfaceCard style={s.card}>
         <Text style={s.label}>{formatMoney(result.currentSummary.expenseCents)}{t(" dépensés · ")}{formatMoney(result.currentSummary.incomeCents)}{t(" de revenus enregistrés")}</Text>
@@ -44,7 +45,7 @@ export default function MonthReviewScreen() {
       </SurfaceCard>
     </>}
     <Disclosure title={t("Détail de la comparaison")}>
-      <Text style={s.copy}>{t("Prévisions exclues. Les remboursements reçus restent dans les revenus. L’écart ne prédit pas la fin du mois.")}</Text>
+      <Text style={s.copy}>{t("Prévisions exclues. Les remboursements reçus réduisent les dépenses à leur date de réception. L’écart ne prédit pas la fin de la période.")}</Text>
     </Disclosure>
   </SettingsPage>;
 }

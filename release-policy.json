@@ -82,6 +82,16 @@
         "breakpoints": true
       },
       "sha256": "667904bccf5d4a9773c750ae0bf0b33467c5e36cdc80261ad20d63c4a9d879b0"
+    },
+    {
+      "entry": {
+        "idx": 8,
+        "version": "6",
+        "when": 1792681942243,
+        "tag": "0008_recurring_income",
+        "breakpoints": true
+      },
+      "sha256": "1dc8201cfc350a9d68a271e655f4b312f3c8b55629b2a8d361da023aa9076a13"
     }
   ]
 }

@@ -11,6 +11,8 @@ import { IconButton } from '../../components/IconButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { useConfirmation } from '../../components/ConfirmationProvider';
 import { centsToInput, formatMoney } from '../../lib/money';
+import { shortDate } from '../../lib/dates';
+import { useBudgetPeriod } from '../transactions/hooks';
 import { monthLabel } from '../../lib/dates';
 import { budgetEnvelopeExcess } from '../../lib/budgets';
 import { useAppStore } from '../../stores/useAppStore';
@@ -22,6 +24,7 @@ export function BudgetForm({ month, categoryId, label, existingAmount, defaultAm
   month: string; categoryId?: string; label: string; existingAmount?: number; defaultAmount?: number;
 }) {
   useLanguage();
+  const period = useBudgetPeriod(month);
   const repository = useBudgetRepository();
   const navigation = useNavigation();
   const confirm = useConfirmation();
@@ -101,6 +104,7 @@ export function BudgetForm({ month, categoryId, label, existingAmount, defaultAm
         <Text accessibilityRole="header" style={styles.headerTitle}>{t("Mon budget")}</Text><View style={styles.spacer} /></View>
       <View style={styles.intro}>
         <Text style={styles.period}>{monthLabel(month)}</Text>
+        <Text style={styles.note}>{shortDate(period.start)} → {period.end === '2100-01-01' ? '01/01/2100' : shortDate(period.end)}{t(" · fin exclue")}</Text>
         <Text style={styles.title}>{t(label)}</Text>
       </View>
       <FormField label={t("Budget en euros")} amount suffix="€" placeholder="0,00" keyboardType="decimal-pad"

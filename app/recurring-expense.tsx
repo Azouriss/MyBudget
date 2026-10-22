@@ -43,7 +43,7 @@ export default function RecurringExpenseScreen() {
         subcategoryId: existing.subcategoryId,
         frequency: existing.frequency, date: displayDate(next && next > localDateKey() ? next : tomorrow()) };
       setRule(existing); setValues(value); setInitial(value);
-      setCategories(createTransactionRepository(db).categories().filter((c) => c.kind === 'expense'));
+      setCategories(createTransactionRepository(db).categories().filter((c) => c.kind === existing.categoryKind && c.id !== 'reimbursements'));
     } catch { setError('Récurrence indisponible. Rouvrez cet écran.'); }
   }, [id, db]);
   const dirty = !!initial && JSON.stringify(initial) !== JSON.stringify(values);
@@ -67,7 +67,7 @@ export default function RecurringExpenseScreen() {
     busy.current = true; setSaving(true); setError('');
     try {
       await catchUpExpenses(db);
-      createRecurringRepository(db).update(rule.id, { kind: 'expense', label: values.label, amountCents,
+      createRecurringRepository(db).update(rule.id, { kind: rule.categoryKind as 'expense' | 'income', label: values.label, amountCents,
         categoryId: values.categoryId, subcategoryId: values.subcategoryId, occurredOn: nextOn }, values.frequency, nextOn);
       useAppStore.getState().invalidate();
       useAppStore.getState().showNotice(rule.active ? 'Récurrence modifiée' : 'Récurrence reprise');
@@ -76,7 +76,7 @@ export default function RecurringExpenseScreen() {
   }
   async function stop() {
     if (!rule || busy.current) return;
-    if (!await confirm({ title: t("Arrêter cette récurrence ?"), message: t("Les dépenses déjà enregistrées restent dans votre historique. Les prochaines échéances ne seront plus ajoutées."), confirmLabel: t("Arrêter la récurrence") })) return;
+    if (!await confirm({ title: t("Arrêter cette récurrence ?"), message: t("Les opérations déjà enregistrées restent dans votre historique. Les prochaines échéances ne seront plus ajoutées."), confirmLabel: t("Arrêter la récurrence") })) return;
     busy.current = true; setSaving(true);
     try {
       await catchUpExpenses(db);
@@ -92,7 +92,7 @@ export default function RecurringExpenseScreen() {
     <Text style={styles.label}>{t("Catégorie")}</Text>
     {categories.map((c) => <Button key={c.id} title={t(c.label)} variant={values.categoryId === c.id ? 'primary' : 'secondary'} disabled={saving}
       onPress={() => setValues((old) => ({ ...old, categoryId: c.id, subcategoryId: old.categoryId === c.id ? old.subcategoryId : null }))} />)}
-    {rule ? <ExpenseSubcategoryPicker key={values.categoryId} categories={categories} categoryId={values.categoryId}
+    {rule?.categoryKind === 'expense' ? <ExpenseSubcategoryPicker key={values.categoryId} categories={categories} categoryId={values.categoryId}
       value={values.subcategoryId} disabled={saving}
       onChange={(categoryId, subcategoryId) => setValues((old) => ({ ...old, categoryId, subcategoryId }))} /> : null}
     <SegmentedControl label={t("Répéter chaque")} options={frequencies} value={values.frequency} onChange={(v) => change('frequency', v)} disabled={!rule || saving} />

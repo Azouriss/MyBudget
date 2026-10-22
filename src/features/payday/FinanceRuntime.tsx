@@ -1,17 +1,24 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import { router } from 'expo-router';
 import { useDatabase } from '../../db/DatabaseProvider';
 import { useAppStore } from '../../stores/useAppStore';
 import { catchUpExpenses } from '../recurring/repository';
 import { observeSalaryNotification, syncSalaryNotifications } from './notifications';
+import { createPeriodRepository } from './period';
 import { useLanguage } from '../../i18n/useLanguage';
 
 export function FinanceRuntime() {
   const language = useLanguage();
   const db = useDatabase();
+  const activeMonth = useRef(createPeriodRepository(db).monthForDate());
   const revision = useAppStore((state) => state.revision);
   useEffect(() => {
+    const current = createPeriodRepository(db).monthForDate();
+    if (useAppStore.getState().month === activeMonth.current && current !== activeMonth.current) {
+      useAppStore.getState().setMonth(current);
+    }
+    activeMonth.current = current;
     void (async () => {
       try {
         if (await catchUpExpenses(db)) useAppStore.getState().invalidate();

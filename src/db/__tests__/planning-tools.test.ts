@@ -51,14 +51,15 @@ describe('outils locaux sur SQLite isolé', () => {
     expect(monthlySummary(entries().forMonth('2026-01'), '2026-01')).toMatchObject({ expenseCents: 8500, incomeCents: 0 });
     tools().receive(id, 2000, '2026-02-02'); tools().receive(id, 1000, '2026-02-03');
     expect(tools().claims()[0]).toMatchObject({ receivedCents: 3000, outstandingCents: 3000 });
-    expect(monthlySummary(entries().forMonth('2026-02'), '2026-02').incomeCents).toBe(3000);
+    expect(monthlySummary(entries().forMonth('2026-02'), '2026-02')).toMatchObject({ incomeCents: 0, reimbursementCents: 3000, expenseCents: -3000 });
     expect(() => tools().receive(id, 3001, '2026-02-04')).toThrow();
     expect(() => tools().claim(id, 2000, 'Avance')).toThrow();
     expect(() => entries().remove(id)).toThrow();
     const receipt = tools().claims()[0]!.received[0]!;
     expect(() => entries().update(receipt.id, { kind: 'income', label: receipt.label, categoryId: receipt.categoryId, occurredOn: receipt.occurredOn, amountCents: 1 })).toThrow();
     tools().cancelReceipt(receipt.id); expect(tools().claims()[0]?.outstandingCents).toBe(5000);
-    tools().removeClaim(id); expect(monthlySummary(entries().forMonth('2026-02'), '2026-02').incomeCents).toBe(1000);
+    tools().removeClaim(id); expect(monthlySummary(entries().forMonth('2026-02'), '2026-02')).toMatchObject({ incomeCents: 0, reimbursementCents: 1000, expenseCents: -1000 });
+    expect(tools().claims()[0]?.outstandingCents).toBe(0);
   });
   it('refuse les remboursements futurs ou précédant la dépense', () => {
     const id = entries().create(draft); tools().claim(id, 6000, 'Avance');
