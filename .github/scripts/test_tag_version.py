@@ -45,6 +45,41 @@ class TagTests(unittest.TestCase):
             with self.subTest(title=title), self.assertRaises(ValueError):
                 version_tag(title)
 
+    def test_accepts_current_and_legacy_history_separators(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            history = root / 'versions' / 'frontend' / 'VERSION.md'
+            history.parent.mkdir(parents=True)
+            for separator in ('-', '\u2014'):
+                with self.subTest(separator=separator):
+                    history.write_text(
+                        f'# Frontend version history\n\n## 0.8.0.0 {separator} 2026-10-22\n',
+                        encoding='utf-8',
+                    )
+                    self.assertEqual(version_tag(
+                        '➡️ frontend@v0.8.0.0 add recurring income and payday budget periods', root,
+                    ), 'frontend-v0.8.0.0')
+
+    def test_refuses_mismatched_or_malformed_first_history_entry(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            history = root / 'versions' / 'frontend' / 'VERSION.md'
+            history.parent.mkdir(parents=True)
+            for heading in (
+                '## 0.7.0.0 - 2026-10-20',
+                '## 0.7.0.0 \u2014 2026-10-20',
+                '## 0.8.0.0 / 2026-10-22',
+                '## 0.8.0.0 - 22/10/2026',
+                '## 0.8.0.0 - 2026-10-22 extra',
+                '## Notes',
+            ):
+                with self.subTest(heading=heading):
+                    history.write_text(
+                        f'{heading}\n\n## 0.8.0.0 - 2026-10-22\n', encoding='utf-8',
+                    )
+                    with self.assertRaisesRegex(ValueError, 'first entry'):
+                        version_tag('➡️ frontend@v0.8.0.0 add recurring income', root)
+
     def test_creates_only_tag_at_event_commit(self):
         api = Mock(side_effect=[None, {}])
         self.assertEqual(ensure_tag(api, 'frontend-v0.1.0.0', 'a' * 40), 'Created')

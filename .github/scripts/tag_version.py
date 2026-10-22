@@ -25,7 +25,7 @@ def version_tag(title, root=Path('.')):
     platform, version = match.groups()
     history = (root / 'versions' / platform / 'VERSION.md').read_text(encoding='utf-8')
     heading = next((line for line in history.splitlines() if line.startswith('## ')), '')
-    if not re.fullmatch(rf'## {re.escape(version)} — \d{{4}}-\d{{2}}-\d{{2}}', heading):
+    if not re.fullmatch(rf'## {re.escape(version)} [-\u2014] \d{{4}}-\d{{2}}-\d{{2}}', heading):
         raise ValueError('Commit version must match the first entry in its platform history.')
     return f'{platform}-v{version}'
 

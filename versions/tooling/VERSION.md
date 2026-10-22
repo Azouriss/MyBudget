@@ -1,5 +1,29 @@
 # Tooling version history
 
+## 0.1.6.0 - 2026-10-22
+
+- Accept the ASCII hyphen in version-history headings while retaining support
+  for the legacy Unicode separator. Fix valid commits being rejected by the
+  automatic tag workflow despite matching their platform's first version entry.
+- Add regression coverage for both separators, mismatched first entries,
+  unsupported separators, malformed date formats and trailing content.
+
+**Threat impact:** Only the heading separator changes. Exact commit-version
+  matching, first-entry selection, title validation, immutable tag targets and
+  cleanup safeguards remain enforced. Tests use local fixtures and mocked APIs.
+
+**Sovereignty impact:** No new dependency, permission, service, credential or
+  data transfer. The existing tag-only workflow and application are unchanged.
+
+**Validation:** The regression test reproduced the ASCII-heading rejection
+  before the fix. All 18 tag-workflow tests pass after the fix, including
+  existing tag immutability and cleanup safeguards. The reported frontend
+  commit and the tooling commit title validate against their actual histories.
+  `git diff --check` and the scoped secret-pattern review pass.
+
+**Status:** `verification-pending` - local checks only; GitHub Actions execution
+  remains unverified. No push, tag creation, publication or APK rebuild.
+
 ## 0.1.5.0 - 2026-10-20
 
 - Exclude the local Gradle/npm caches, Android SDK and SDK downloads under
