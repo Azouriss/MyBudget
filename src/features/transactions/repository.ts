@@ -36,8 +36,8 @@ export function createTransactionRepository(db: AppDatabase) {
     },
     withPlannedForBudgetMonth(month: string, today?: string): Transaction[] {
       const periods = createPeriodRepository(db);
-      const planned = month > periods.monthForDate(today)
-        ? createRecurringRepository(db).plannedInPeriod(periods.forMonth(month), today) : [];
+      // Upcoming occurrences remain visible when a salary makes this period current.
+      const planned = createRecurringRepository(db).plannedInPeriod(periods.forMonth(month), today);
       return [...this.forBudgetMonth(month), ...planned]
         .sort((a, b) => b.occurredOn.localeCompare(a.occurredOn) || b.createdAt - a.createdAt || b.id.localeCompare(a.id));
     },

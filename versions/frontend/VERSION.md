@@ -1,5 +1,34 @@
 # Frontend version history
 
+## 0.8.0.1 - 2026-11-02
+
+- Keep upcoming recurring expenses and income visible in the current budget
+  period, including after a salary is added, dated differently or corrected.
+  Apply the same behavior to calendar months without a configured payday.
+- Preserve the planned occurrence labels, expense totals and separation of
+  planned income from received income. Due occurrences still become recorded
+  transactions once, with existing edits and deletions respected.
+
+**Threat impact:** The correction only changes read-time projections. It does
+not write transactions, advance recurrence cursors or modify stored financial
+records. Existing date boundaries, occurrence deduplication and protected
+migrations remain unchanged.
+
+**Sovereignty impact:** All calculations and tests remain local. No dependency,
+network service, telemetry, remote build or data collection is added. Database,
+Android and signing identities are preserved.
+
+**Validation:** Windows `npm run release:check` passed: TypeScript, 309 application
+tests, 23 release-tool tests and nine protected migrations. The two targeted
+SQLite suites passed all 51 tests; five failing assertions reproduced the bug
+before the correction. Coverage includes manual salary creation, monthly salary
+entry, salary date and amount edits, a current payday cycle spanning calendar
+months, read-only forecasts, planned-income separation and one-time recording
+of due occurrences. Scoped diff and secret-pattern checks passed.
+
+**Status:** `verification-pending` - Browser, Android phone and packaged APK
+acceptance remain pending. No APK, push, tag, publication or deployment.
+
 ## 0.8.0.0 - 2026-10-22
 
 - Allow recurring income, including CAF benefits, with editable schedules,

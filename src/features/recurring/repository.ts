@@ -55,9 +55,7 @@ export function createRecurringRepository(db: AppDatabase) {
       return result;
     },
     plannedForMonth(month: string, today = localDateKey()): Transaction[] {
-      const period = monthBounds(month);
-      if (!isISODate(today)) throw new Error('Date invalide.');
-      return month <= today.slice(0, 7) ? [] : this.plannedInPeriod(period, today);
+      return this.plannedInPeriod(monthBounds(month), today);
     },
     saveTransaction(input: TransactionDraft, frequency: Frequency, existingId?: string): string {
       const draft = transactionDraftSchema.parse(input);

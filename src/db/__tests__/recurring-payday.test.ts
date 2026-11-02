@@ -87,10 +87,15 @@ describe('récurrences et paie sur SQLite réel', () => {
     expect(recurring.all()[0]!.nextIndex).toBe(1);
     expect(sqlite.prepare('SELECT total_changes() AS n').get()?.n).toBe(before);
   });
-  it('garde les mois passés et courant sans prévision et trie les saisies avec les échéances futures', () => {
+  it('affiche aussi les échéances à venir du mois courant et garde les mois passés sans prévision', () => {
     createRecurringRepository(db).saveTransaction(draft, 'monthly');
     const transactions = createTransactionRepository(db);
     expect(transactions.withPlannedForMonth('2026-01', '2026-01-01')).toEqual(transactions.forMonth('2026-01'));
+    expect(transactions.withPlannedForMonth('2026-02', '2026-02-01')).toMatchObject([
+      { occurredOn: '2026-02-28', isPlanned: true },
+    ]);
+    expect(transactions.withPlannedForBudgetMonth('2026-02', '2026-02-01'))
+      .toEqual(transactions.withPlannedForMonth('2026-02', '2026-02-01'));
     expect(transactions.withPlannedForMonth('2026-02', '2026-03-01')).toEqual([]);
     transactions.create({ ...draft, label: 'Achat prévu fictif', occurredOn: '2026-02-15' });
     const february = transactions.withPlannedForMonth('2026-02', '2026-01-31');

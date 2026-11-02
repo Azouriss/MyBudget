@@ -53,6 +53,66 @@ describe('revenus, remboursements et budget de paie à paie', () => {
     expect(createBudgetRepository(test.db).forMonth('2026-10')).toMatchObject({ monthlySource: 'budget', monthly: { amountCents: 0 } });
   });
 
+  it.each(['create', 'saveSalary', 'update'] as const)(
+    'conserve les charges prévues lorsque le salaire rend la période courante (%s)', (method) => {
+      createPaydayRepository(test.db).save(24, false);
+      const recurring = createRecurringRepository(test.db);
+      recurring.saveTransaction({ ...expense, label: 'Loyer fictif', categoryId: 'housing', subcategoryId: null,
+        amountCents: 90000, occurredOn: '2026-10-05' }, 'monthly');
+      recurring.saveTransaction({ ...expense, label: 'Abonnement fictif', amountCents: 3000, occurredOn: '2026-10-28' }, 'monthly');
+      recurring.saveTransaction(benefit, 'monthly');
+      materializeDueExpenses(test.db, '2026-11-10');
+      const salary = { ...benefit, label: 'Salaire fictif', categoryId: 'salary', amountCents: 200000, occurredOn: '2026-11-10' };
+      const salaryId = method === 'update' ? entries().create({ ...salary, occurredOn: '2026-11-24' }) : undefined;
+      const recorded = () => test.sqlite.prepare("SELECT * FROM transactions WHERE category_id <> 'salary' ORDER BY id").all();
+      const originalEntries = recorded(), originalRules = recurring.all();
+      expect(periods().monthForDate()).toBe('2026-10');
+      const planned = entries().withPlannedForBudgetMonth('2026-11').filter((entry) => entry.isPlanned);
+      expect(planned).toHaveLength(3);
+      expect(planned.filter((entry) => entry.kind === 'expense').map((entry) => entry.occurredOn)).toEqual(['2026-12-05', '2026-11-28']);
+
+      if (method === 'create') entries().create(salary);
+      else if (method === 'saveSalary') entries().saveSalary('2026-11', salary);
+      else entries().update(salaryId!, salary);
+
+      expect(periods().monthForDate()).toBe('2026-11');
+      const beforeRead = test.sqlite.prepare('SELECT total_changes() AS n').get()?.n;
+      const current = entries().withPlannedForBudgetMonth('2026-11');
+      expect(current.filter((entry) => entry.isPlanned)).toEqual(planned);
+      expect(monthlySummary(current, '2026-11', periods().forMonth('2026-11'))).toMatchObject({
+        expenseCents: 93000, incomeCents: 200000, plannedIncomeCents: 23000,
+      });
+      expect(budgetForecast(current, 200000, '2026-11-10', undefined, periods().forMonth('2026-11'))).toMatchObject({
+        recordedCents: 0, plannedCents: 93000, marginCents: 107000,
+      });
+      expect(test.sqlite.prepare('SELECT total_changes() AS n').get()?.n).toBe(beforeRead);
+      entries().saveSalary('2026-11', { ...salary, amountCents: 210000 });
+      expect(entries().withPlannedForBudgetMonth('2026-11').filter((entry) => entry.isPlanned)).toEqual(planned);
+      expect(recorded()).toEqual(originalEntries);
+      expect(recurring.all()).toEqual(originalRules);
+    },
+  );
+
+  it('garde les échéances du cycle courant puis les enregistre une seule fois à leur date', () => {
+    createPaydayRepository(test.db).save(24, false);
+    const recurring = createRecurringRepository(test.db);
+    recurring.saveTransaction({ ...expense, occurredOn: '2026-10-15' }, 'monthly');
+    const planned = entries().withPlannedForBudgetMonth('2026-10');
+    expect(planned).toHaveLength(1);
+    expect(planned[0]).toMatchObject({ occurredOn: '2026-11-15', isPlanned: true });
+    expect(entries().forBudgetMonth('2026-10')).toEqual([]);
+    expect(materializeDueExpenses(test.db, '2026-11-15').count).toBe(1);
+    const recorded = entries().withPlannedForBudgetMonth('2026-10', '2026-11-15');
+    expect(recorded).toHaveLength(1);
+    expect(recorded[0]).toMatchObject({ occurredOn: '2026-11-15', recurringExpenseId: planned[0]!.recurringExpenseId });
+    expect(recorded[0]?.isPlanned).toBeUndefined();
+    expect(materializeDueExpenses(test.db, '2026-11-15').count).toBe(0);
+    entries().update(recorded[0]!.id, { ...expense, occurredOn: '2026-11-25' });
+    expect(entries().withPlannedForBudgetMonth('2026-10', '2026-11-15')).toEqual([]);
+    entries().remove(recorded[0]!.id);
+    expect(entries().withPlannedForBudgetMonth('2026-10', '2026-11-15')).toEqual([]);
+  });
+
   it.each([
     [31, '2028-02', '2028-02-29', '2028-03-31'],
     [31, '2026-02', '2026-02-28', '2026-03-31'],
