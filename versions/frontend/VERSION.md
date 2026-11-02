@@ -1,5 +1,34 @@
 # Frontend version history
 
+## 0.10.0.0 - 2026-11-02
+
+- Restore the overview donut and keep expense charts directly visible while
+  scrolling the home screen, without disclosure controls. Follow the overview
+  and recent transactions with category-to-subcategory Sankey groups.
+- Use stored subcategory assignments, retain an explicit Unspecified group,
+  and preserve category allocations for split payments without guessing their
+  missing subcategories. Every child group adds up to its parent in integer cents.
+- Fix the solid-block appearance of single-destination Sankey groups with a
+  compact ribbon. Multi-branch ribbons retain proportional widths; percentages
+  in each group refer to that category, while the donut shows overall shares.
+
+**Threat impact:** Read-only presentation and aggregation changes. No schema,
+transaction-writing, credential or authorization changes. Boundaries, split totals,
+missing classifications, refunds and forecasts are covered by regression tests.
+
+**Sovereignty impact:** SVG graphics, classifications and calculations remain
+local. No new dependency, service, telemetry or remote build. Database, Android
+and signing identities remain unchanged.
+
+**Validation:** Windows `npm run check`: TypeScript, 324 application tests and
+23 release-tool tests passed. Browser checks cover visible donut/subcategory flows,
+empty periods, French/English, 320/390/768 px and simulated 150% CSS text. Existing
+synthetic demo records were given explicit example subcategories without changing
+amounts; browser evidence does not prove native Android rendering or TalkBack.
+
+**Status:** `verification-pending` - Local checks only. Android phone/APK acceptance
+remains pending. No push, tag, publication or deployment.
+
 ## 0.9.0.0 - 2026-11-02
 
 - Simplify the home screen around one remaining-budget amount, a botanical

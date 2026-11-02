@@ -21,3 +21,11 @@ it('distingue zéro, répartition incohérente et part négative', () => {
   expect(() => expenseFlow([{ categoryId: 'food', amountCents: 100 }], 200, 100)).toThrow();
   expect(() => expenseFlow([{ categoryId: 'food', amountCents: 1 }, { categoryId: 'food', amountCents: 1 }], 2, 100)).toThrow();
 });
+
+it('affiche une branche unique comme un ruban compact plutôt qu’un bloc plein', () => {
+  const flow = expenseFlow([{ categoryId: 'one', amountCents: 72000 }], 72000, 174);
+  expect(flow.bandHeight).toBe(16);
+  expect(flow.rows[0]!.thickness).toBe(16);
+  expect(flow.rows[0]!.height).toBeGreaterThan(flow.rows[0]!.thickness * 4);
+  expect(flow.rows[0]!.sourceY).toBe(flow.rows[0]!.targetY);
+});

@@ -9,7 +9,8 @@ export function expenseFlow(parts: readonly ExpensePart[], total: number, width:
     || new Set(parts.map((part) => part.categoryId)).size !== parts.length
     || parts.reduce((sum, part) => sum + part.amountCents, 0) !== total) throw new Error('Répartition incohérente.');
   const visible = parts.filter((part) => part.amountCents > 0);
-  const bandHeight = visible.length ? 120 : 0;
+  // A sole destination carries 100%; a compact ribbon avoids a solid square.
+  const bandHeight = visible.length === 1 ? 16 : visible.length ? 120 : 0;
   const rows = visible.map((part) => {
     const thickness = part.amountCents / total * bandHeight;
     const minHeight = Math.max(76 * fontScale, thickness + 16);

@@ -10,7 +10,8 @@ import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-n
 import { AppHeader } from '../../src/components/AppHeader';
 import { BudgetProgress } from '../../src/components/BudgetProgress';
 import { Button } from '../../src/components/Button';
-import { Disclosure } from '../../src/components/Disclosure';
+import { ExpenseSankey } from '../../src/components/ExpenseSankey';
+import { expenseHierarchy } from '../../src/lib/expenseHierarchy';
 import { ExpenseChart } from '../../src/components/ExpenseChart';
 import { MonthPicker } from '../../src/components/MonthPicker';
 import { QueryState } from '../../src/components/QueryState';
@@ -36,6 +37,7 @@ export default function DashboardScreen() {
   const today = localDateKey();
   const { width, fontScale } = useWindowDimensions();
   const summary = useMemo(() => dashboardSummary(data.transactions, month, today, period), [data.transactions, month, today, period]);
+  const hierarchy = useMemo(() => expenseHierarchy(data.transactions, period), [data.transactions, period]);
   const categories = useMemo(() => new Map(data.categories.map((category) => [category.id, category])), [data.categories]);
   const progress = budgets.monthly ? budgetProgress(summary.total.expenseCents, budgets.monthly.amountCents) : null;
   const budgetReady = !budgets.loading && !budgets.error;
@@ -55,12 +57,19 @@ export default function DashboardScreen() {
             {summary.plannedExpenseCents > 0 ? <Text style={styles.note}>{t('Prévisions incluses')}</Text> : null}
             <BudgetProgress spent={summary.total.expenseCents} limit={budgets.monthly!.amountCents} showPercent={false} />
           </> : <Text style={styles.empty}>{budgets.error ? t('Budget indisponible') : budgets.loading ? t('Chargement du budget…') : t('Aucun budget défini')}</Text>}
-          {budgetReady && budgets.monthly ? <Text style={styles.note}>{t('Budget : {0}', [formatMoney(budgets.monthly.amountCents)])}</Text> : null}
+          {budgetReady && budgets.monthly ? <Text style={styles.note}>{budgets.monthlySource === 'salary' ? t('Budget basé sur le salaire : {0}', [formatMoney(budgets.monthly.amountCents)]) : t('Budget : {0}', [formatMoney(budgets.monthly.amountCents)])}</Text> : null}
           {budgetReady && progress ? <Text style={styles.note}>{t('Pas un solde bancaire')}</Text> : null}
           {budgetReady && !budgets.monthly ? <Button title={t('Définir un budget')} variant="secondary" onPress={() => router.push('/budgets')} /> : null}
         </SurfaceCard>
       </Animated.View>
       <Button title={t('Ajouter une dépense')} icon={Plus} onPress={() => router.push('/transaction')} />
+      <View>
+        <SectionHeader title={t('Répartition des dépenses')} />
+        <Text style={styles.sectionNote}>{t('Dépenses enregistrées, avant remboursements.')}</Text>
+        <SurfaceCard style={styles.details}>
+          <ExpenseChart breakdown={summary.breakdown} categories={data.categories} total={summary.actual.grossExpenseCents} />
+        </SurfaceCard>
+      </View>
       {summary.recent.length ? <View>
         <SectionHeader title={t('Dernières transactions')} action={t('Tout voir')} onAction={() => router.push('/history')} />
         <SurfaceCard style={styles.transactions}>
@@ -68,24 +77,15 @@ export default function DashboardScreen() {
             transaction={transaction} category={categories.get(transaction.categoryId)} last={index === recent.length - 1} />)}
         </SurfaceCard>
       </View> : <Text style={styles.note}>{t('Aucune transaction enregistrée à ce jour dans cette période.')}</Text>}
-      <Disclosure title={t('Détails du budget')}>
+      {hierarchy.length > 0 ? <View>
+        <SectionHeader title={t('Dans le détail')} />
+        <Text style={styles.sectionNote}>{t('Catégories → sous-catégories')}</Text>
         <SurfaceCard style={styles.details}>
-          <View style={styles.metric}><Text style={styles.metricLabel}>{t('Dépenses enregistrées')}</Text><Text style={styles.metricAmount}>{formatMoney(summary.actual.expenseCents)}</Text></View>
-          {summary.plannedExpenseCents > 0 ? <View style={styles.metric}><Text style={styles.metricLabel}>{t('Échéances à venir')}</Text><Text style={[styles.metricAmount, styles.planned]}>{formatMoney(summary.plannedExpenseCents)}</Text></View> : null}
-          <View style={styles.metric}><Text style={styles.metricLabel}>{t('Revenus reçus')}</Text><Text style={[styles.metricAmount, styles.income]}>{formatMoney(summary.actual.incomeCents)}</Text></View>
-          {summary.actual.reimbursementCents > 0 ? <View style={styles.metric}><Text style={styles.metricLabel}>{t('Remboursements déduits')}</Text><Text style={[styles.metricAmount, styles.income]}>{formatMoney(summary.actual.reimbursementCents)}</Text></View> : null}
-          {summary.total.plannedIncomeCents > 0 ? <View style={styles.metric}><Text style={styles.metricLabel}>{t('Revenus prévus, non reçus')}</Text><Text style={[styles.metricAmount, styles.planned]}>{formatMoney(summary.total.plannedIncomeCents)}</Text></View> : null}
-          {budgets.monthlySource === 'salary' ? <Text style={styles.note}>{t('Salaire net utilisé par défaut.')}</Text> : null}
-          <Text style={styles.note}>{t('Budget moins dépenses nettes et échéances. Les revenus prévus ne sont pas ajoutés au budget.')}</Text>
-          <Button title={t('Voir le budget')} variant="secondary" onPress={() => router.push('/budgets')} />
+          {hierarchy.map((group, index) => <View key={group.categoryId} style={index > 0 ? styles.flowSeparator : undefined}>
+            <ExpenseSankey group={group} category={categories.get(group.categoryId)} />
+          </View>)}
         </SurfaceCard>
-      </Disclosure>
-      <Disclosure title={t('Répartition des dépenses')}>
-        <SurfaceCard style={styles.details}>
-          <Text style={styles.note}>{t('Dépenses enregistrées, avant remboursements.')}</Text>
-          <ExpenseChart breakdown={summary.breakdown} categories={data.categories} total={summary.actual.grossExpenseCents} />
-        </SurfaceCard>
-      </Disclosure>
+      </View> : null}
     </View>}
   </ScrollView></ScreenContainer>;
 }
@@ -102,10 +102,7 @@ const styles = StyleSheet.create({
   negative: { color: theme.colors.dangerText },
   empty: { ...theme.typography.headingM, color: theme.colors.textSubtle },
   note: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
-  metric: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: theme.spacing.sm },
-  metricLabel: { ...theme.typography.bodySmall, color: theme.colors.textSubtle, flexGrow: 1, flexBasis: 130 },
-  metricAmount: { ...theme.typography.body, ...theme.typography.amount, color: theme.colors.textPrimary, flexShrink: 1 },
-  planned: { color: theme.colors.moneyBalance },
-  income: { color: theme.colors.moneyIncome },
+  sectionNote: { ...theme.typography.bodySmall, color: theme.colors.textSubtle, marginBottom: theme.spacing.md },
+  flowSeparator: { borderTopWidth: theme.size.borderWidth, borderTopColor: theme.colors.border, paddingTop: theme.spacing.xl },
   transactions: { padding: theme.spacing.xs },
 });

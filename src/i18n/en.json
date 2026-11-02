@@ -893,5 +893,8 @@
   "Reste au budget": "Left in your budget",
   "Détails du budget": "Budget details",
   "Total dépensé": "Total spent",
-  "Aucune dépense enregistrée dans cette période.": "No recorded expenses in this period."
+  "Aucune dépense enregistrée dans cette période.": "No recorded expenses in this period.",
+  "Non précisé": "Unspecified",
+  "Dans le détail": "A closer look",
+  "Catégories → sous-catégories": "Categories → subcategories"
 }

@@ -1,71 +1,69 @@
 import { t } from '../i18n/locale';
 import { useLanguage } from '../i18n/useLanguage';
-import { useState } from 'react';
 import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Circle, G } from 'react-native-svg';
 import type { Category } from '../db/schema';
 import { formatMoney } from '../lib/money';
 import { theme } from '../theme';
 import { categoryVisual } from './CategoryIcon';
 import { decorativeIconProps } from './decorativeIconProps';
-import { expenseFlow } from '../lib/expenseFlow';
 
-/** A single-source Sankey: recorded gross spending flows into its categories. */
+/** Overview donut, complemented by named amounts so color is never the only key. */
 export function ExpenseChart({ breakdown, categories, total }: {
   breakdown: { categoryId: string; amountCents: number }[]; categories: Category[]; total: number;
 }) {
   useLanguage();
-  const { fontScale } = useWindowDimensions();
-  const [width, setWidth] = useState(280);
-  const [heights, setHeights] = useState<Record<string, number>>({});
-  const graphWidth = Math.max(72, width * 0.34);
-  const flow = expenseFlow(breakdown, total, graphWidth, heights, fontScale);
-  if (!flow.rows.length) return <Text style={styles.empty}>{t('Aucune dépense enregistrée dans cette période.')}</Text>;
-  return <View style={styles.container} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
-    <View style={styles.source}>
-      <Text style={styles.caption}>{t('Total dépensé')}</Text>
-      <Text style={styles.total}>{formatMoney(total)}</Text>
-    </View>
-    <View style={styles.flow}>
-      <View pointerEvents="none" style={[styles.diagram, { width: graphWidth, height: flow.height }]}>
-        <Svg width={graphWidth} height={flow.height} viewBox={`0 0 ${graphWidth} ${flow.height}`} {...decorativeIconProps}>
-          <Rect x={0} y={flow.sourceY} width={6} height={flow.bandHeight} rx={3} fill={theme.colors.primary} />
-          {flow.rows.map((row) => {
-            const category = categories.find((item) => item.id === row.categoryId);
-            const color = categoryVisual(category).chart;
-            return <Path key={row.categoryId} d={row.path} fill={color} opacity={0.72} />;
-          })}
-          {flow.rows.map((row) => <Rect key={row.categoryId} x={graphWidth - 6} y={row.targetY} width={6}
-            height={row.thickness} fill={categoryVisual(categories.find((item) => item.id === row.categoryId)).chart} />)}
+  const { width, fontScale } = useWindowDimensions();
+  const stacked = width < 540 || fontScale >= theme.layout.stackedFontScale;
+  const size = 188, stroke = 22, radius = (size - stroke) / 2, circumference = 2 * Math.PI * radius;
+  let offset = 0;
+  return <View style={styles.group}>
+    <View style={[styles.row, stacked && styles.stacked]}>
+      <View style={styles.ring}>
+        <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} {...decorativeIconProps}>
+          <Circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={theme.colors.chartTrack} strokeWidth={stroke} />
+          <G transform={`rotate(-90 ${size / 2} ${size / 2})`}>{breakdown.map((part) => {
+            const length = total > 0 ? part.amountCents / total * circumference : 0;
+            const segment = <Circle key={part.categoryId} cx={size / 2} cy={size / 2} r={radius} fill="none"
+              stroke={categoryVisual(categories.find(c => c.id === part.categoryId)).chart} strokeWidth={stroke}
+              strokeDasharray={`${length} ${circumference}`} strokeDashoffset={-offset} />;
+            offset += length; return segment;
+          })}</G>
         </Svg>
+        {/* No monetary text constrained inside a fixed circle. */}
+        <View style={styles.center}><Text style={styles.centerLabel}>{t('Dépenses')}</Text></View>
       </View>
-      <View style={{ marginLeft: graphWidth + theme.spacing.md, flex: 1 }}>
-        {flow.rows.map((row) => {
-          const category = categories.find((item) => item.id === row.categoryId);
-          const percent = row.amountCents / total * 100;
-          return <View key={row.categoryId} style={[styles.category, { minHeight: row.minHeight }]}
-            onLayout={(event) => {
-              const height = event.nativeEvent.layout.height;
-              setHeights((previous) => Math.abs((previous[row.categoryId] ?? 0) - height) < 0.5 ? previous : { ...previous, [row.categoryId]: height });
-            }}>
+      <View style={styles.legend}>
+        <Text style={styles.total}>{formatMoney(total)}</Text>
+        {breakdown.length ? breakdown.map((part) => {
+          const category = categories.find(c => c.id === part.categoryId);
+          const percent = part.amountCents / total * 100;
+          return <View key={part.categoryId} style={styles.legendRow}>
+            <View style={[styles.dot, { backgroundColor: categoryVisual(category).chart }]} />
             <Text style={styles.label}>{t(category?.label ?? 'Catégorie')}</Text>
-            <Text style={styles.money}>{formatMoney(row.amountCents)}</Text>
-            <Text style={styles.caption}>{percent > 0 && percent < 1 ? '< 1' : Math.round(percent)} %</Text>
+            <View style={styles.values}>
+              <Text style={styles.money}>{formatMoney(part.amountCents)}</Text>
+              <Text style={styles.caption}>{percent > 0 && percent < 1 ? '< 1' : Math.round(percent)} %</Text>
+            </View>
           </View>;
-        })}
+        }) : <Text style={styles.label}>{t('Aucune dépense enregistrée dans cette période.')}</Text>}
       </View>
     </View>
   </View>;
 }
 const styles = StyleSheet.create({
-  container: { gap: theme.spacing.md },
-  source: { gap: theme.spacing.xs },
-  total: { ...theme.typography.headingM, ...theme.typography.amount, color: theme.colors.textPrimary },
-  caption: { ...theme.typography.caption, color: theme.colors.textSubtle },
-  flow: { flexDirection: 'row', position: 'relative' },
-  diagram: { position: 'absolute', left: 0, top: 0 },
-  category: { justifyContent: 'center', gap: theme.spacing.xs, paddingVertical: theme.spacing.sm },
-  label: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
+  group: { gap: theme.spacing.md },
+  row: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xl },
+  stacked: { flexDirection: 'column', alignItems: 'stretch' },
+  ring: { width: 188, height: 188, alignSelf: 'center' },
+  center: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.xl },
+  centerLabel: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
+  total: { ...theme.typography.headingL, ...theme.typography.amount, color: theme.colors.textPrimary, marginBottom: theme.spacing.sm },
+  legend: { flex: 1, minWidth: 0, gap: theme.spacing.sm },
+  legendRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: theme.spacing.sm },
+  dot: { width: 8, height: 8, borderRadius: theme.radius.full },
+  label: { ...theme.typography.bodySmall, color: theme.colors.textSubtle, flex: 1, minWidth: 60 },
+  values: { alignItems: 'flex-end', maxWidth: '100%' },
   money: { ...theme.typography.bodySmall, ...theme.typography.amount, color: theme.colors.textPrimary },
-  empty: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
+  caption: { ...theme.typography.caption, color: theme.colors.textSubtle },
 });
