@@ -1,13 +1,14 @@
 import { t } from '../../src/i18n/locale';
 import { useLanguage } from '../../src/i18n/useLanguage';
 import { useEffect, useState } from 'react';
-import { router } from 'expo-router';
-import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router, type Href } from 'expo-router';
+import { CalendarDays, ChevronRight, Download, FileInput, Repeat2, UserRound, Zap, type LucideIcon } from 'lucide-react-native';
+import { decorativeIconProps } from '../../src/components/decorativeIconProps';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import { ScreenHeading } from '../../src/components/ScreenHeading';
 import { ScreenContainer } from '../../src/components/ScreenContainer';
 import { SurfaceCard } from '../../src/components/SurfaceCard';
-import { Button } from '../../src/components/Button';
 import { Disclosure } from '../../src/components/Disclosure';
 import { AppHeader } from '../../src/components/AppHeader';
 import { useDatabase } from '../../src/db/DatabaseProvider';
@@ -52,32 +53,32 @@ export default function SettingsScreen() {
       <AppHeader />
       <ScreenHeading title={t("Paramètres")} />
       <View style={styles.sections}>
-        <SurfaceCard style={{ gap: theme.spacing.md }}>
-          <Text style={styles.label}>{t("Profil")}</Text>
-          {profile ? <>
-            <Text style={styles.profileName}>{[profile.firstName, profile.lastName].filter(Boolean).join(' ') || t("Mon profil")}</Text>
-            <Text style={styles.body}>{t("Langue du profil : ")}{profileLanguageLabel(profile.language)}</Text>
-          </> : <Text accessibilityLiveRegion="polite" style={styles.body}>{t(profileStatus)}</Text>}
-          <Button title={t("Modifier mon profil")} variant="secondary" onPress={() => router.push('/profile')} />
+        <SurfaceCard style={styles.group}>
+          <SettingsRow icon={UserRound} label={t("Profil et langue")} detail={profile ? profileLanguageLabel(profile.language) : t(profileStatus)} href="/profile" last />
         </SurfaceCard>
-        <SurfaceCard style={{ gap: theme.spacing.md }}>
-          <Text style={styles.label}>{t("Paie & abonnements")}</Text>
-          <Text accessibilityLiveRegion="polite" style={payday === null ? styles.body : styles.payday}>
-            {payday === null ? t(paydayStatus) : t("Paie le {0} du mois.", [payday === 1 ? t("1er") : payday])}
-          </Text>
-          <Button title={t("Jour de paie et rappels")} variant="secondary" onPress={() => router.push('/payday')} />
-          <Button title={t("Revenus et dépenses récurrents")} variant="ghost" onPress={() => router.push('/recurring')} />
-        </SurfaceCard>
-        <SurfaceCard style={{ gap: theme.spacing.md }}>
-          <Text style={styles.label}>{t("Vos outils")}</Text>
-          <Button title={t("Sauvegardes et exports")} variant="secondary" onPress={() => router.push('/data-transfer')} />
-          <Button title={t("Importer un relevé CSV")} variant="secondary" onPress={() => router.push('/csv-import')} />
-          <Button title={t("Favoris et saisie express")} variant="secondary" onPress={() => router.push('/quick-entry')} />
-          <Button title={t("Budget de paie à paie")} variant="secondary" onPress={() => router.push('/pay-cycle')} />
-          <Button title={t("Répartition et remboursements")} variant="secondary" onPress={() => router.push('/expense-details')} />
-          <Button title={t("Comprendre mon mois")} variant="secondary" onPress={() => router.push('/month-review')} />
-          <Button title={t("Renouvellements")} variant="secondary" onPress={() => router.push('/renewals')} />
-        </SurfaceCard>
+        <View style={styles.section}>
+          <Text accessibilityRole="header" style={styles.label}>{t("Au quotidien")}</Text>
+          <SurfaceCard style={styles.group}>
+            <SettingsRow icon={CalendarDays} label={t("Jour de paie")} detail={payday === null ? t(paydayStatus) : t("Le {0} du mois", [payday])} href="/payday" />
+            <SettingsRow icon={Repeat2} label={t("Récurrences")} href="/recurring" />
+            <SettingsRow icon={Zap} label={t("Saisie express")} href="/quick-entry" last />
+          </SurfaceCard>
+        </View>
+        <View style={styles.section}>
+          <Text accessibilityRole="header" style={styles.label}>{t("Mes données")}</Text>
+          <SurfaceCard style={styles.group}>
+            <SettingsRow icon={Download} label={t("Sauvegardes et exports")} href="/data-transfer" />
+            <SettingsRow icon={FileInput} label={t("Importer un relevé CSV")} href="/csv-import" last />
+          </SurfaceCard>
+        </View>
+        <Disclosure title={t("Autres outils")}>
+          <SurfaceCard style={styles.group}>
+            <SettingsRow label={t("Budget de paie à paie")} href="/pay-cycle" />
+            <SettingsRow label={t("Répartition et remboursements")} href="/expense-details" />
+            <SettingsRow label={t("Comprendre mon mois")} href="/month-review" />
+            <SettingsRow label={t("Renouvellements")} href="/renewals" last />
+          </SurfaceCard>
+        </Disclosure>
         <Disclosure title={t("À propos et données")}>
           <Text style={styles.body}>{web ? t("Aperçu web · Euro (EUR)") : t("Hors ligne · Euro (EUR)")}</Text>
           <Text style={styles.body}>{web
@@ -86,22 +87,41 @@ export default function SettingsScreen() {
           <Text style={styles.body}>{web
             ? t("Effacer les données du navigateur supprime les transactions de test.")
             : t("Désinstaller l’app ou effacer ses données supprime vos transactions. Pensez aux sauvegardes.")}</Text>
-        </Disclosure>
-        <View style={styles.about}>
           <Text style={styles.body}>{t("Version ")}{Constants.expoConfig?.version ?? t('indisponible')}</Text>
-        </View>
-
+        </Disclosure>
       </View>
     </ScrollView>
   </ScreenContainer>;
 }
 
+function SettingsRow({ icon: Icon, label, detail, href, last = false }: { icon?: LucideIcon; label: string; detail?: string; href: Href; last?: boolean }) {
+  const [focused, setFocused] = useState(false);
+  return <Pressable cssInterop={false} accessibilityRole="button" accessibilityLabel={detail ? `${label}, ${detail}` : label}
+    onPress={() => router.push(href)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+    style={({ pressed }) => [styles.row, last && styles.last, {
+      backgroundColor: pressed ? theme.colors.primaryLight : theme.colors.transparent,
+      borderColor: focused ? theme.colors.focusRing : theme.colors.transparent,
+    }]}>
+    {Icon ? <View style={styles.icon}><Icon size={theme.size.icon.medium} color={theme.colors.textAction} {...decorativeIconProps} /></View> : null}
+    <View style={styles.rowCopy}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      {detail ? <Text style={styles.body}>{detail}</Text> : null}
+    </View>
+    <ChevronRight size={theme.size.icon.small} color={theme.colors.textSubtle} {...decorativeIconProps} />
+  </Pressable>;
+}
 const styles = StyleSheet.create({
   page: { paddingHorizontal: theme.layout.gutter, paddingBottom: theme.spacing['2xl'] },
-  sections: { gap: theme.spacing.xl },
-  body: { ...theme.typography.body, color: theme.colors.textSubtle },
-  payday: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, color: theme.colors.primaryDark },
-  profileName: { ...theme.typography.headingM, color: theme.colors.textPrimary },
-  label: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, color: theme.colors.textPrimary, marginBottom: theme.spacing.xs },
-  about: { alignItems: 'center', paddingVertical: theme.spacing.sm },
+  sections: { gap: theme.spacing.lg },
+  section: { gap: theme.spacing.sm },
+  group: { padding: theme.spacing.xs },
+  body: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
+  label: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.semibold, color: theme.colors.textSubtle },
+  row: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, minHeight: theme.size.touchMin,
+    padding: theme.spacing.md, borderWidth: theme.size.focusWidth, borderRadius: theme.radius.medium,
+    borderBottomWidth: theme.size.borderWidth, borderBottomColor: theme.colors.border },
+  last: { borderBottomWidth: 0 },
+  rowCopy: { flex: 1, minWidth: 0, gap: theme.spacing.xs },
+  rowLabel: { ...theme.typography.body, fontFamily: theme.fontFamily.medium, color: theme.colors.textPrimary },
+  icon: { padding: theme.spacing.sm, borderRadius: theme.radius.medium, backgroundColor: theme.colors.primaryLight },
 });

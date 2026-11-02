@@ -23,7 +23,7 @@ export const FormField = forwardRef<TextInput, Props>(function FormField({
         cursorColor={theme.colors.primaryDark} underlineColorAndroid={theme.colors.transparent}
         onFocus={(event) => { setFocused(true); onFocus?.(event); }}
         onBlur={(event) => { setFocused(false); onBlur?.(event); }}
-        style={[styles.input, amount && styles.amount, {
+        style={[styles.input, (amount || suffix === '€') && styles.money, amount && styles.amount, {
           color: editable ? theme.colors.textPrimary : theme.colors.disabledForeground,
         }]} />
       {suffix ? <Text style={[styles.suffix, amount && styles.amountSuffix]}>{suffix}</Text> : null}
@@ -42,8 +42,9 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.medium, paddingHorizontal: theme.spacing.lg },
   input: { ...theme.typography.body, color: theme.colors.textPrimary, flex: 1, minWidth: 0,
     minHeight: theme.size.inputMinHeight, paddingVertical: theme.spacing.md },
-  amount: { ...theme.typography.display, fontFamily: theme.fontFamily.regular, ...theme.typography.amount, minHeight: theme.size.amountMinHeight },
+  money: { ...theme.typography.amount },
+  amount: { ...theme.typography.display, ...theme.typography.amount, minHeight: theme.size.amountMinHeight },
   suffix: { ...theme.typography.body, color: theme.colors.textSubtle, textAlignVertical: 'center' },
-  amountSuffix: { ...theme.typography.display, fontFamily: theme.fontFamily.regular },
+  amountSuffix: { ...theme.typography.display, ...theme.typography.amount },
   error: { ...theme.typography.bodySmall, color: theme.colors.dangerText },
 });

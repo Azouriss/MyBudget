@@ -1,5 +1,46 @@
 # Frontend version history
 
+## 0.9.0.0 - 2026-11-02
+
+- Simplify the home screen around one remaining-budget amount, a botanical
+  accent and a brief entrance animation respecting reduced-motion preferences.
+  Keep the expense action prominent and move detailed figures into disclosures.
+- Separate recorded expenses from upcoming charges in the budget details;
+  preserve projections, reimbursements and payday boundaries. Recent activity
+  only includes recorded, non-future operations in the selected period.
+- Add a proportional expense Sankey with category names, exact amounts and shares.
+  It describes recorded gross spending before reimbursements, with an explicit
+  empty state and text that can grow independently of the ribbons.
+- Add direct month/year selection and an explicit current-period action. Display
+  inclusive end dates for payday cycles while retaining exclusive calculation bounds.
+- Replace stacked settings buttons with grouped rows. Prioritize language and
+  keep optional profile names behind a disclosure without discarding saved values.
+- Standardize monetary typography on local Inter with tabular figures. Preserve
+  the Sage & Cream visual identity, strengthen chart colors and distinguish income,
+  planned amounts and over-budget states without using color as the only label.
+- Collapse the optional purchase simulator and preserve its financial caveats,
+  errors, destructive confirmations and unsaved-change protection.
+
+**Threat impact:** No schema, credential or authorization change. Source data
+remains in integer cents; display helpers do not write transactions. Financial
+and date regressions cover net/forecast separation, reimbursements, recent-order
+filtering, period endpoints and proportional chart geometry. Existing protected
+migrations and Android/database identities are preserved.
+
+**Sovereignty impact:** No dependency, remote runtime service, telemetry or remote
+build is added. Fonts, SVG artwork, calculations and animations remain bundled
+and local. Browser validation uses separate synthetic-data profiles.
+
+**Validation:** Windows `npm run check` passed: TypeScript, 319 application tests
+and 23 release-tool tests. Browser layout checks cover 320/390/768 px, French and
+English, and simulated 150% CSS text. Month rollover, cancellation, keyboard
+focus, supported year bounds, profile preservation and unsaved-change guards
+were exercised. Reduced-motion web behavior and semantic color contrasts were
+checked. Browser evidence is separate from Android font scaling and TalkBack.
+
+**Status:** `verification-pending` - Local validation only; Android phone and APK
+acceptance remain pending. No push, tag, publication or deployment.
+
 ## 0.8.0.1 - 2026-11-02
 
 - Keep upcoming recurring expenses and income visible in the current budget

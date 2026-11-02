@@ -15,7 +15,7 @@ import { ScreenContainer } from '../../components/ScreenContainer';
 import { ScreenHeading } from '../../components/ScreenHeading';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { SurfaceCard } from '../../components/SurfaceCard';
-import { monthLabel, shortDate } from '../../lib/dates';
+import { monthLabel, shortDate, periodLabel } from '../../lib/dates';
 import { formatMoney } from '../../lib/money';
 import { expenseByCategory } from '../../lib/finance';
 import { recurringId } from '../transactions/types';
@@ -68,7 +68,7 @@ function Margin({ data }: { data: ForecastData }) {
       <View style={styles.cardHeading}>
         <View style={styles.headingCopy}>
           <Text accessibilityRole="header" style={styles.title}>{t('Marge après charges')}</Text>
-          <Text style={styles.note}>{shortDate(data.period.start)} → {data.period.end === '2100-01-01' ? '01/01/2100' : shortDate(data.period.end)}{t(" · fin exclue")}</Text>
+          <Text style={styles.note}>{periodLabel(data.period)}</Text>
         </View>
         {budget !== null ? <IconButton icon={SlidersHorizontal} label={t('Modifier le budget du mois')} onPress={editBudget} /> : null}
       </View>
@@ -76,14 +76,14 @@ function Margin({ data }: { data: ForecastData }) {
         <Text style={[budget === null ? styles.emptyTitle : styles.amount, base.marginCents !== null && base.marginCents < 0 && styles.negative]}>
           {base.marginCents === null ? t('Budget à définir') : formatMoney(base.marginCents)}
         </Text>
-        <Text style={styles.note}>{t('Estimation hors dépenses variables à venir, distincte du solde bancaire.')}</Text>
+        <Text style={styles.note}>{t('Estimation hors dépenses variables. Pas un solde bancaire.')}</Text>
       </View>
       {base.dailyCents !== null ? <View style={styles.daily}>
         <View style={styles.dailyMetric}>
           <Text style={styles.note}>{t('Repère par jour')}</Text>
           <Text style={styles.secondaryAmount}>{formatMoney(base.dailyCents)}</Text>
         </View>
-        <Text style={styles.dailyPeriod}>{base.daysLeft}{t(' jours, aujourd’hui inclus')}</Text>
+        <Text style={styles.dailyPeriod}>{base.daysLeft}{t(' jours restants')}</Text>
       </View> : null}
       {budget === null ? <Button title={t('Définir le budget du mois')} onPress={editBudget} /> : null}
       <Disclosure title={t('Détail du calcul')}>
@@ -99,7 +99,7 @@ function Margin({ data }: { data: ForecastData }) {
       </Disclosure>
     </SurfaceCard>
     <SurfaceCard style={styles.card}>
-      <Text accessibilityRole="header" style={styles.title}>{t('Simuler un achat')}</Text>
+      <Disclosure title={t('Simuler un achat')}>
       <FormField label={t('Achat envisagé en euros')} suffix="€" keyboardType="decimal-pad" value={purchase} onChangeText={setPurchase} />
       <FormField label={t('Marge de précaution en euros')} suffix="€" keyboardType="decimal-pad" value={reserve} onChangeText={setReserve} />
       {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : <View accessibilityLiveRegion="polite"
@@ -111,6 +111,7 @@ function Margin({ data }: { data: ForecastData }) {
       </View>}
       <Text style={styles.note}>{t('Simulation temporaire, sans enregistrement ni effet sur les provisions.')}</Text>
       <Button title={t('Réinitialiser la simulation')} variant="ghost" onPress={() => { setPurchase('0'); setReserve('0'); }} />
+      </Disclosure>
     </SurfaceCard>
     {data.budgets.categories.map((limit) => {
       const spent = expenseByCategory(data.entries.filter((entry) => entry.occurredOn >= data.period.start && entry.occurredOn < data.period.end))
@@ -132,7 +133,7 @@ function Agenda({ data }: { data: ForecastData }) {
   return <View style={styles.group}>
     <SurfaceCard style={styles.card}>
       <Text accessibilityRole="header" style={styles.title}>{t('Charges de la période')}</Text>
-      <Text style={styles.amount}>{formatMoney(sumCents(entries.map((entry) => entry.amountCents)))}</Text>
+      <Text style={[styles.amount, styles.expense]}>{formatMoney(sumCents(entries.map((entry) => entry.amountCents)))}</Text>
       <SegmentedControl label={t('Période de l’agenda')} options={[{ value: '7', label: t('7 jours') }, { value: '30', label: t('30 jours') }]} value={days} onChange={setDays} />
       <Text style={styles.note}>{t('Aujourd’hui inclus · « Enregistré » ne confirme pas le débit bancaire.')}</Text>
     </SurfaceCard>
@@ -190,7 +191,7 @@ export function ForecastScreen() {
   const state = useForecast();
   const invalidate = useAppStore((store) => store.invalidate);
   return <ScreenContainer><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
-    <AppHeader profile />
+    <AppHeader settings />
     <ScreenHeading title={t('Prévoir')} />
     <ForecastTabs value={section} onChange={setSection} />
     {section === 'provisions' ? <ProvisionList /> : state.error ? <SurfaceCard style={styles.card}>

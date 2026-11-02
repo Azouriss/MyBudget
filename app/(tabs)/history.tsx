@@ -90,7 +90,7 @@ export default function HistoryScreen() {
           {summary.plannedIncomeCents > 0 ? <Text style={styles.meta}>{t("Revenus prévus : {0} · hors revenus reçus", [formatMoney(summary.plannedIncomeCents)])}</Text> : null}
           {hasPlanned ? <View style={styles.planned}>
             <Repeat2 size={theme.size.icon.small} color={theme.colors.textAction} {...decorativeIconProps} />
-            <Text style={styles.meta}>{t("Échéances prévues incluses")}</Text>
+            <Text style={styles.meta}>{t("Prévisions incluses")}</Text>
           </View> : null}
         </View> : null}
         <View style={styles.tools}>
@@ -145,8 +145,8 @@ const styles = StyleSheet.create({
   totalTitle: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.medium,
     color: theme.colors.textPrimary, flexShrink: 1 },
   totalAmount: { ...theme.typography.headingL, ...theme.typography.amount, flexShrink: 1 },
-  expenseAmount: { color: theme.colors.dangerText },
-  incomeAmount: { color: theme.colors.textAction },
+  expenseAmount: { color: theme.colors.moneyExpense },
+  incomeAmount: { color: theme.colors.moneyIncome },
   planned: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
   meta: { ...theme.typography.bodySmall, color: theme.colors.textSubtle, flexShrink: 1 },
   listHeading: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm,

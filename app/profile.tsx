@@ -7,6 +7,7 @@ import { usePreventRemove } from 'expo-router/react-navigation';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '../src/components/Button';
+import { Disclosure } from '../src/components/Disclosure';
 import { FormField } from '../src/components/FormField';
 import { SegmentedControl } from '../src/components/SegmentedControl';
 import { SettingsPage, settingsStyles as styles } from '../src/components/SettingsPage';
@@ -58,11 +59,15 @@ export default function ProfileScreen() {
   });
   const disabled = !loaded || isSubmitting;
 
-  return <SettingsPage title={t("Mon profil")} footer={<Button title={t("Enregistrer mon profil")} onPress={() => void save()}
+  return <SettingsPage title={t("Mon profil")} footer={<Button title={t("Enregistrer")} onPress={() => void save()}
     disabled={disabled || !isDirty} loading={isSubmitting} />}>
     <SurfaceCard style={styles.card}>
-      <Text style={styles.label}>{t("Identité")}</Text>
-      <Text style={styles.copy}>{t("Prénom et nom facultatifs, conservés sur cet appareil.")}</Text>
+      <Text style={styles.label}>{t("Langue")}</Text>
+      <Controller control={control} name="language" render={({ field }) => <SegmentedControl label={t("Langue")}
+        options={profileLanguages} value={field.value} onChange={field.onChange} disabled={disabled} />} />
+    </SurfaceCard>
+    <Disclosure title={t("Personnaliser mon profil")}>
+      <Text style={styles.copy}>{t("Facultatif · sur cet appareil uniquement")}</Text>
       <Controller control={control} name="firstName" render={({ field }) => <FormField label={t("Prénom")}
         ref={field.ref} value={field.value} onChangeText={field.onChange} onBlur={field.onBlur}
         error={errors.firstName?.message} editable={!disabled} autoComplete="given-name" textContentType="givenName"
@@ -71,12 +76,7 @@ export default function ProfileScreen() {
         ref={field.ref} value={field.value} onChangeText={field.onChange} onBlur={field.onBlur}
         error={errors.lastName?.message} editable={!disabled} autoComplete="family-name" textContentType="familyName"
         autoCapitalize="words" autoCorrect={false} maxLength={80} returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} />} />
-    </SurfaceCard>
-    <SurfaceCard style={styles.card}>
-      <Text style={styles.label}>{t("Langue du profil")}</Text>
-      <Controller control={control} name="language" render={({ field }) => <SegmentedControl label={t("Langue du profil")}
-        options={profileLanguages} value={field.value} onChange={field.onChange} disabled={disabled} />} />
-    </SurfaceCard>
+    </Disclosure>
     {error ? <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.error}>{t(error)}</Text> : null}
   </SettingsPage>;
 }

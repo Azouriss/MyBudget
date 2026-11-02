@@ -56,3 +56,18 @@ export function expenseByCategory(entries: readonly FinancialEntry[], net = true
   return [...totals].map(([categoryId, amountCents]) => ({ categoryId, amountCents }))
     .sort((a, b) => b.amountCents - a.amountCents || a.categoryId.localeCompare(b.categoryId));
 }
+
+/** Same accounting perimeter, split for presentation without changing projections. */
+export function dashboardSummary(entries: readonly Transaction[], month: string, today: string, bounds = monthBounds(month)) {
+  const inPeriod = entries.filter((entry) => entry.occurredOn >= bounds.start && entry.occurredOn < bounds.end);
+  const recorded = inPeriod.filter((entry) => !entry.isPlanned);
+  const total = monthlySummary(inPeriod, month, bounds);
+  const actual = monthlySummary(recorded, month, bounds);
+  return {
+    total, actual,
+    plannedExpenseCents: addCents(total.grossExpenseCents, -actual.grossExpenseCents),
+    breakdown: expenseByCategory(recorded, false),
+    recent: recorded.filter((entry) => entry.occurredOn <= today)
+      .sort((a, b) => b.occurredOn.localeCompare(a.occurredOn) || a.id.localeCompare(b.id)).slice(0, 5),
+  };
+}

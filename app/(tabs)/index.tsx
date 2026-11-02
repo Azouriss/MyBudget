@@ -3,13 +3,14 @@ import { useLanguage } from '../../src/i18n/useLanguage';
 import { SalaryReminder } from '../../src/features/payday/SalaryReminder';
 import { useMemo } from 'react';
 import { router } from 'expo-router';
-import { ChevronRight, Plus } from 'lucide-react-native';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { AppHeader } from '../../src/components/AppHeader';
+import { Plus } from 'lucide-react-native';
+import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated';
 import { BotanicalSprig } from '../../src/components/BrandMark';
+import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { AppHeader } from '../../src/components/AppHeader';
 import { BudgetProgress } from '../../src/components/BudgetProgress';
 import { Button } from '../../src/components/Button';
-import { decorativeIconProps } from '../../src/components/decorativeIconProps';
+import { Disclosure } from '../../src/components/Disclosure';
 import { ExpenseChart } from '../../src/components/ExpenseChart';
 import { MonthPicker } from '../../src/components/MonthPicker';
 import { QueryState } from '../../src/components/QueryState';
@@ -19,7 +20,9 @@ import { SurfaceCard } from '../../src/components/SurfaceCard';
 import { useMonthlyBudgets } from '../../src/features/budgets/hooks';
 import { TransactionRow } from '../../src/features/transactions/TransactionRow';
 import { useMonthlyTransactions, useBudgetPeriod } from '../../src/features/transactions/hooks';
-import { expenseByCategory, monthlySummary } from '../../src/lib/finance';
+import { dashboardSummary } from '../../src/lib/finance';
+import { budgetProgress } from '../../src/lib/budgets';
+import { localDateKey } from '../../src/lib/dates';
 import { formatMoney } from '../../src/lib/money';
 import { useAppStore } from '../../src/stores/useAppStore';
 import { theme } from '../../src/theme';
@@ -30,72 +33,79 @@ export default function DashboardScreen() {
   const data = useMonthlyTransactions();
   const budgets = useMonthlyBudgets();
   const period = useBudgetPeriod(month);
-  const summary = useMemo(() => monthlySummary(data.transactions, month, period), [data.transactions, month, period]);
-  const breakdown = useMemo(() => expenseByCategory(data.transactions, false), [data.transactions]);
+  const today = localDateKey();
+  const { width, fontScale } = useWindowDimensions();
+  const summary = useMemo(() => dashboardSummary(data.transactions, month, today, period), [data.transactions, month, today, period]);
   const categories = useMemo(() => new Map(data.categories.map((category) => [category.id, category])), [data.categories]);
-  const hasPlanned = data.transactions.some((item) => item.isPlanned && item.kind === 'expense');
+  const progress = budgets.monthly ? budgetProgress(summary.total.expenseCents, budgets.monthly.amountCents) : null;
+  const budgetReady = !budgets.loading && !budgets.error;
   return <ScreenContainer><ScrollView contentContainerStyle={styles.page}>
-    <AppHeader profile />
+    <AppHeader settings />
     <SalaryReminder />
     <MonthPicker />
     {data.loading || data.error ? <QueryState error={data.error} /> : <View style={styles.sections}>
-      <SurfaceCard style={styles.summaryCard}>
-        <View pointerEvents="none" style={styles.cornerLeaf}><BotanicalSprig size={64} /></View>
-        <Text style={styles.meta}>{hasPlanned ? t("Dépenses nettes prévues") : t("Dépenses nettes de la période")}</Text>
-        {hasPlanned ? <Text style={styles.caption}>{t("Échéances prévues incluses.")}</Text> : null}
-        <View style={styles.expenseLine}>
-          <Text accessibilityLabel={t("Dépenses du mois : {0}", [formatMoney(summary.expenseCents)])} style={styles.expenses}>{formatMoney(summary.expenseCents)}</Text>
-          {!budgets.loading && !budgets.error ? <View style={styles.limitCopy}><Text style={styles.caption}>{t("Sur un budget de")}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel={t("Voir le budget mensuel")} onPress={() => router.push('/budgets')}>
-              <Text style={styles.limit}>{budgets.monthly ? formatMoney(budgets.monthly.amountCents) : t("À définir")}</Text>
-            </Pressable></View> : <Text style={styles.caption}>{budgets.error ? t("Budget indisponible") : t("Chargement du budget…")}</Text>}
-        </View>
-        {budgets.monthly && !budgets.error && !budgets.loading ? <BudgetProgress spent={summary.expenseCents} limit={budgets.monthly.amountCents} /> : null}
-        {budgets.monthlySource === 'salary' && !budgets.error && !budgets.loading
-          ? <Text style={styles.caption}>{t("Salaire net utilisé par défaut.")}</Text> : null}
-        {summary.reimbursementCents > 0 ? <Text style={styles.caption}>{t("Remboursements reçus : {0} · déduits des dépenses", [formatMoney(summary.reimbursementCents)])}</Text> : null}
-        {summary.plannedIncomeCents > 0 ? <Text style={styles.caption}>{t("Revenus prévus : {0} · hors revenus reçus", [formatMoney(summary.plannedIncomeCents)])}</Text> : null}
-        <View style={styles.financialDetails}>
-          <View style={styles.financialItem}><Text style={styles.caption}>{t("Revenus")}</Text><Text style={styles.income}>{formatMoney(summary.incomeCents)}</Text></View>
-          <View style={styles.financialItem}><Text style={styles.caption}>{t("Écart revenus / dépenses")}</Text><Text style={styles.balance}>{formatMoney(summary.netCents)}</Text></View>
-        </View>
-      </SurfaceCard>
-      <View>
-        <SectionHeader title={t("Dépenses brutes par catégorie")} />
-        <ExpenseChart breakdown={breakdown} categories={data.categories} total={summary.grossExpenseCents} />
-      </View>
-      <Button title={t("Ajouter une dépense")} icon={Plus} onPress={() => router.push('/transaction')} />
-      {data.transactions.length ? <View>
-        <SectionHeader title={t("Dernières transactions")} action={t("Tout voir")} onAction={() => router.push('/history')} />
+      <Animated.View entering={FadeInDown.duration(theme.motion.standard).reduceMotion(ReduceMotion.System)}>
+        <SurfaceCard style={[styles.summaryCard, progress?.exceeded && styles.heroNegative]}>
+          {width >= 360 && fontScale < theme.layout.stackedFontScale ? <View pointerEvents="none" style={styles.leaves}>
+            <BotanicalSprig size={88} />
+          </View> : null}
+          <Text style={styles.label}>{progress?.exceeded ? t('Budget dépassé') : t('Reste au budget')}</Text>
+          {budgetReady && progress ? <>
+            <Text style={[styles.amount, width < 360 && styles.compactAmount, progress.exceeded && styles.negative]}>{formatMoney(Math.abs(progress.remainingCents))}</Text>
+            {summary.plannedExpenseCents > 0 ? <Text style={styles.note}>{t('Prévisions incluses')}</Text> : null}
+            <BudgetProgress spent={summary.total.expenseCents} limit={budgets.monthly!.amountCents} showPercent={false} />
+          </> : <Text style={styles.empty}>{budgets.error ? t('Budget indisponible') : budgets.loading ? t('Chargement du budget…') : t('Aucun budget défini')}</Text>}
+          {budgetReady && budgets.monthly ? <Text style={styles.note}>{t('Budget : {0}', [formatMoney(budgets.monthly.amountCents)])}</Text> : null}
+          {budgetReady && progress ? <Text style={styles.note}>{t('Pas un solde bancaire')}</Text> : null}
+          {budgetReady && !budgets.monthly ? <Button title={t('Définir un budget')} variant="secondary" onPress={() => router.push('/budgets')} /> : null}
+        </SurfaceCard>
+      </Animated.View>
+      <Button title={t('Ajouter une dépense')} icon={Plus} onPress={() => router.push('/transaction')} />
+      {summary.recent.length ? <View>
+        <SectionHeader title={t('Dernières transactions')} action={t('Tout voir')} onAction={() => router.push('/history')} />
         <SurfaceCard style={styles.transactions}>
-          {data.transactions.slice(0, 3).map((transaction, index, recent) => <TransactionRow key={transaction.id}
+          {summary.recent.slice(0, 3).map((transaction, index, recent) => <TransactionRow key={transaction.id}
             transaction={transaction} category={categories.get(transaction.categoryId)} last={index === recent.length - 1} />)}
         </SurfaceCard>
-      </View> : <Pressable accessibilityRole="button" onPress={() => router.push('/budgets')} style={styles.firstBudget}>
-        <Text style={styles.budgetTitle}>{t("Définir un budget")}</Text>
-        <ChevronRight size={theme.size.icon.medium} color={theme.colors.primaryDark} {...decorativeIconProps} />
-      </Pressable>}
+      </View> : <Text style={styles.note}>{t('Aucune transaction enregistrée à ce jour dans cette période.')}</Text>}
+      <Disclosure title={t('Détails du budget')}>
+        <SurfaceCard style={styles.details}>
+          <View style={styles.metric}><Text style={styles.metricLabel}>{t('Dépenses enregistrées')}</Text><Text style={styles.metricAmount}>{formatMoney(summary.actual.expenseCents)}</Text></View>
+          {summary.plannedExpenseCents > 0 ? <View style={styles.metric}><Text style={styles.metricLabel}>{t('Échéances à venir')}</Text><Text style={[styles.metricAmount, styles.planned]}>{formatMoney(summary.plannedExpenseCents)}</Text></View> : null}
+          <View style={styles.metric}><Text style={styles.metricLabel}>{t('Revenus reçus')}</Text><Text style={[styles.metricAmount, styles.income]}>{formatMoney(summary.actual.incomeCents)}</Text></View>
+          {summary.actual.reimbursementCents > 0 ? <View style={styles.metric}><Text style={styles.metricLabel}>{t('Remboursements déduits')}</Text><Text style={[styles.metricAmount, styles.income]}>{formatMoney(summary.actual.reimbursementCents)}</Text></View> : null}
+          {summary.total.plannedIncomeCents > 0 ? <View style={styles.metric}><Text style={styles.metricLabel}>{t('Revenus prévus, non reçus')}</Text><Text style={[styles.metricAmount, styles.planned]}>{formatMoney(summary.total.plannedIncomeCents)}</Text></View> : null}
+          {budgets.monthlySource === 'salary' ? <Text style={styles.note}>{t('Salaire net utilisé par défaut.')}</Text> : null}
+          <Text style={styles.note}>{t('Budget moins dépenses nettes et échéances. Les revenus prévus ne sont pas ajoutés au budget.')}</Text>
+          <Button title={t('Voir le budget')} variant="secondary" onPress={() => router.push('/budgets')} />
+        </SurfaceCard>
+      </Disclosure>
+      <Disclosure title={t('Répartition des dépenses')}>
+        <SurfaceCard style={styles.details}>
+          <Text style={styles.note}>{t('Dépenses enregistrées, avant remboursements.')}</Text>
+          <ExpenseChart breakdown={summary.breakdown} categories={data.categories} total={summary.actual.grossExpenseCents} />
+        </SurfaceCard>
+      </Disclosure>
     </View>}
   </ScrollView></ScreenContainer>;
 }
-
 const styles = StyleSheet.create({
   page: { paddingHorizontal: theme.layout.gutter, paddingBottom: theme.spacing.xl },
-  meta: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
-  caption: { ...theme.typography.caption, color: theme.colors.textSubtle },
-  sections: { gap: theme.spacing.xl },
-  summaryCard: { gap: theme.spacing.sm, overflow: 'hidden' },
-  cornerLeaf: { position: 'absolute', top: -theme.spacing.sm, right: -theme.spacing.sm, transform: [{ rotate: '24deg' }] },
-  expenseLine: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: theme.spacing.md },
-  expenses: { ...theme.typography.financial, ...theme.typography.amount, color: theme.colors.textPrimary, flexShrink: 1 },
-  limitCopy: { gap: theme.spacing.xs, paddingRight: theme.spacing.lg },
-  limit: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.semibold, color: theme.colors.textAction, minHeight: 28 },
-  financialDetails: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.lg, borderTopWidth: theme.size.borderWidth, borderTopColor: theme.colors.border, paddingTop: theme.spacing.sm, marginTop: theme.spacing.xs },
-  financialItem: { flexGrow: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', minWidth: 0, gap: theme.spacing.xs },
-  income: { ...theme.typography.bodySmall, ...theme.typography.amount, fontFamily: theme.fontFamily.medium, color: theme.colors.success },
-  balance: { ...theme.typography.bodySmall, ...theme.typography.amount, fontFamily: theme.fontFamily.medium, color: theme.colors.textPrimary },
+  sections: { gap: theme.spacing.lg },
+  summaryCard: { backgroundColor: theme.colors.primaryLight, padding: theme.spacing.xl, gap: theme.spacing.sm },
+  leaves: { position: 'absolute', right: theme.spacing.sm, top: -theme.spacing.sm, opacity: 0.45, transform: [{ rotate: '18deg' }] },
+  details: { gap: theme.spacing.md },
+  heroNegative: { backgroundColor: theme.colors.dangerBackground },
+  label: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.medium, color: theme.colors.textPrimary },
+  amount: { ...theme.typography.financial, ...theme.typography.amount, color: theme.colors.textAction, flexShrink: 1 },
+  compactAmount: { ...theme.typography.headingL, ...theme.typography.amount },
+  negative: { color: theme.colors.dangerText },
+  empty: { ...theme.typography.headingM, color: theme.colors.textSubtle },
+  note: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
+  metric: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: theme.spacing.sm },
+  metricLabel: { ...theme.typography.bodySmall, color: theme.colors.textSubtle, flexGrow: 1, flexBasis: 130 },
+  metricAmount: { ...theme.typography.body, ...theme.typography.amount, color: theme.colors.textPrimary, flexShrink: 1 },
+  planned: { color: theme.colors.moneyBalance },
+  income: { color: theme.colors.moneyIncome },
   transactions: { padding: theme.spacing.xs },
-  firstBudget: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, padding: theme.spacing.lg,
-    backgroundColor: theme.colors.surface, borderRadius: theme.radius.large, borderWidth: theme.size.borderWidth, borderColor: theme.colors.border },
-  budgetTitle: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.semibold, color: theme.colors.textPrimary, flex: 1 },
 });

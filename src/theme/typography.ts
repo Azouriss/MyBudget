@@ -13,7 +13,7 @@ export const typography = {
   display: { fontFamily: fontFamily.bold, fontSize: 32, lineHeight: 40 },
   brand: { fontFamily: fontFamily.editorialSemibold, fontSize: 25, lineHeight: 34 },
   editorial: { fontFamily: fontFamily.editorial, fontSize: 28, lineHeight: 38 },
-  financial: { fontFamily: fontFamily.editorialSemibold, fontSize: 34, lineHeight: 44 },
+  financial: { fontFamily: fontFamily.semibold, fontSize: 34, lineHeight: 44 },
   headingXL: { fontFamily: fontFamily.bold, fontSize: 28, lineHeight: 36 },
   headingL: { fontFamily: fontFamily.semibold, fontSize: 24, lineHeight: 32 },
   headingM: { fontFamily: fontFamily.semibold, fontSize: 20, lineHeight: 28 },
@@ -22,7 +22,7 @@ export const typography = {
   bodySmall: { fontFamily: fontFamily.regular, fontSize: 14, lineHeight: 22 },
   caption: { fontFamily: fontFamily.medium, fontSize: 12, lineHeight: 18 },
   button: { fontFamily: fontFamily.semibold, fontSize: 16, lineHeight: 24 },
-  amount: { fontVariant: ['tabular-nums'] },
+  amount: { fontFamily: fontFamily.semibold, fontVariant: ['tabular-nums'] },
 } satisfies Record<string, TextStyle>;
 
 export type TypographyToken = keyof typeof typography;

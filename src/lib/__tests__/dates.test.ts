@@ -1,4 +1,4 @@
-import { currentMonth, displayDate, isISODate, localDateKey, monthBounds, parseFrenchDate, shiftMonth } from '../dates';
+import { periodLabel, currentMonth, displayDate, isISODate, localDateKey, monthBounds, parseFrenchDate, shiftMonth } from '../dates';
 
 describe('dates civiles et mois', () => {
   it('valide les années bissextiles', () => {
@@ -34,3 +34,15 @@ describe('dates civiles et mois', () => {
     expect(() => monthBounds('2026-13')).toThrow();
   });
 });
+
+  test.each([
+    ['2028-02-01', '2028-03-01', '1 févr. – 29 févr.'],
+    ['2026-10-28', '2026-11-28', '28 oct. – 27 nov.'],
+    ['2099-12-01', '2100-01-01', '1 déc. – 31 déc.'],
+  ])('affiche la période %s avec un dernier jour inclus', (start, end, label) => {
+    expect(periodLabel({ start, end })).toBe(label);
+  });
+  it('refuse une période de présentation inversée ou invalide', () => {
+    expect(() => periodLabel({ start: '2026-10-10', end: '2026-10-01' })).toThrow();
+    expect(() => periodLabel({ start: '2026-02-30', end: '2026-03-01' })).toThrow();
+  });

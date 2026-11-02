@@ -46,13 +46,13 @@ export function TransactionRow({ transaction, category, last = false, variant = 
       <View style={[styles.details, history && !stacked && styles.historyDetails, stacked && styles.stacked]}>
         <View style={[styles.copy, history && !stacked && styles.historyCopy]}>
           <Text style={[styles.label, history && styles.historyLabel]}>{transaction.label}</Text>
-          <Text style={styles.meta}>{categoryLabel}{transaction.reimbursement || transaction.categoryId === 'reimbursements' ? t(" · Remboursement reçu") : income ? t(" · Revenu") : ''}</Text>
+          <Text style={styles.meta}>{categoryLabel}{transaction.reimbursement || transaction.categoryId === 'reimbursements' ? t(" · Remboursement reçu") : ''}</Text>
           {recurring ? <View style={[styles.recurring, history && styles.recurringBadge]}>
             <Repeat2 size={theme.size.icon.small} color={theme.colors.textAction} {...decorativeIconProps} />
-            <Text style={styles.recurringLabel}>{planned ? t("Récurrente · Prévue") : t("Récurrente")}</Text>
+            <Text style={styles.recurringLabel}>{planned ? t("Prévu") : t("Récurrente")}</Text>
           </View> : null}
         </View>
-        <View style={[styles.amountColumn, history && styles.historyAmountColumn]}><Text style={[styles.amount, history && styles.historyAmount, { color: income ? theme.colors.success : theme.colors.textPrimary }]}>
+        <View style={[styles.amountColumn, history && styles.historyAmountColumn]}><Text style={[styles.amount, history && styles.historyAmount, { color: income ? theme.colors.moneyIncome : theme.colors.moneyExpense }]}>
           {income ? '+' : '−'}{formatMoney(transaction.amountCents)}
         </Text>{!history ? <Text style={styles.date}>{shortDate(transaction.occurredOn)}</Text> : null}</View>
       </View>
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   recurringLabel: { ...theme.typography.caption, color: theme.colors.textAction, flexShrink: 1 },
   amountColumn: { alignItems: 'flex-end', gap: theme.spacing.xs, flexShrink: 1 },
   date: { ...theme.typography.caption, color: theme.colors.textSubtle, textAlign: 'right' },
-  amount: { ...theme.typography.bodySmall, fontFamily: theme.fontFamily.semibold, ...theme.typography.amount, textAlign: 'right', flexShrink: 1 },
+  amount: { ...theme.typography.bodySmall, ...theme.typography.amount, textAlign: 'right', flexShrink: 1 },
   historyRow: { borderRadius: theme.radius.large, marginBottom: theme.spacing.sm,
     paddingVertical: theme.spacing.lg },
   historyLabel: { fontFamily: theme.fontFamily.semibold },

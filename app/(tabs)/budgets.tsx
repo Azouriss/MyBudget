@@ -65,7 +65,7 @@ export default function BudgetsScreen() {
             <View style={[styles.overview, stacked && styles.overviewStacked]}>
               <View style={styles.stat}>
                 <Text style={styles.meta}>{hasPlanned ? t("Dépenses prévues") : t("Dépensé")}</Text>
-                <Text style={styles.amount}>{formatMoney(summary.expenseCents)}</Text>
+                <Text style={[styles.amount, styles.spent]}>{formatMoney(summary.expenseCents)}</Text>
               </View>
               <View style={[styles.stat, !stacked && styles.statEnd]}>
                 <Text style={[styles.meta, !stacked && styles.alignEnd]}>{budgets.monthlySource === 'salary' ? t("Salaire net") : t("Budget fixé")}</Text>
@@ -134,7 +134,8 @@ const styles = StyleSheet.create({
   stat: { flex: 1, minWidth: 0, gap: theme.spacing.xs },
   statEnd: { alignItems: 'flex-end' },
   alignEnd: { textAlign: 'right' },
-  amount: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, ...theme.typography.amount, color: theme.colors.textPrimary, maxWidth: '100%' },
+  amount: { ...theme.typography.body, ...theme.typography.amount, color: theme.colors.textPrimary, maxWidth: '100%' },
+  spent: { color: theme.colors.moneyExpense },
   meta: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
   intro: { gap: theme.spacing.md },
   total: { ...theme.typography.headingXL, ...theme.typography.amount, color: theme.colors.textPrimary },
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
     flex: 1, minWidth: 0 },
   chevron: { width: theme.size.icon.small, height: theme.size.icon.small, flexShrink: 0 },
   categoryAmounts: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: theme.spacing.sm },
-  categoryAmount: { ...theme.typography.bodySmall, ...theme.typography.amount, fontFamily: theme.fontFamily.medium,
+  categoryAmount: { ...theme.typography.bodySmall, ...theme.typography.amount,
     color: theme.colors.textPrimary, maxWidth: '100%', flexShrink: 1 },
   categoryLimit: { ...theme.typography.bodySmall, ...theme.typography.amount, color: theme.colors.textSubtle,
     maxWidth: '100%', flexShrink: 1 },

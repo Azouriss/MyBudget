@@ -59,3 +59,12 @@ export function shortDate(value: string): string {
   return new Intl.DateTimeFormat(getLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' })
     .format(new Date(`${value}T12:00:00Z`));
 }
+
+/** Display the inclusive last civil day while calculation bounds stay exclusive. */
+export function periodLabel({ start, end }: { start: string; end: string }): string {
+  if (!isISODate(start) || (end !== '2100-01-01' && !isISODate(end)) || end <= start) throw new Error('Période invalide.');
+  const last = new Date(`${end}T12:00:00Z`);
+  last.setUTCDate(last.getUTCDate() - 1);
+  const lastDay = last.toISOString().slice(0, 10);
+  return `${shortDate(start)} – ${shortDate(lastDay)}`;
+}

@@ -9,8 +9,8 @@ import { theme } from '../../src/theme';
 export default function TabsLayout() {
   useLanguage();
   const insets = useSafeAreaInsets();
-  const { fontScale } = useWindowDimensions();
-  const lines = fontScale >= theme.layout.stackedFontScale ? 2 : 1;
+  const { fontScale, width } = useWindowDimensions();
+  const lines = fontScale >= theme.layout.stackedFontScale || width < 360 ? 3 : 2;
   const height = Math.max(theme.size.navMinHeight,
     theme.size.icon.default + theme.typography.caption.lineHeight * fontScale * lines + theme.spacing.lg);
   return <Tabs screenOptions={{ headerShown: false,
@@ -20,8 +20,9 @@ export default function TabsLayout() {
     tabBarStyle: { backgroundColor: theme.colors.background, borderTopColor: theme.colors.border,
       height: height + insets.bottom, paddingTop: theme.spacing.xs,
       width: '100%', maxWidth: theme.layout.contentMaxWidth, alignSelf: 'center' },
+    tabBarItemStyle: { minWidth: 0 },
     tabBarLabel: ({ children, color }) => <Text allowFontScaling style={{
-      ...theme.typography.caption, color, textAlign: 'center', paddingBottom: theme.spacing.xs,
+      ...theme.typography.caption, color, textAlign: 'center', width: '100%', flexShrink: 1, paddingBottom: theme.spacing.xs,
     }}>{children}</Text>,
     sceneStyle: { backgroundColor: theme.colors.background },
   }}>
