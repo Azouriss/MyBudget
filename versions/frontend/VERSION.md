@@ -1,5 +1,30 @@
 # Frontend version history
 
+## 0.11.0.1 - 2026-11-03
+
+- Restore the lightweight ribbon style in the expanded expense diagram: remove
+  node cards and colored outlines, show slim flow endpoints, and reuse category
+  icons and plain labels. Keep the plus action, full-screen view and every branch.
+- Preserve the common proportional scale, exact amounts, growing labels,
+  two-axis scrolling and the existing inline category diagrams.
+
+**Threat impact:** Presentation-only correction. No transaction-writing, schema,
+validation or financial-calculation changes.
+
+**Sovereignty impact:** No new dependency, service or telemetry. Synthetic browser
+fixtures remain in an isolated local profile and are excluded from Git. Database,
+Android and signing identities remain unchanged.
+
+**Validation:** Windows `npm run check` passed: TypeScript, 329 application tests
+and 23 release-tool tests. `node scripts/check-release.cjs` passed. Browser checks
+cover 16 French/English layouts at 320/390/768/1100 px and simulated 150% CSS text,
+opening/closing, Escape and restored focus. An isolated 510-operation fixture
+also exercises six categories and 62 child branches in the current month.
+
+**Status:** `verification-pending` - Local tests and browser evidence only;
+Android phone rendering, native scrolling and TalkBack remain unverified.
+No APK, push, tag, publication or deployment.
+
 ## 0.11.0.0 - 2026-11-03
 
 - Replace the category-to-subcategory caption in the home detail section with
