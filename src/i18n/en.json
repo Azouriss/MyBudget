@@ -898,5 +898,15 @@
   "Dans le détail": "A closer look",
   "Agrandir le diagramme": "Expand the diagram",
   "Fermer le diagramme": "Close the diagram",
-  "Faites glisser pour parcourir le diagramme.": "Swipe to explore the diagram."
+  "Faites glisser pour parcourir le diagramme.": "Swipe to explore the diagram.",
+  "Catégorie du diagramme": "Diagram category",
+  "{0} autres sous-catégories": "{0} other subcategories",
+  "Pincez pour zoomer · Glissez pour déplacer": "Pinch to zoom · Drag to move",
+  "Dézoomer le diagramme": "Zoom out of the diagram",
+  "Zoomer le diagramme": "Zoom into the diagram",
+  "Ajuster le diagramme à la largeur": "Fit the diagram to the width",
+  "Revenir en portrait": "Switch to portrait",
+  "Passer en paysage": "Switch to landscape",
+  "Rotation indisponible sur cet appareil.": "Rotation is unavailable on this device.",
+  "Impossible de rétablir l’orientation de l’écran.": "Unable to restore the screen orientation."
 }

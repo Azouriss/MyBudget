@@ -1,5 +1,34 @@
 # Documentation version history
 
+## 0.1.4.0 - 2026-11-03
+
+- Make the main README English first, with the complete French version behind a
+  native expandable button. Keep the old English path as a pointer to the canonical
+  document rather than maintaining two divergent copies.
+- Refresh the home and expanded-diagram illustrations in both languages. Use local,
+  accessible SVGs, fictional amounts and explicit illustration captions.
+- Update feature coverage, bilingual interface information, source/stack versions
+  and Android installation guidance. Distinguish source 0.12.0.0 from configured
+  app 0.1.0 and pending device acceptance; preserve backup and data-loss information.
+- Add Expo Screen Orientation 57.0.3 and its MIT license to the resolved direct
+  dependency inventory for the diagram orientation control.
+
+**Threat impact:** Public documentation and original illustrations only; no
+credentials, financial records or internal testing artifacts are included. Keep
+plaintext-export, replacement-restore and uninstall data-loss guidance visible
+within the backup section.
+
+**Sovereignty impact:** Records the local native module's existing upstream terms.
+Artwork stays local with no scripts, external resources or embedded fonts. MIT
+reuse and third-party terms remain intact; no runtime service is introduced.
+
+**Validation:** Versions and licenses match local configuration, `package-lock.json`
+and installed packages. Public links, SVG XML/accessibility metadata, illustrated
+amount totals, disclosure markup, browser rendering, scoped diff and secret-pattern
+review checked. Documentation does not establish Android device acceptance.
+
+**Status:** `verification-pending` - Local documentation update; no publication.
+
 ## 0.1.3.0 — 2026-10-16
 
 - Document Settings tools in both READMEs, complete JSON backups, replacement

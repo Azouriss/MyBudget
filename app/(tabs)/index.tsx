@@ -10,7 +10,7 @@ import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-n
 import { AppHeader } from '../../src/components/AppHeader';
 import { BudgetProgress } from '../../src/components/BudgetProgress';
 import { Button } from '../../src/components/Button';
-import { ExpenseSankey } from '../../src/components/ExpenseSankey';
+import { ExpenseDetailsPreview } from '../../src/components/ExpenseDetailsPreview';
 import { ExpenseDiagram } from '../../src/components/ExpenseDiagram';
 import { expenseHierarchy } from '../../src/lib/expenseHierarchy';
 import { ExpenseChart } from '../../src/components/ExpenseChart';
@@ -83,9 +83,7 @@ export default function DashboardScreen() {
         <SectionHeader title={t('Dans le détail')} action={t('Agrandir le diagramme')} actionIcon={Plus}
           onAction={() => setDiagramOpen(true)} />
         <SurfaceCard style={styles.details}>
-          {hierarchy.map((group, index) => <View key={group.categoryId} style={index > 0 ? styles.flowSeparator : undefined}>
-            <ExpenseSankey group={group} category={categories.get(group.categoryId)} />
-          </View>)}
+          <ExpenseDetailsPreview key={month} groups={hierarchy} categories={data.categories} />
         </SurfaceCard>
       </View> : null}
     </View>}
@@ -108,6 +106,5 @@ const styles = StyleSheet.create({
   empty: { ...theme.typography.headingM, color: theme.colors.textSubtle },
   note: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
   sectionNote: { ...theme.typography.bodySmall, color: theme.colors.textSubtle, marginBottom: theme.spacing.md },
-  flowSeparator: { borderTopWidth: theme.size.borderWidth, borderTopColor: theme.colors.border, paddingTop: theme.spacing.xl },
   transactions: { padding: theme.spacing.xs },
 });

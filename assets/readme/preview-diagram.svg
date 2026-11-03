@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="925" viewBox="0 0 900 925" xml:lang="fr" role="img" aria-labelledby="title desc">
+<title id="title">MyBudget — diagramme des dépenses agrandi</title>
+<desc id="desc">Diagramme agrandi illustré, pas une capture d’écran. Dépenses fictives de 1 500 euros réparties en six catégories et seize sous-catégories. Commandes de rotation, de zoom et d’ajustement à la largeur.</desc>
+<!-- Original illustration: MIT. Fictional data. -->
+<g font-family="Arial,sans-serif">
+<rect x="1" y="1" width="898" height="923" rx="24" fill="#FAF8F1" stroke="#E4E5DC"/>
+<rect x="18" y="18" width="48" height="48" rx="16" fill="white"/>
+<text x="42" y="51" font-size="30" fill="#577A68" font-weight="400" text-anchor="middle">↻</text>
+<text x="86" y="42" font-size="20" fill="#273B35" font-weight="600" text-anchor="start">Dans le détail</text>
+<text x="86" y="64" font-size="13" fill="#57675F" font-weight="400" text-anchor="start">Novembre 2026</text>
+<text x="856" y="51" font-size="28" fill="#273B35" font-weight="400" text-anchor="middle">×</text>
+<text x="26" y="97" font-size="13" fill="#57675F" font-weight="400" text-anchor="start">Pincez pour zoomer · Glissez pour déplacer</text>
+<text x="28" y="353" font-size="18" fill="#273B35" font-weight="600" text-anchor="start">Dépenses</text>
+<text x="28" y="380" font-size="19" fill="#273B35" font-weight="600" text-anchor="start">1 500,00 €</text>
+<rect x="166" y="315" width="5" height="240" rx="2" fill="#577A68"/>
+<path d="M171 315 C245.5 315 245.5 173.0 320 173.0 V293.0 C245.5 293.0 245.5 435.0 171 435.0 Z" fill="#C59C7A" opacity="0.65"/>
+<rect x="320" y="173.0" width="5" height="120.0" rx="0" fill="#C59C7A"/>
+<text x="338" y="230.0" font-size="16" fill="#273B35" font-weight="600" text-anchor="start">Logement</text>
+<text x="338" y="251.0" font-size="14" fill="#273B35" font-weight="600" text-anchor="start">750,00 €</text>
+<rect x="477" y="173.0" width="5" height="120.0" rx="0" fill="#C59C7A"/>
+<path d="M482 173.0 C582.0 173.0 582.0 125 682 125 V221.0 C582.0 221.0 582.0 269.0 482 269.0 Z" fill="#C59C7A" opacity="0.65"/>
+<rect x="682" y="125" width="5" height="96.0" rx="0" fill="#C59C7A"/>
+<text x="703" y="174.0" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Loyer</text>
+<text x="703" y="191.0" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">600,00 €</text>
+<path d="M482 269.0 C582.0 269.0 582.0 242.2 682 242.2 V251.79999999999998 C582.0 251.79999999999998 582.0 278.6 482 278.6 Z" fill="#C59C7A" opacity="0.65"/>
+<rect x="682" y="242.2" width="5" height="9.6" rx="0" fill="#C59C7A"/>
+<text x="703" y="248.0" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Électricité</text>
+<text x="703" y="265.0" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">60,00 €</text>
+<path d="M482 278.6 C582.0 278.6 582.0 280.6 682 280.6 V285.40000000000003 C582.0 285.40000000000003 582.0 283.40000000000003 482 283.40000000000003 Z" fill="#C59C7A" opacity="0.65"/>
+<rect x="682" y="280.6" width="5" height="4.8" rx="0" fill="#C59C7A"/>
+<text x="703" y="284.0" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Eau</text>
+<text x="703" y="301.0" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">30,00 €</text>
+<path d="M482 283.40000000000003 C582.0 283.40000000000003 582.0 317.0 682 317.0 V321.0 C582.0 321.0 582.0 287.40000000000003 482 287.40000000000003 Z" fill="#C59C7A" opacity="0.65"/>
+<rect x="682" y="317.0" width="5" height="4.0" rx="0" fill="#C59C7A"/>
+<text x="703" y="320.0" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Internet</text>
+<text x="703" y="337.0" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">25,00 €</text>
+<path d="M482 287.40000000000003 C582.0 287.40000000000003 582.0 353.4 682 353.4 V356.59999999999997 C582.0 356.59999999999997 582.0 290.6 482 290.6 Z" fill="#C59C7A" opacity="0.65"/>
+<rect x="682" y="353.4" width="5" height="3.2" rx="0" fill="#C59C7A"/>
+<text x="703" y="356.0" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Assurance</text>
+<text x="703" y="373.0" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">20,00 €</text>
+<path d="M482 290.6 C582.0 290.6 582.0 389.8 682 389.8 V392.2 C582.0 392.2 582.0 293.0 482 293.0 Z" fill="#C59C7A" opacity="0.65"/>
+<rect x="682" y="389.8" width="5" height="2.4" rx="0" fill="#C59C7A"/>
+<text x="703" y="392.0" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Réparations</text>
+<text x="703" y="409.0" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">15,00 €</text>
+<path d="M171 435.0 C245.5 435.0 245.5 430.0 320 430.0 V478.0 C245.5 478.0 245.5 483.0 171 483.0 Z" fill="#8FAE8B" opacity="0.65"/>
+<rect x="320" y="430.0" width="5" height="48.0" rx="0" fill="#8FAE8B"/>
+<text x="338" y="451.0" font-size="16" fill="#273B35" font-weight="600" text-anchor="start">Alimentation</text>
+<text x="338" y="472.0" font-size="14" fill="#273B35" font-weight="600" text-anchor="start">300,00 €</text>
+<rect x="477" y="430.0" width="5" height="48.0" rx="0" fill="#8FAE8B"/>
+<path d="M482 430.0 C582.0 430.0 582.0 418.0 682 418.0 V456.4 C582.0 456.4 582.0 468.4 482 468.4 Z" fill="#8FAE8B" opacity="0.65"/>
+<rect x="682" y="418.0" width="5" height="38.4" rx="0" fill="#8FAE8B"/>
+<text x="703" y="438.2" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Courses</text>
+<text x="703" y="455.2" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">240,00 €</text>
+<path d="M482 468.4 C582.0 468.4 582.0 477.59999999999997 682 477.59999999999997 V487.2 C582.0 487.2 582.0 478.0 482 478.0 Z" fill="#8FAE8B" opacity="0.65"/>
+<rect x="682" y="477.59999999999997" width="5" height="9.6" rx="0" fill="#8FAE8B"/>
+<text x="703" y="483.4" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Boulangerie</text>
+<text x="703" y="500.4" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">60,00 €</text>
+<path d="M171 483.0 C245.5 483.0 245.5 533.4 320 533.4 V557.4 C245.5 557.4 245.5 507.0 171 507.0 Z" fill="#8AAEC0" opacity="0.65"/>
+<rect x="320" y="533.4" width="5" height="24.0" rx="0" fill="#8AAEC0"/>
+<text x="338" y="542.4" font-size="16" fill="#273B35" font-weight="600" text-anchor="start">Transport</text>
+<text x="338" y="563.4" font-size="14" fill="#273B35" font-weight="600" text-anchor="start">150,00 €</text>
+<rect x="477" y="533.4" width="5" height="24.0" rx="0" fill="#8AAEC0"/>
+<path d="M482 533.4 C582.0 533.4 582.0 519.4 682 519.4 V535.4 C582.0 535.4 582.0 549.4 482 549.4 Z" fill="#8AAEC0" opacity="0.65"/>
+<rect x="682" y="519.4" width="5" height="16.0" rx="0" fill="#8AAEC0"/>
+<text x="703" y="528.4" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Carburant</text>
+<text x="703" y="545.4" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">100,00 €</text>
+<path d="M482 549.4 C582.0 549.4 582.0 559.4 682 559.4 V567.4 C582.0 567.4 582.0 557.4 482 557.4 Z" fill="#8AAEC0" opacity="0.65"/>
+<rect x="682" y="559.4" width="5" height="8.0" rx="0" fill="#8AAEC0"/>
+<text x="703" y="564.4" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Transports publics</text>
+<text x="703" y="581.4" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">50,00 €</text>
+<path d="M171 507.0 C245.5 507.0 245.5 616.8 320 616.8 V636.0 C245.5 636.0 245.5 526.2 171 526.2 Z" fill="#D38A62" opacity="0.65"/>
+<rect x="320" y="616.8" width="5" height="19.2" rx="0" fill="#D38A62"/>
+<text x="338" y="623.4" font-size="16" fill="#273B35" font-weight="600" text-anchor="start">Loisirs</text>
+<text x="338" y="644.4" font-size="14" fill="#273B35" font-weight="600" text-anchor="start">120,00 €</text>
+<rect x="477" y="616.8" width="5" height="19.2" rx="0" fill="#D38A62"/>
+<path d="M482 616.8 C582.0 616.8 582.0 601.1999999999999 682 601.1999999999999 V615.5999999999999 C582.0 615.5999999999999 582.0 631.1999999999999 482 631.1999999999999 Z" fill="#D38A62" opacity="0.65"/>
+<rect x="682" y="601.1999999999999" width="5" height="14.4" rx="0" fill="#D38A62"/>
+<text x="703" y="609.4" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Sorties</text>
+<text x="703" y="626.4" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">90,00 €</text>
+<path d="M482 631.1999999999999 C582.0 631.1999999999999 582.0 642.0 682 642.0 V646.8 C582.0 646.8 582.0 635.9999999999999 482 635.9999999999999 Z" fill="#D38A62" opacity="0.65"/>
+<rect x="682" y="642.0" width="5" height="4.8" rx="0" fill="#D38A62"/>
+<text x="703" y="645.4" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Livres</text>
+<text x="703" y="662.4" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">30,00 €</text>
+<path d="M171 526.2 C245.5 526.2 245.5 700.1999999999999 320 700.1999999999999 V714.5999999999999 C245.5 714.5999999999999 245.5 540.6 171 540.6 Z" fill="#CF8E94" opacity="0.65"/>
+<rect x="320" y="700.1999999999999" width="5" height="14.4" rx="0" fill="#CF8E94"/>
+<text x="338" y="704.4" font-size="16" fill="#273B35" font-weight="600" text-anchor="start">Santé</text>
+<text x="338" y="725.4" font-size="14" fill="#273B35" font-weight="600" text-anchor="start">90,00 €</text>
+<rect x="477" y="700.1999999999999" width="5" height="14.4" rx="0" fill="#CF8E94"/>
+<path d="M482 700.1999999999999 C582.0 700.1999999999999 582.0 684.6 682 684.6 V694.2 C582.0 694.2 582.0 709.8 482 709.8 Z" fill="#CF8E94" opacity="0.65"/>
+<rect x="682" y="684.6" width="5" height="9.6" rx="0" fill="#CF8E94"/>
+<text x="703" y="690.4" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Pharmacie</text>
+<text x="703" y="707.4" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">60,00 €</text>
+<path d="M482 709.8 C582.0 709.8 582.0 723.0 682 723.0 V727.8 C582.0 727.8 582.0 714.5999999999999 482 714.5999999999999 Z" fill="#CF8E94" opacity="0.65"/>
+<rect x="682" y="723.0" width="5" height="4.8" rx="0" fill="#CF8E94"/>
+<text x="703" y="726.4" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Soins</text>
+<text x="703" y="743.4" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">30,00 €</text>
+<path d="M171 540.6 C245.5 540.6 245.5 781.1999999999999 320 781.1999999999999 V795.5999999999999 C245.5 795.5999999999999 245.5 555.0 171 555.0 Z" fill="#A69BC2" opacity="0.65"/>
+<rect x="320" y="781.1999999999999" width="5" height="14.4" rx="0" fill="#A69BC2"/>
+<text x="338" y="785.4" font-size="16" fill="#273B35" font-weight="600" text-anchor="start">Autres</text>
+<text x="338" y="806.4" font-size="14" fill="#273B35" font-weight="600" text-anchor="start">90,00 €</text>
+<rect x="477" y="781.1999999999999" width="5" height="14.4" rx="0" fill="#A69BC2"/>
+<path d="M482 781.1999999999999 C582.0 781.1999999999999 582.0 768.0 682 768.0 V772.8 C582.0 772.8 582.0 785.9999999999999 482 785.9999999999999 Z" fill="#A69BC2" opacity="0.65"/>
+<rect x="682" y="768.0" width="5" height="4.8" rx="0" fill="#A69BC2"/>
+<text x="703" y="771.4" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Forfait mobile</text>
+<text x="703" y="788.4" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">30,00 €</text>
+<path d="M482 785.9999999999999 C582.0 785.9999999999999 582.0 801.6 682 801.6 V811.2 C582.0 811.2 582.0 795.5999999999999 482 795.5999999999999 Z" fill="#A69BC2" opacity="0.65"/>
+<rect x="682" y="801.6" width="5" height="9.6" rx="0" fill="#A69BC2"/>
+<text x="703" y="807.4" font-size="13" fill="#273B35" font-weight="400" text-anchor="start">Autres achats</text>
+<text x="703" y="824.4" font-size="12" fill="#273B35" font-weight="600" text-anchor="start">60,00 €</text>
+<path d="M18 849 H882 V850 H18 Z" fill="#E4E5DC" opacity="1"/>
+<rect x="322" y="861" width="48" height="48" rx="16" fill="white"/>
+<text x="346" y="893" font-size="25" fill="#273B35" font-weight="400" text-anchor="middle">−</text>
+<text x="414" y="891" font-size="15" fill="#57675F" font-weight="400" text-anchor="middle">100 %</text>
+<rect x="458" y="861" width="48" height="48" rx="16" fill="white"/>
+<text x="482" y="893" font-size="25" fill="#273B35" font-weight="400" text-anchor="middle">+</text>
+<rect x="522" y="861" width="48" height="48" rx="16" fill="white"/>
+<path d="M535 880 v-6 h6 M551 874 h6 v6 M557 890 v6 h-6 M541 896 h-6 v-6" fill="none" stroke="#577A68" stroke-width="2"/>
+</g>
+</svg>

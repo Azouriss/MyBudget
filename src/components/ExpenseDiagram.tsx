@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Modal, Platform, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { X } from 'lucide-react-native';
+import { RotateCw, X } from 'lucide-react-native';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import Svg, { Path, Rect } from 'react-native-svg';
 import type { Category } from '../db/schema';
 import type { ExpenseCategoryBreakdown } from '../lib/expenseHierarchy';
@@ -14,32 +15,76 @@ import { theme } from '../theme';
 import { CategoryIcon, categoryVisual } from './CategoryIcon';
 import { IconButton } from './IconButton';
 import { decorativeIconProps } from './decorativeIconProps';
+import { ZoomableDiagram } from './ZoomableDiagram';
+import { diagramOrientation } from '../lib/diagramOrientation';
+import { useAppStore } from '../stores/useAppStore';
 
 export function ExpenseDiagram({ groups, categories, period, onClose }: {
   groups: ExpenseCategoryBreakdown[]; categories: Category[]; period: string; onClose: () => void;
 }) {
   useLanguage();
+  const { width, height } = useWindowDimensions();
+  const [landscape, setLandscape] = useState(Platform.OS === 'web' && width > height);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const orientation = useRef<ReturnType<typeof diagramOrientation> | null>(null);
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    const session = diagramOrientation({
+      get: async () => {
+        const lock = await ScreenOrientation.getOrientationLockAsync();
+        return lock === ScreenOrientation.OrientationLock.UNKNOWN || lock === ScreenOrientation.OrientationLock.OTHER
+          ? ScreenOrientation.OrientationLock.PORTRAIT_UP : lock;
+      },
+      lock: value => ScreenOrientation.lockAsync(value),
+    }, ScreenOrientation.OrientationLock.PORTRAIT_UP, ScreenOrientation.OrientationLock.LANDSCAPE);
+    orientation.current = session;
+    return () => {
+      mounted.current = false; orientation.current = null;
+      if (Platform.OS !== 'web') void session.close().catch(() => useAppStore.getState().showNotice(t('Impossible de rétablir l’orientation de l’écran.')));
+    };
+  }, []);
+  const rotate = async () => {
+    if (busy) return;
+    setBusy(true); setError(null);
+    try {
+      if (Platform.OS !== 'web') await orientation.current?.rotate(!landscape);
+      if (mounted.current) setLandscape(!landscape);
+    } catch { if (mounted.current) setError(t('Rotation indisponible sur cet appareil.')); }
+    finally { if (mounted.current) setBusy(false); }
+  };
+  // Browser windows cannot always lock hardware orientation; rotate this view locally.
+  const rotated = Platform.OS === 'web' && landscape !== (width > height);
+  const canvasWidth = rotated ? height : width;
   return <Modal visible animationType="none" onRequestClose={onClose}>
-    <SafeAreaView style={styles.screen}>
+    <View style={styles.screen}>
+    <SafeAreaView style={[styles.screen, rotated && { position: 'absolute', width: height, height: width,
+      transformOrigin: 'top left', transform: [{ translateX: width }, { rotate: '90deg' }] }]}>
       <View style={styles.header}>
+        <IconButton icon={RotateCw} label={landscape ? t('Revenir en portrait') : t('Passer en paysage')} disabled={busy} onPress={rotate} />
         <View style={styles.heading}>
           <Text accessibilityRole="header" style={styles.title}>{t('Dans le détail')}</Text>
           <Text style={styles.period}>{period}</Text>
         </View>
         <IconButton icon={X} label={t('Fermer le diagramme')} onPress={onClose} />
       </View>
-      <ExpenseDiagramCanvas groups={groups} categories={categories} />
+      {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+      <ExpenseDiagramCanvas groups={groups} categories={categories} availableWidth={canvasWidth} rotated={rotated} />
     </SafeAreaView>
+    </View>
   </Modal>;
 }
 
-function ExpenseDiagramCanvas({ groups, categories }: { groups: ExpenseCategoryBreakdown[]; categories: Category[] }) {
-  const { width, fontScale } = useWindowDimensions();
+function ExpenseDiagramCanvas({ groups, categories, availableWidth, rotated }: {
+  groups: ExpenseCategoryBreakdown[]; categories: Category[]; availableWidth: number; rotated: boolean;
+}) {
+  const { fontScale } = useWindowDimensions();
   const [measured, setMeasured] = useState<Record<string, number>>({});
   const flow = expenseTreeFlow(groups, measured, fontScale);
   const scale = Math.max(1, fontScale);
   const rootWidth = 160 * scale, categoryWidth = 172 * scale, childWidth = 196 * scale;
-  const canvasWidth = Math.max(width - theme.spacing.lg * 2, 780 * scale);
+  const canvasWidth = Math.max(availableWidth - theme.spacing.lg * 2, 780 * scale);
   const gap = (canvasWidth - rootWidth - categoryWidth - childWidth) / 2;
   const categoryX = rootWidth + gap, childX = categoryX + categoryWidth + gap;
   function measure(key: string, height: number) {
@@ -58,10 +103,8 @@ function ExpenseDiagramCanvas({ groups, categories }: { groups: ExpenseCategoryB
     </View>;
   }
   if (!flow.groups.length) return <Text style={styles.empty}>{t('Aucune dépense enregistrée dans cette période.')}</Text>;
-  return <View style={styles.viewer}>
-    {canvasWidth > width - theme.spacing.lg * 2 ? <Text style={styles.hint}>{t('Faites glisser pour parcourir le diagramme.')}</Text> : null}
-    <ScrollView style={styles.viewer} contentContainerStyle={styles.scrollContent} nestedScrollEnabled>
-      <ScrollView horizontal nestedScrollEnabled contentContainerStyle={styles.canvasPadding}>
+  return <ZoomableDiagram width={canvasWidth + theme.spacing.lg * 2} height={flow.height + theme.spacing.lg * 2} rotated={rotated}>
+      <View style={styles.canvasPadding}>
         <View style={{ width: canvasWidth, height: flow.height }} testID="expense-diagram">
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
             <Svg width={canvasWidth} height={flow.height} {...decorativeIconProps}>
@@ -95,9 +138,8 @@ function ExpenseDiagramCanvas({ groups, categories }: { groups: ExpenseCategoryB
             </View>;
           })}
         </View>
-      </ScrollView>
-    </ScrollView>
-  </View>;
+      </View>
+  </ZoomableDiagram>;
 }
 
 const styles = StyleSheet.create({
@@ -107,8 +149,6 @@ const styles = StyleSheet.create({
   heading: { flex: 1, minWidth: 0, gap: theme.spacing.xs },
   title: { ...theme.typography.headingM, color: theme.colors.textPrimary },
   period: { ...theme.typography.bodySmall, color: theme.colors.textSubtle },
-  viewer: { flex: 1 },
-  scrollContent: { flexGrow: 1 },
   canvasPadding: { padding: theme.spacing.lg },
   node: { position: 'absolute', justifyContent: 'center', padding: theme.spacing.md },
   source: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
@@ -116,6 +156,6 @@ const styles = StyleSheet.create({
   label: { ...theme.typography.bodySmall, color: theme.colors.textSubtle, marginBottom: theme.spacing.xs },
   sourceLabel: { ...theme.typography.body, fontFamily: theme.fontFamily.semibold, color: theme.colors.textPrimary },
   money: { ...theme.typography.body, ...theme.typography.amount, color: theme.colors.textPrimary },
-  hint: { ...theme.typography.caption, color: theme.colors.textSubtle, paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.sm },
+  error: { ...theme.typography.bodySmall, color: theme.colors.dangerText, paddingHorizontal: theme.spacing.lg },
   empty: { ...theme.typography.bodySmall, color: theme.colors.textSubtle, padding: theme.spacing.lg },
 });

@@ -1,5 +1,38 @@
 # Frontend version history
 
+## 0.12.0.0 - 2026-11-03
+
+- Keep home expense details compact with a horizontal category selector and one
+  diagram at a time. Show up to four branches: the three largest subcategories
+  and a counted remainder when needed, preserving the complete category total.
+- Keep every original branch in the expanded view. Add a rotation button on the
+  left, finger pinch zoom, one-finger dragging, zoom controls and a fit-width action.
+  Support mouse-wheel/trackpad and keyboard movement in the browser preview.
+- Use Expo Screen Orientation 57.0.3 for Android landscape/portrait changes and
+  restore the previous lock on closing, including during a pending request. Web
+  rotates only the diagram view. Keep the lightweight ribbon design and local data.
+
+**Threat impact:** Read-only aggregation and display changes. Tests cover preview
+totals, invalid inputs, zoom bounds and focal points, and orientation restoration
+after pending or rejected requests. No database schema or financial writes change.
+
+**Sovereignty impact:** The added MIT-licensed Expo module works locally and adds
+no runtime network service or telemetry. Pinch and drag use React Native's existing
+responder API. Database and Android identities, signing keys and protected migrations
+remain unchanged. Synthetic fixtures and browser checks stay outside Git.
+
+**Validation:** Windows `npm run release:check`: TypeScript, 339 application tests,
+23 release-tool tests and nine protected migrations passed. Local Android JavaScript
+export passed. Browser checks cover all six categories at 320/390/768 px, all 68
+expanded ribbons, French/English, 150% CSS text, 48 px controls, simulated DOM
+two-finger pinch and drag in both orientations, fit-width, Escape, focus restoration,
+empty periods and selection reset. The native CDP touch injector timed out; DOM
+gesture simulation is browser evidence only.
+
+**Status:** `verification-pending` - Android hardware rotation, touch performance
+and TalkBack still require a rebuilt APK and phone acceptance. The Android export
+is a JavaScript bundle, not an APK. No push, tag, publication or remote build.
+
 ## 0.11.0.1 - 2026-11-03
 
 - Restore the lightweight ribbon style in the expanded expense diagram: remove

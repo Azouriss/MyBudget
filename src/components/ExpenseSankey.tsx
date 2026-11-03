@@ -12,10 +12,11 @@ import { theme } from '../theme';
 import { categoryVisual } from './CategoryIcon';
 import { decorativeIconProps } from './decorativeIconProps';
 import { expenseFlow } from '../lib/expenseFlow';
+import { expensePreview } from '../lib/expensePreview';
 
 /** A category source flows to its stored subcategories without inventing missing detail. */
-export function ExpenseSankey({ group, category }: { group: ExpenseCategoryBreakdown; category?: Category }) {
-  const breakdown = group.children.map((child) => ({ categoryId: child.subcategoryId ?? 'unspecified', amountCents: child.amountCents }));
+export function ExpenseSankey({ group, category, preview = false }: { group: ExpenseCategoryBreakdown; category?: Category; preview?: boolean }) {
+  const breakdown = expensePreview(group, preview ? 4 : Math.max(2, group.children.length));
   const total = group.amountCents;
   useLanguage();
   const { fontScale } = useWindowDimensions();
@@ -47,13 +48,16 @@ export function ExpenseSankey({ group, category }: { group: ExpenseCategoryBreak
       <View style={{ marginLeft: graphWidth + theme.spacing.md, flex: 1 }}>
         {flow.rows.map((row) => {
           const subcategory = getExpenseSubcategory(row.categoryId);
+          const remaining = breakdown.find(part => part.categoryId === row.categoryId)?.remainingCount ?? 0;
           const percent = row.amountCents / total * 100;
           return <View key={row.categoryId} style={[styles.category, { minHeight: row.minHeight }]}
             onLayout={(event) => {
               const height = event.nativeEvent.layout.height;
               setHeights((previous) => Math.abs((previous[row.categoryId] ?? 0) - height) < 0.5 ? previous : { ...previous, [row.categoryId]: height });
             }}>
-            <Text style={styles.label}>{t(subcategory?.label ?? 'Non précisé')}</Text>
+            <Text style={styles.label}>{remaining
+              ? t('{0} autres sous-catégories', [remaining])
+              : t(subcategory?.label ?? 'Non précisé')}</Text>
             <Text style={styles.money}>{formatMoney(row.amountCents)}</Text>
             <Text style={styles.caption}>{percent > 0 && percent < 1 ? '< 1' : Math.round(percent)} %</Text>
           </View>;
