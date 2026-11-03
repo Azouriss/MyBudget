@@ -1,5 +1,37 @@
 # Frontend version history
 
+## 0.11.0.0 - 2026-11-03
+
+- Replace the category-to-subcategory caption in the home detail section with
+  an accessible plus button. Keep the inline charts and open a full-screen,
+  unified diagram for the selected period.
+- Connect the recorded expense total to every category and stored subcategory,
+  including Unspecified branches. Both levels share one proportional scale;
+  exact cent amounts remain visible beside each node.
+- Allow horizontal and vertical scrolling on small screens, keep the close
+  action visible, and support French/English and growing text labels.
+
+**Threat impact:** Read-only presentation and geometry changes. Regression tests
+cover conservation of proportions, one-cent branches, missing classifications,
+invalid totals, duplicate nodes and expanded labels. No schema or write-path change.
+
+**Sovereignty impact:** Calculations and SVG rendering remain local, with no new
+dependency, service, telemetry or remote build. Existing database, Android and
+signing identities are preserved.
+
+**Validation:** Windows `npm run check` passed: TypeScript, 329 application tests
+and 23 release-tool tests. `node scripts/check-release.cjs` passed with nine
+protected migrations. Isolated synthetic browser checks passed 16 diagram layouts
+at 320/390/768/1100 px, French/English and simulated 150% CSS text. All category
+and child branches and amounts are present. Opening, closing, Escape, restored
+keyboard focus, the empty-period state and two-axis scrolling to the last branch
+passed without browser errors. The home plus action remains reachable at 320 px
+with simulated 150% CSS text.
+
+**Status:** `verification-pending` - Local source, tests and browser evidence only.
+Android phone rendering, native scrolling and TalkBack remain unverified. No APK,
+push, tag, publication or deployment.
+
 ## 0.10.0.0 - 2026-11-02
 
 - Restore the overview donut and keep expense charts directly visible while

@@ -896,5 +896,7 @@
   "Aucune dépense enregistrée dans cette période.": "No recorded expenses in this period.",
   "Non précisé": "Unspecified",
   "Dans le détail": "A closer look",
-  "Catégories → sous-catégories": "Categories → subcategories"
+  "Agrandir le diagramme": "Expand the diagram",
+  "Fermer le diagramme": "Close the diagram",
+  "Faites glisser pour parcourir le diagramme.": "Swipe to explore the diagram."
 }

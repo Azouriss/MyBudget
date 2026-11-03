@@ -1,7 +1,7 @@
 import { t } from '../../src/i18n/locale';
 import { useLanguage } from '../../src/i18n/useLanguage';
 import { SalaryReminder } from '../../src/features/payday/SalaryReminder';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { Plus } from 'lucide-react-native';
 import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated';
@@ -11,6 +11,7 @@ import { AppHeader } from '../../src/components/AppHeader';
 import { BudgetProgress } from '../../src/components/BudgetProgress';
 import { Button } from '../../src/components/Button';
 import { ExpenseSankey } from '../../src/components/ExpenseSankey';
+import { ExpenseDiagram } from '../../src/components/ExpenseDiagram';
 import { expenseHierarchy } from '../../src/lib/expenseHierarchy';
 import { ExpenseChart } from '../../src/components/ExpenseChart';
 import { MonthPicker } from '../../src/components/MonthPicker';
@@ -23,13 +24,14 @@ import { TransactionRow } from '../../src/features/transactions/TransactionRow';
 import { useMonthlyTransactions, useBudgetPeriod } from '../../src/features/transactions/hooks';
 import { dashboardSummary } from '../../src/lib/finance';
 import { budgetProgress } from '../../src/lib/budgets';
-import { localDateKey } from '../../src/lib/dates';
+import { localDateKey, periodLabel } from '../../src/lib/dates';
 import { formatMoney } from '../../src/lib/money';
 import { useAppStore } from '../../src/stores/useAppStore';
 import { theme } from '../../src/theme';
 
 export default function DashboardScreen() {
   useLanguage();
+  const [diagramOpen, setDiagramOpen] = useState(false);
   const month = useAppStore((state) => state.month);
   const data = useMonthlyTransactions();
   const budgets = useMonthlyBudgets();
@@ -78,8 +80,8 @@ export default function DashboardScreen() {
         </SurfaceCard>
       </View> : <Text style={styles.note}>{t('Aucune transaction enregistrée à ce jour dans cette période.')}</Text>}
       {hierarchy.length > 0 ? <View>
-        <SectionHeader title={t('Dans le détail')} />
-        <Text style={styles.sectionNote}>{t('Catégories → sous-catégories')}</Text>
+        <SectionHeader title={t('Dans le détail')} action={t('Agrandir le diagramme')} actionIcon={Plus}
+          onAction={() => setDiagramOpen(true)} />
         <SurfaceCard style={styles.details}>
           {hierarchy.map((group, index) => <View key={group.categoryId} style={index > 0 ? styles.flowSeparator : undefined}>
             <ExpenseSankey group={group} category={categories.get(group.categoryId)} />
@@ -87,7 +89,10 @@ export default function DashboardScreen() {
         </SurfaceCard>
       </View> : null}
     </View>}
-  </ScrollView></ScreenContainer>;
+  </ScrollView>
+    {diagramOpen ? <ExpenseDiagram groups={hierarchy} categories={data.categories} period={periodLabel(period)}
+      onClose={() => setDiagramOpen(false)} /> : null}
+  </ScreenContainer>;
 }
 const styles = StyleSheet.create({
   page: { paddingHorizontal: theme.layout.gutter, paddingBottom: theme.spacing.xl },

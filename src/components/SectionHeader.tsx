@@ -1,13 +1,17 @@
 import { Text, View, StyleSheet } from 'react-native';
 import { theme } from '../theme';
 import { Button } from './Button';
+import { IconButton } from './IconButton';
+import type { LucideIcon } from 'lucide-react-native';
 
-export function SectionHeader({ title, action, onAction }: {
-  title: string; action?: string; onAction?: () => void;
+export function SectionHeader({ title, action, actionIcon, onAction }: {
+  title: string; action?: string; actionIcon?: LucideIcon; onAction?: () => void;
 }) {
   return <View style={styles.row}>
     <Text accessibilityRole="header" style={styles.title}>{title}</Text>
-    {action && onAction ? <Button title={action} onPress={onAction} variant="ghost" /> : null}
+    {action && onAction ? actionIcon
+      ? <IconButton icon={actionIcon} label={action} onPress={onAction} />
+      : <Button title={action} onPress={onAction} variant="ghost" /> : null}
   </View>;
 }
 
